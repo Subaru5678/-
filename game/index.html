@@ -1184,18 +1184,19 @@ function drawCastle(){
   if(!vis(ctr.x,ctr.y,T*(w+h))) return;
   const stone='#6f7386';
   // 基壇（低い石造りの土台）。周囲の兵舎・採掘場と重ならないよう、判定上の除外範囲(KEEP_FOUND)より一回り小さく描く
-  const fw=3.6, fh=3.6;
-  block(cx-fw/2,cy-fh/2,fw,fh,T*.22,shade(stone,14),shade(stone,-22),shade(stone,-42));
+  // 隣接する建物とタワーの背丈のせいで画面上重なって見えないよう、footprintを狭く・背も低めに抑える
+  const fw=2.8, fh=2.8;
+  block(cx-fw/2,cy-fh/2,fw,fh,T*.2,shade(stone,14),shade(stone,-22),shade(stone,-42));
   // 四隅の物見塔（尖り屋根＋旗）
-  const tw=0.85, tH=T*.92, turretCol='#5f6376';
+  const tw=0.6, tH=T*.58, turretCol='#5f6376';
   const corners=[[cx-fw/2,cy-fh/2],[cx+fw/2-tw,cy-fh/2],[cx-fw/2,cy+fh/2-tw],[cx+fw/2-tw,cy+fh/2-tw]];
   for(const[tx,ty] of corners){
     block(tx,ty,tw,tw,tH,shade(turretCol,12),shade(turretCol,-18),shade(turretCol,-38));
-    const rp=pyramidRoof(tx,ty,tw,tw,tH,T*.48,'#7a2e2e');
-    flagShape(rp.x,rp.y,T*.16,'#c2474d');
+    const rp=pyramidRoof(tx,ty,tw,tw,tH,T*.3,'#7a2e2e');
+    flagShape(rp.x,rp.y,T*.13,'#c2474d');
   }
   // 天守（本体・上端に胸壁・旗）
-  const kw=1.8, kh=1.8, kH=T*1.3, keepCol='#565971';
+  const kw=1.5, kh=1.5, kH=T*.95, keepCol='#565971';
   const top=block(cx-kw/2,cy-kh/2,kw,kh,kH,shade(keepCol,14),shade(keepCol,-20),shade(keepCol,-40));
   // 窓
   const wpt=diamond(cx-kw/2,cy-kh/2,kw,kh);
@@ -1304,8 +1305,14 @@ function drawBuilding(b,ghost,bad){
     }
   }
   if(bad||b.hitT>0){
-    const col=bad?'rgba(200,50,60,.4)':'rgba(255,255,255,.3)';
+    const col=bad?'rgba(210,40,50,.55)':'rgba(255,255,255,.3)';
     for(const cl of fpCells(b.c,b.r,bs)) fillDiamond(diamond(cl.c,cl.r,1,1),col);
+  }
+  if(bad&&ghost){
+    // 建物の輪郭にもはっきり×印を重ね、配置不可を見落とさないようにする
+    const bp=diamond(b.c,b.r,bs,bs);
+    ctx.strokeStyle='rgba(255,90,90,.95)'; ctx.lineWidth=Math.max(2,T*.05); ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(bp.A.x,bp.A.y); ctx.lineTo(bp.C.x,bp.C.y); ctx.moveTo(bp.B.x,bp.B.y); ctx.lineTo(bp.D.x,bp.D.y); ctx.stroke();
   }
   ctx.restore();
   if(!ghost&&b.kind!=='water'&&b.hp<bmax(b)) bar(top.x,top.y-T*(.75+.5*(bs-1)),T*.7,b.hp/bmax(b),'#c96a5a');
