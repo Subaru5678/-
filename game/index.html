@@ -655,7 +655,11 @@ function startWave(auto){
   if(!G.started||G.over||G.wave>=MAXW) return;
   const busy=!calm();
   if(!auto){
-    if(busy){ G.gold+=20; toast('先制ボーナス +20G'); }
+    if(busy){
+      G.gold+=20;
+      const pending=G.enemies.length+G.queue.length;
+      toast(pending>12?`⚠️ 敵がまだ${pending}体残っている！ 先制ボーナス +20G`:'先制ボーナス +20G');
+    }
     else if(G.nextIn>8){ const bn=Math.round(G.nextIn*.5); G.gold+=bn; toast(`早期出撃 +${bn}G`); }
   }
   const idx=G.wave, mul=waveMul(idx);
