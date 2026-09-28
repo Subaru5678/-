@@ -1973,7 +1973,10 @@ cv.addEventListener('pointerdown',ev=>{
   ptrs.set(ev.pointerId,p);
   if(ptrs.size>=2){ for(const q of ptrs.values()){ q.moved=true; q.paint=false; q.mini=false; } pinch=null; pinchUpdate(); return; }
   if(!G.started&&!G.placing) return;
-  if(inMini(pt)){ p.mini=true; miniJump(pt); return; }
+  // 配置モード・スキル照準中・王城設置待ちの間はミニマップより配置操作を優先する
+  // （そうしないと画面右上での配置タップがミニマップのジャンプに奪われ、無言で失敗する）
+  const placingActive=!!G.sel||!!G.aim||(G.placing&&!G.castle);
+  if(!placingActive&&inMini(pt)){ p.mini=true; miniJump(pt); return; }
   const w=wPt(pt); hover=w;
   const cell=G.grid[w.r]&&G.grid[w.r][w.c];
   if(!G.paused&&!G.over&&!G.aim&&PAINT.includes(G.sel)&&cell&&!cell.b){
