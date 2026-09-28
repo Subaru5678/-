@@ -219,7 +219,7 @@ function genMap(){
   return g;
 }
 const MAP=genMap();
-const CASTLE_W=10, CASTLE_H=10;
+const CASTLE_W=10, CASTLE_H=10, KEEP_FOUND=4.0;
 function castleFootprint(c0,r0){
   const cells=[];
   for(let dr=0;dr<CASTLE_H;dr++)for(let dc=0;dc<CASTLE_W;dc++) cells.push({c:c0+dc,r:r0+dr});
@@ -242,10 +242,14 @@ function castleTargetPoint(ex,ey){
   const {c,r,w,h}=G.castle;
   return {tx:clamp(ex,c+0.3,c+w-0.3),ty:clamp(ey,r+0.3,r+h-0.3)};
 }
-// 城壁の出入り口（四辺の中央に1つずつ、計4箇所）
+// 城壁の出入り口（四辺の中央に幅2マスずつ、計4箇所）
 function castleGates(c0,r0){
-  const gw=c0+((CASTLE_W/2)|0), gh=r0+((CASTLE_H/2)|0);
-  return [{c:gw,r:r0},{c:gw,r:r0+CASTLE_H-1},{c:c0,r:gh},{c:c0+CASTLE_W-1,r:gh}];
+  const gw=c0+((CASTLE_W/2)|0)-1, gh=r0+((CASTLE_H/2)|0)-1;
+  const g=[];
+  for(let i=0;i<2;i++){
+    g.push({c:gw+i,r:r0},{c:gw+i,r:r0+CASTLE_H-1},{c:c0,r:gh+i},{c:c0+CASTLE_W-1,r:gh+i});
+  }
+  return g;
 }
 function isCastleGate(c0,r0,c,r){ return castleGates(c0,r0).some(g=>g.c===c&&g.r===r); }
 function isCastleRim(c0,r0,c,r){ return c===c0||c===c0+CASTLE_W-1||r===r0||r===r0+CASTLE_H-1; }
@@ -520,6 +524,11 @@ function recompute(){
 }
 
 /* ===================== 建設・廃墟・修復 ===================== */
+function keepBlocked(c,r,s){
+  if(!G.castle) return false;
+  const cx=G.castle.c+CASTLE_W/2, cy=G.castle.r+CASTLE_H/2, half=KEEP_FOUND/2;
+  return c<cx+half&&c+s>cx-half&&r<cy+half&&r+s>cy-half;
+}
 function placeCheck(kind,c,r){
   const s=bsize(kind);
   if(c<0||r<0||c+s>COLS||r+s>ROWS) return '範囲外';
@@ -532,6 +541,7 @@ function placeCheck(kind,c,r){
     }
     if(cell.b) return 'すでに建物がある';
   }
+  if(keepBlocked(c,r,s)) return '天守に近すぎて建てられない';
   if(!isWalkKind(kind)&&fpCells(c,r,s).some(cl=>G.enemies.some(e=>!e.fly&&(e.x|0)===cl.c&&(e.y|0)===cl.r))) return '敵がいる場所には建てられない';
   if(kind==='barracks'&&G.blds.some(b=>b.kind==='barracks')) return '兵舎は1つしか建てられない';
   if(kind==='mine'&&G.blds.filter(b=>b.kind==='mine').length>=MINE_MAX) return `採掘場は最大${MINE_MAX}個まで`;
@@ -1073,6 +1083,32 @@ function block(c,r,w,h,H,topCol,rightCol,leftCol){
   const ctr=iso(c+w/2,r+h/2);
   return {x:ctr.x,y:ctr.y-H};
 }
+// blockの上に載る四角錐の屋根（塔の尖り屋根用）。baseHはblockの高さ、peakHは屋根自体の高さ
+function pyramidRoof(c,r,w,h,baseH,peakH,col){
+  const pt=diamond(c,r,w,h), up=p=>({x:p.x,y:p.y-baseH});
+  const A2=up(pt.A),B2=up(pt.B),C2=up(pt.C),D2=up(pt.D);
+  const cx=(A2.x+C2.x)/2, cy=(A2.y+C2.y)/2-peakH;
+  const edges=[[A2,B2,-14],[B2,C2,-30],[C2,D2,-14],[D2,A2,-30]];
+  for(const[p1,p2,amt] of edges){
+    ctx.fillStyle=shade(col,amt);
+    ctx.beginPath(); ctx.moveTo(p1.x,p1.y); ctx.lineTo(p2.x,p2.y); ctx.lineTo(cx,cy); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='rgba(12,12,20,.35)'; ctx.lineWidth=1; ctx.stroke();
+  }
+  return {x:cx,y:cy};
+}
+// 城の天守・塔の上端に沿った小さな凹凸（狭間・胸壁）を並べる
+function merlons(c,r,w,h,baseH,col,n){
+  const pt=diamond(c,r,w,h), up=p=>({x:p.x,y:p.y-baseH});
+  const A2=up(pt.A),C2=up(pt.C);
+  ctx.fillStyle=shade(col,18); ctx.strokeStyle='rgba(12,12,20,.4)'; ctx.lineWidth=1;
+  for(let i=0;i<n;i++){
+    if(i%2) continue;
+    const t0=i/n,t1=(i+1)/n;
+    const x0=A2.x+(C2.x-A2.x)*t0, y0=A2.y+(C2.y-A2.y)*t0;
+    const mw=Math.max(2,(C2.x-A2.x)/n*.5), mh=Math.max(3,baseH*.14);
+    ctx.fillRect(x0-mw/2,y0-mh,mw,mh); ctx.strokeRect(x0-mw/2,y0-mh,mw,mh);
+  }
+}
 function drawGround(){
   const {c0,c1,r0,r1}=VB;
   for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++){
@@ -1087,7 +1123,11 @@ function drawGround(){
       continue;
     }
     const pt=diamond(c,r,1,1);
-    fillDiamond(pt,t==='f'?(((r+c)&1)?'#6d654b':'#655e46'):(((r+c)&1)?'#3f4a37':'#3a4433'));
+    fillDiamond(pt,t==='f'?(((r+c)&1)?'#6d654b':'#655e46'):t==='C'?(((r+c)&1)?'#726b5c':'#665f52'):(((r+c)&1)?'#3f4a37':'#3a4433'));
+    if(t==='C'){
+      ctx.strokeStyle='rgba(0,0,0,.18)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(pt.A.x,pt.A.y); ctx.lineTo(pt.C.x,pt.C.y); ctx.moveTo(pt.B.x,pt.B.y); ctx.lineTo(pt.D.x,pt.D.y); ctx.stroke();
+    }
     const h=(c*73+r*151)%9;
     if(t==='.'&&h===3){
       ctx.save(); ctx.translate(ctr.x,ctr.y-T*.06);
@@ -1121,20 +1161,62 @@ function drawGround(){
     }
   }
 }
+function flagShape(x,y,s,col){
+  ctx.strokeStyle='#372f22'; ctx.lineWidth=Math.max(1,s*.12); ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y-s*1.7); ctx.stroke();
+  const wob=Math.sin(G.gt*3+x*.05)*s*.12;
+  ctx.fillStyle=col;
+  ctx.beginPath(); ctx.moveTo(x,y-s*1.7); ctx.lineTo(x+s*1.15,y-s*1.42+wob); ctx.lineTo(x,y-s*1.12); ctx.closePath(); ctx.fill();
+}
+// 出入り口の左右2マスのペア（北・南・西・東）
+function castleGateSides(c0,r0){
+  const gw=c0+((CASTLE_W/2)|0)-1, gh=r0+((CASTLE_H/2)|0)-1;
+  return [
+    {c0:gw,r0:r0,w:2,h:1},                    // 北
+    {c0:gw,r0:r0+CASTLE_H-1,w:2,h:1},         // 南
+    {c0:c0,r0:gh,w:1,h:2},                    // 西
+    {c0:c0+CASTLE_W-1,r0:gh,w:1,h:2}          // 東
+  ];
+}
 function drawCastle(){
-  // 城壁(W)は drawGround が1マスずつ描画するので、ここでは中央の天守（小さめ）と門の目印だけを重ねる。
+  // 城壁(W)は drawGround が1マスずつ描画するので、ここでは中央の天守・隅の物見塔・出入り口だけを重ねる。
   // 内部を大きな一枚岩として描くと兵舎・採掘場が隠れてしまうため、footprint 全体は覆わない。
-  const {c,r,w,h}=G.castle, ctr=iso(c+w/2,r+h/2);
+  const {c,r,w,h}=G.castle, cx=c+w/2, cy=r+h/2, ctr=iso(cx,cy);
   if(!vis(ctr.x,ctr.y,T*(w+h))) return;
-  const kw=Math.min(2.4,w*.28), kh=Math.min(2.4,h*.28);
-  const top=block(c+w/2-kw/2,r+h/2-kh/2,kw,kh,T*1.1,'#565971',shade('#565971',-30),shade('#565971',-50));
-  emoji('🏰',top.x,top.y-T*.32,T*1.5);
-  for(const g of castleGates(c,r)){
-    const gc=iso(g.c+.5,g.r+.5), gy=gc.y-T*.42;
-    if(!vis(gc.x,gy,T)) continue;
+  const stone='#6f7386';
+  // 基壇（低い石造りの土台）。周囲の兵舎・採掘場と重ならないよう、判定上の除外範囲(KEEP_FOUND)より一回り小さく描く
+  const fw=3.6, fh=3.6;
+  block(cx-fw/2,cy-fh/2,fw,fh,T*.22,shade(stone,14),shade(stone,-22),shade(stone,-42));
+  // 四隅の物見塔（尖り屋根＋旗）
+  const tw=0.85, tH=T*.92, turretCol='#5f6376';
+  const corners=[[cx-fw/2,cy-fh/2],[cx+fw/2-tw,cy-fh/2],[cx-fw/2,cy+fh/2-tw],[cx+fw/2-tw,cy+fh/2-tw]];
+  for(const[tx,ty] of corners){
+    block(tx,ty,tw,tw,tH,shade(turretCol,12),shade(turretCol,-18),shade(turretCol,-38));
+    const rp=pyramidRoof(tx,ty,tw,tw,tH,T*.48,'#7a2e2e');
+    flagShape(rp.x,rp.y,T*.16,'#c2474d');
+  }
+  // 天守（本体・上端に胸壁・旗）
+  const kw=1.8, kh=1.8, kH=T*1.3, keepCol='#565971';
+  const top=block(cx-kw/2,cy-kh/2,kw,kh,kH,shade(keepCol,14),shade(keepCol,-20),shade(keepCol,-40));
+  // 窓
+  const wpt=diamond(cx-kw/2,cy-kh/2,kw,kh);
+  ctx.fillStyle='rgba(20,16,10,.7)';
+  [.28,.72].forEach(t=>{ const wx=wpt.B.x+(wpt.C.x-wpt.B.x)*t, wy=wpt.B.y+(wpt.C.y-wpt.B.y)*t-kH*.55; ctx.fillRect(wx-T*.045,wy-T*.08,T*.09,T*.14); });
+  merlons(cx-kw/2,cy-kh/2,kw,kh,kH,keepCol,12);
+  flagShape(top.x,top.y-T*.05,T*.24,'#d2a94c');
+  // 出入り口：幅2マスの石造アーチと両開き門扉
+  for(const g of castleGateSides(c,r)){
+    const pt=diamond(g.c0,g.r0,g.w,g.h), gcx=(pt.A.x+pt.C.x)/2, gcy=(pt.A.y+pt.C.y)/2-T*.38;
+    if(!vis(gcx,gcy,T*1.4)) continue;
+    const lift=p=>({x:p.x,y:p.y-T*.38});
+    const A2=lift(pt.A),B2=lift(pt.B),C2=lift(pt.C),D2=lift(pt.D);
+    // 石造りの門枠（アーチ状の開口部）
     ctx.fillStyle='#241a12';
-    ctx.beginPath(); ctx.ellipse(gc.x,gy,T*.22,T*.3,0,0,7); ctx.fill();
-    emoji('🚪',gc.x,gy,T*.42);
+    ctx.beginPath(); ctx.moveTo(A2.x,A2.y); ctx.lineTo(B2.x,B2.y); ctx.lineTo(C2.x,C2.y); ctx.lineTo(D2.x,D2.y); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=shade(stone,-10); ctx.lineWidth=Math.max(2,T*.07);
+    ctx.beginPath(); ctx.moveTo(A2.x,A2.y); ctx.lineTo(A2.x,A2.y-T*.42); ctx.lineTo(C2.x,C2.y-T*.42); ctx.lineTo(C2.x,C2.y); ctx.stroke();
+    // 両開きの門扉
+    const leaf=(g.w>1)?[.28,.72]:[.5];
+    for(const t of leaf){ const dx=A2.x+(C2.x-A2.x)*t, dy=A2.y+(C2.y-A2.y)*t; emoji('🚪',dx,dy,T*.4); }
   }
 }
 function shade(hex,amt){
@@ -1441,7 +1523,9 @@ function render(){
     ctx.strokeStyle='#ffe07a'; ctx.lineWidth=3; pathDiamond(diamond(G.selB.c,G.selB.r,sbs,sbs)); ctx.stroke();
   }
   const drawQ=G.blds.map(b=>({key:b.c+b.r+(b.w||1)+(b.h||1),f:()=>drawBuilding(b,false,false)}));
-  if(G.castle) drawQ.push({key:G.castle.c+G.castle.r+G.castle.w+G.castle.h,f:drawCastle});
+  // 天守は中央の小さな躯体として描かれるため、キー計算も足元(全体footprint)ではなく中心を基準にする
+  // （そうしないと城内の建物が常に天守の下に埋もれてしまう）
+  if(G.castle) drawQ.push({key:G.castle.c+G.castle.r+CASTLE_W/2+CASTLE_H/2,f:drawCastle});
   drawQ.sort((a,b)=>a.key-b.key).forEach(o=>o.f());
   if(hover&&!G.aim&&G.sel&&hover.c>=0&&hover.r>=0&&hover.c<COLS&&hover.r<ROWS){
     const hs=bsize(G.sel);
@@ -1888,7 +1972,7 @@ function showStart(){
   modal(`<h1>王国防衛記</h1>
   <p>四方から敵が迫る。<br>まずは王城を築く場所を選べ。夜明けまでの${MAXW}波を守り抜け。</p>
   <ul>
-    <li>地図の好きな場所をタップして王城の位置を決める（平地に10×10マスで置ける。盤面中央でも端でも自由）。城内には兵舎と採掘場を建てられ、城壁の四辺の中央には出入り口が1つずつ、計4つ開いている。</li>
+    <li>地図の好きな場所をタップして王城の位置を決める（平地に10×10マスで置ける。盤面中央でも端でも自由）。城内には兵舎と採掘場を建てられ、城壁の四辺の中央には幅2マスの出入り口が1つずつ、計4つ開いている。</li>
     <li>超広大な戦場をドラッグで移動、ピンチで拡大縮小。</li>
     <li>建物を選んでタップで配置。壁・堀・罠はなぞって連続設置。下のバーは横にスクロールする。</li>
     <li>進路は完全に塞げるが、迂回が長ければ敵は壁も塔も壊して進む。廃墟は戦闘後に修復できる。</li>
