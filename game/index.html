@@ -201,8 +201,30 @@ const SPAWNS_FIXED=(()=>{
 })();
 function clampI(v,a,b){ return Math.max(a,Math.min(b,v)); }
 const RING1=0.44, RING2=0.80;
+// 出現口の周囲は通行を妨げないよう地形を生成しない
+function nearAnySpawn(c,r,rad){ return SPAWNS_FIXED.some(p=>Math.abs(p.c-c)<=rad&&Math.abs(p.r-r)<=rad); }
+// 岩の生成後、すべての出現口が互いに（延いては盤面の大半と）到達可能かを確認する。
+// 生成は起動時に一度だけ行うため、多少コストをかけてでも安全側に倒す。
+function terrainConnected(g){
+  const rows=g.length, cols=g[0].length;
+  const seen=g.map(row=>new Array(row.length).fill(false));
+  const start=SPAWNS_FIXED[0], q=[[start.c,start.r]];
+  seen[start.r][start.c]=true;
+  let head=0;
+  while(head<q.length){
+    const [c,r]=q[head++];
+    for(const[dc,dr] of[[1,0],[-1,0],[0,1],[0,-1]]){
+      const nc=c+dc, nr=r+dr;
+      if(nc<0||nr<0||nc>=cols||nr>=rows||seen[nr][nc]) continue;
+      const ch=g[nr][nc];
+      if(ch==='X'||ch==='#') continue;
+      seen[nr][nc]=true; q.push([nc,nr]);
+    }
+  }
+  return SPAWNS_FIXED.every(p=>seen[p.r][p.c]);
+}
 function genMap(){
-  const g=[]; const cxm=COLS/2, cym=ROWS/2, spawnSet=new Set(SPAWNS_FIXED.map(p=>p.c+','+p.r));
+  const g=[]; const spawnSet=new Set(SPAWNS_FIXED.map(p=>p.c+','+p.r));
   for(let r=0;r<ROWS;r++){
     let row='';
     for(let c=0;c<COLS;c++){
@@ -211,14 +233,29 @@ function genMap(){
       const isEdge=!(inMask(c+1,r)&&inMask(c-1,r)&&inMask(c,r+1)&&inMask(c,r-1));
       const dCenter=Math.max(Math.abs(mU(c,r))/MASK_A,Math.abs(mV(c,r))/MASK_B);
       if(spawnSet.has(c+','+r)) ch='S';
-      else ch='.';
+      else if(!isEdge&&!nearAnySpawn(c,r,2)){
+        // 中心付近は開けたまま、外周に行くほど岩・高台をやや増やす
+        const rockP=dCenter<RING1?0:dCenter<RING2?0.026:0.042;
+        const hillP=dCenter<RING1?0.016:dCenter<RING2?0.042:0.032;
+        if(h<rockP) ch='#';
+        else if(h2<hillP) ch='^';
+        else ch='.';
+      }else ch='.';
       row+=ch;
     }
     g.push(row);
   }
+  if(!terrainConnected(g)){
+    // 万一つながりが分断された場合の安全策：岩をすべて取り除く（高台は通行を妨げないためそのまま）
+    for(let r=0;r<g.length;r++) g[r]=g[r].split('').map(ch=>ch==='#'?'.':ch).join('');
+  }
   return g;
 }
 const MAP=genMap();
+// 岩(#)・高台(^)は建物と同じ奥行きソート列で描く。解体や王城建設で地形が変わることがあるため、
+// 「元がその地形だったマス」の一覧だけを持ち、実際に描くかどうかは毎フレーム現在のG.gridを見て判断する。
+const TERRAIN_FEATURES=[];
+MAP.forEach((row,r)=>[...row].forEach((ch,c)=>{ if(ch==='#'||ch==='^') TERRAIN_FEATURES.push({c,r,type:ch}); }));
 const CASTLE_W=10, CASTLE_H=10, KEEP_FOUND=4.0;
 function castleFootprint(c0,r0){
   const cells=[];
@@ -229,7 +266,8 @@ function castleValid(c0,r0){
   if(c0<0||r0<0||c0+CASTLE_W>COLS||r0+CASTLE_H>ROWS) return false;
   for(const{c,r} of castleFootprint(c0,r0)){
     const cell=G.grid[r][c];
-    if(cell.t!=='.'||cell.b) return false;
+    // 高台(^)には建てられる（整地して吸収する）。岩(#)は解体してからでないと置けない
+    if((cell.t!=='.'&&cell.t!=='^')||cell.b) return false;
   }
   return true;
 }
@@ -1119,13 +1157,26 @@ function drawWallCell(c,r){
   fillDiamond(pt,(((r+c)&1)?'#3f4a37':'#3a4433'));
   block(c,r,1,1,T*.5,'#565971',shade('#4a4d60',-26),shade('#4a4d60',-46));
 }
+// 高台1マス分の立体。範囲内に塔が建っていれば地形の凹凸は描かず、塔の描画に譲る
+function drawHillCell(c,r){
+  const pt=diamond(c,r,1,1);
+  fillDiamond(pt,(((r+c)&1)?'#3f4a37':'#3a4433'));
+  if(G.grid[r][c].b) return;
+  block(c,r,1,1,T*.4,'#5c6b50',shade('#5c6b50',-32),shade('#5c6b50',-52));
+}
+// 岩1マス分の立体（解体可）
+function drawRockCell(c,r){
+  const pt=diamond(c,r,1,1);
+  fillDiamond(pt,(((r+c)&1)?'#3f4a37':'#3a4433'));
+  block(c,r,1,1,T*.6,'#767a88',shade('#5d606c',-28),shade('#5d606c',-48));
+}
 function drawGround(){
   const {c0,c1,r0,r1}=VB;
   for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++){
     const cell=G.grid[r][c], t=cell.t, ctr=iso(c+.5,r+.5);
     if(t==='X') continue;
     if(!vis(ctr.x,ctr.y,T*2.4)) continue;
-    if(t==='W') continue;
+    if(t==='W'||t==='^'||t==='#') continue;
     if(t==='~'){
       const pt=diamond(c,r,1,1); fillDiamond(pt,'#22384a');
       ctx.strokeStyle='rgba(130,180,210,.4)'; ctx.lineWidth=1.2;
@@ -1153,10 +1204,6 @@ function drawGround(){
     }else if(t==='.'&&h===5){
       const cols=['#e2c15a','#d9707c','#8fd0e0']; ctx.fillStyle=cols[(c+r)%3];
       ctx.beginPath(); ctx.arc(ctr.x,ctr.y+T*.05,T*.045,0,7); ctx.fill();
-    }else if(t==='^'){
-      block(c,r,1,1,T*.4,'#5c6b50',shade('#5c6b50',-32),shade('#5c6b50',-52));
-    }else if(t==='#'){
-      block(c,r,1,1,T*.6,'#767a88',shade('#5d606c',-28),shade('#5d606c',-48));
     }else if(t==='G'){
       ctx.fillStyle='#6b5636'; pathDiamond(pt); ctx.fill();
       ctx.strokeStyle='rgba(255,220,150,.5)'; ctx.lineWidth=1.4; pathDiamond(pt); ctx.stroke();
@@ -1595,6 +1642,13 @@ function render(){
         if(G.grid[r][c].t==='W') drawQ.push({key:c+r+2,f:()=>drawWallCell(c,r)});
       }
     }
+  }
+  // 岩・高台も同様。地図全体に散らばっているので、候補一覧(TERRAIN_FEATURES)を可視範囲でだけ絞り込む
+  for(const f of TERRAIN_FEATURES){
+    if(f.c<VB.c0||f.c>VB.c1||f.r<VB.r0||f.r>VB.r1) continue;
+    const cur=G.grid[f.r][f.c].t;
+    if(cur!==f.type) continue; // 解体済み・王城で整地済みなら描かない
+    drawQ.push({key:f.c+f.r+2,f:f.type==='^'?()=>drawHillCell(f.c,f.r):()=>drawRockCell(f.c,f.r)});
   }
   drawQ.sort((a,b)=>a.key-b.key).forEach(o=>o.f());
   if(hover&&!G.aim&&G.sel&&hover.c>=0&&hover.r>=0&&hover.c<COLS&&hover.r<ROWS){
@@ -2046,6 +2100,7 @@ function showStart(){
     <li>超広大な戦場をドラッグで移動、ピンチで拡大縮小。</li>
     <li>建物を選んでタップで配置。壁・堀・罠はなぞって連続設置。下のバーは横にスクロールする。</li>
     <li>進路は完全に塞げるが、迂回が長ければ敵は壁も塔も壊して進む。廃墟は戦闘後に修復できる。</li>
+    <li>戦場には岩と高台が点在する。岩は解体でき（🪙40）、高台に塔を建てると射程が伸びる。王城は高台ごと整地して置ける。</li>
     <li>「全強化」ボタンで手持ちの塔をまとめて強化できる。</li>
     <li>兵舎は1つだけ建てられる、兵士を育てる拠点。デッキから兵種を選抜でき、レベルアップで兵士の数と強さが増す。兵士の索敵範囲は無限で、道がつながっている敵がいれば城門から出撃して戦いに向かう。採掘場は最大${MINE_MAX}個、Lv上限は${maxLvl('mine')}。</li>
     <li>装甲の硬い敵には魔導塔・大弩砲・大砲、飛行する敵には弓・魔導・弩砲を。巨大なボスが現れると戦の調べが変わる。</li>
