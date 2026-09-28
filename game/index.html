@@ -1109,12 +1109,19 @@ function merlons(c,r,w,h,baseH,col,n){
     ctx.fillRect(x0-mw/2,y0-mh,mw,mh); ctx.strokeRect(x0-mw/2,y0-mh,mw,mh);
   }
 }
+// 城壁1マス分の立体（drawGroundではなく、建物と同じ奥行きソート列から呼ばれる）
+function drawWallCell(c,r){
+  const pt=diamond(c,r,1,1);
+  fillDiamond(pt,(((r+c)&1)?'#3f4a37':'#3a4433'));
+  block(c,r,1,1,T*.5,'#565971',shade('#4a4d60',-26),shade('#4a4d60',-46));
+}
 function drawGround(){
   const {c0,c1,r0,r1}=VB;
   for(let r=r0;r<=r1;r++)for(let c=c0;c<=c1;c++){
     const cell=G.grid[r][c], t=cell.t, ctr=iso(c+.5,r+.5);
     if(t==='X') continue;
     if(!vis(ctr.x,ctr.y,T*2.4)) continue;
+    if(t==='W') continue;
     if(t==='~'){
       const pt=diamond(c,r,1,1); fillDiamond(pt,'#22384a');
       ctx.strokeStyle='rgba(130,180,210,.4)'; ctx.lineWidth=1.2;
@@ -1146,10 +1153,6 @@ function drawGround(){
       block(c,r,1,1,T*.4,'#5c6b50',shade('#5c6b50',-32),shade('#5c6b50',-52));
     }else if(t==='#'){
       block(c,r,1,1,T*.6,'#767a88',shade('#5d606c',-28),shade('#5d606c',-48));
-    }else if(t==='W'){
-      // 高さを抑えめにしてある。等角投影では塀が高いほど手前(画面下方向)のマスに視覚的にかぶって見えるため、
-      // 城内ぎりぎりに建てた建物が塀に埋もれて見える原因になっていた
-      block(c,r,1,1,T*.5,'#565971',shade('#4a4d60',-26),shade('#4a4d60',-46));
     }else if(t==='G'){
       ctx.fillStyle='#6b5636'; pathDiamond(pt); ctx.fill();
       ctx.strokeStyle='rgba(255,220,150,.5)'; ctx.lineWidth=1.4; pathDiamond(pt); ctx.stroke();
@@ -1596,6 +1599,15 @@ function render(){
   // 天守は中央の小さな躯体として描かれるため、キー計算も足元(全体footprint)ではなく中心を基準にする
   // （そうしないと城内の建物が常に天守の下に埋もれてしまう）
   if(G.castle) drawQ.push({key:G.castle.c+G.castle.r+CASTLE_W/2+CASTLE_H/2,f:drawCastle});
+  // 城壁も建物と同じ奥行きソート列に混ぜる（そうしないと建物の奥行きに関係なく常に城壁の手前に描かれてしまう）
+  if(G.castle){
+    const {c0,c1,r0,r1}=VB;
+    for(let r=Math.max(r0,G.castle.r);r<=Math.min(r1,G.castle.r+CASTLE_H-1);r++){
+      for(let c=Math.max(c0,G.castle.c);c<=Math.min(c1,G.castle.c+CASTLE_W-1);c++){
+        if(G.grid[r][c].t==='W') drawQ.push({key:c+r+2,f:()=>drawWallCell(c,r)});
+      }
+    }
+  }
   drawQ.sort((a,b)=>a.key-b.key).forEach(o=>o.f());
   if(hover&&!G.aim&&G.sel&&hover.c>=0&&hover.r>=0&&hover.c<COLS&&hover.r<ROWS){
     const hs=bsize(G.sel);
