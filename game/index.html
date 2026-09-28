@@ -1203,6 +1203,25 @@ function drawCastle(){
   [.28,.72].forEach(t=>{ const wx=wpt.B.x+(wpt.C.x-wpt.B.x)*t, wy=wpt.B.y+(wpt.C.y-wpt.B.y)*t-kH*.55; ctx.fillRect(wx-T*.045,wy-T*.08,T*.09,T*.14); });
   merlons(cx-kw/2,cy-kh/2,kw,kh,kH,keepCol,12);
   flagShape(top.x,top.y-T*.05,T*.24,'#d2a94c');
+  // 城のHPが減るほど、天守から煙が上がり損傷して見える
+  const hpRatio=G.maxHp>0?G.hp/G.maxHp:1;
+  if(hpRatio<.66&&G.hp>0){
+    const n=hpRatio<.33?3:1;
+    for(let i=0;i<n;i++){
+      const rise=(G.gt*.35+i*.37)%1;
+      const sx=top.x+Math.sin(G.gt*.7+i*2.1)*T*.22+(i-1)*T*.22, sy=top.y-T*.1-rise*T*1.5;
+      ctx.globalAlpha=(1-rise)*(hpRatio<.33?.48:.3);
+      ctx.fillStyle=hpRatio<.2?'#4a423a':'#8a8a8a';
+      ctx.beginPath(); ctx.arc(sx,sy,T*(.09+rise*.15),0,7); ctx.fill();
+      ctx.globalAlpha=1;
+    }
+    if(hpRatio<.33){
+      ctx.globalAlpha=.45+.2*Math.sin(G.gt*6);
+      ctx.fillStyle='#ff7a3d';
+      ctx.beginPath(); ctx.arc(top.x,top.y+T*.04,T*.11,0,7); ctx.fill();
+      ctx.globalAlpha=1;
+    }
+  }
   // 出入り口：幅2マスの石造アーチと両開き門扉
   for(const g of castleGateSides(c,r)){
     const pt=diamond(g.c0,g.r0,g.w,g.h), gcx=(pt.A.x+pt.C.x)/2, gcy=(pt.A.y+pt.C.y)/2-T*.38;
