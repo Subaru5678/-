@@ -1147,7 +1147,9 @@ function drawGround(){
     }else if(t==='#'){
       block(c,r,1,1,T*.6,'#767a88',shade('#5d606c',-28),shade('#5d606c',-48));
     }else if(t==='W'){
-      block(c,r,1,1,T*.9,'#565971',shade('#4a4d60',-26),shade('#4a4d60',-46));
+      // 高さを抑えめにしてある。等角投影では塀が高いほど手前(画面下方向)のマスに視覚的にかぶって見えるため、
+      // 城内ぎりぎりに建てた建物が塀に埋もれて見える原因になっていた
+      block(c,r,1,1,T*.5,'#565971',shade('#4a4d60',-26),shade('#4a4d60',-46));
     }else if(t==='G'){
       ctx.fillStyle='#6b5636'; pathDiamond(pt); ctx.fill();
       ctx.strokeStyle='rgba(255,220,150,.5)'; ctx.lineWidth=1.4; pathDiamond(pt); ctx.stroke();
