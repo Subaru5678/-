@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>写真・印刷計算</title>
+<meta name="description" content="印刷解像度(DPI)判定・用紙サイズから必要ピクセル数・アスペクト比のクロップサイズ・写真データの容量目安・SDカードの保存可能枚数をその場で計算。写真・印刷のための計算アプリ。">
+<meta name="theme-color" content="#f8f4ee">
+<link rel="canonical" href="https://subaru5678.github.io/-/photo-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="写真・印刷計算">
+<meta property="og:description" content="印刷解像度(DPI)判定・用紙サイズから必要ピクセル数・アスペクト比のクロップサイズ・写真データの容量目安・SDカードの保存可能枚数をその場で計算。写真・印刷のための計算アプリ。">
+<meta property="og:url" content="https://subaru5678.github.io/-/photo-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="写真計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#f8f4ee; --panel:#ffffff; --panel2:#f0e6d8; --line:#e3d5c0;
+  --ink:#2a2117; --muted:#83766a; --label:#463a2c; --accent:#d9865a; --accent2:#5a8fd9;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#d9865a;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    radial-gradient(rgba(217,134,90,.1) 1.6px, transparent 1.6px);
+  background-size:auto, 24px 24px;
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600; letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(217,134,90,.08) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700; letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted); margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color); box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden; box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:28px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink)); letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px; font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color)); color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">写真・印刷計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">PHOTO CALCULATOR</div>
+        <h2>解像度も容量も、その場で計算。</h2>
+        <p>印刷解像度(DPI)判定・用紙サイズから必要ピクセル数・アスペクト比のクロップサイズ・写真データの容量目安・SDカードの保存可能枚数まで。<b>写真・印刷</b>のための計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'photocalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); }); }
+  else { toast('この端末では共有できません'); }
+};
+
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '写真・印刷計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 印刷解像度(DPI)判定計算 ---------- */
+TOOLS.dpi = {
+  name:'印刷解像度(DPI)判定計算', emoji:'🖨️', sub:'印刷サイズと画像のピクセル数から、きれいに印刷できるか判定', color:'#d9865a',
+  render: function(body){
+    var mmW = field(body, { label:'印刷したい幅', unit:'mm', value:89 });
+    var mmH = field(body, { label:'印刷したい高さ', unit:'mm', value:127 });
+    var pxW = field(body, { label:'画像の幅', unit:'px', value:1050 });
+    var pxH = field(body, { label:'画像の高さ', unit:'px', value:1500 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var mw = parseFloat(mmW.value)||0, mh = parseFloat(mmH.value)||0, pw = parseFloat(pxW.value)||0, ph = parseFloat(pxH.value)||0;
+      var dpiW = mw>0 ? pw/(mw/25.4) : 0, dpiH = mh>0 ? ph/(mh/25.4) : 0;
+      var dpi = Math.round(Math.min(dpiW, dpiH));
+      var judge = dpi >= 300 ? '高精細に印刷できます' : dpi >= 150 ? 'きれいに印刷できます' : '粗さが目立つ可能性があります';
+      box.innerHTML = '<div class="r-label">解像度</div><div class="r-main">約 ' + fmt(dpi,0) + ' dpi</div>' +
+        '<div class="r-row"><span>判定</span><b>' + judge + '</b></div>' +
+        '<div class="r-sub">一般的に写真印刷は300dpi以上できめ細かく、150dpi以上あれば見た目に問題のない印刷結果になるとされています。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'dpi', TOOLS.dpi.name, function(){
+        return mw+'×'+mh+'mm '+pw+'×'+ph+'px → 約'+fmt(dpi,0)+'dpi('+judge+')';
+      });
+    }
+    [mmW, mmH, pxW, pxH].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. 用紙サイズ→必要ピクセル数計算 ---------- */
+var PAPER_SIZES = {
+  L: { label:'L判', w:89, h:127 },
+  L2: { label:'2L判', w:127, h:178 },
+  A4: { label:'A4', w:210, h:297 },
+  A3: { label:'A3', w:297, h:420 }
+};
+TOOLS.paper = {
+  name:'用紙サイズ→必要ピクセル数計算', emoji:'📄', sub:'用紙サイズとDPIから、必要な画像ピクセル数を算出', color:'#5a8fd9',
+  render: function(body){
+    var size = toggleGroup(body, { label:'用紙サイズ', value:'L', options: Object.keys(PAPER_SIZES).map(function(k){ return { value:k, label:PAPER_SIZES[k].label }; }), onChange: function(){ calc(); } });
+    var dpi = field(body, { label:'印刷解像度', unit:'dpi', value:300, hint:'写真印刷では300dpiが標準的な目安です。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var s = PAPER_SIZES[size.value];
+      var d = parseFloat(dpi.value)||0;
+      var pw = Math.round(s.w/25.4*d), ph = Math.round(s.h/25.4*d);
+      box.innerHTML = '<div class="r-label">' + s.label + '(' + s.w + '×' + s.h + 'mm)の必要ピクセル数</div><div class="r-main">' + pw.toLocaleString('ja-JP') + ' × ' + ph.toLocaleString('ja-JP') + ' px</div>' +
+        '<div class="r-sub">この解像度を満たす画像であれば、指定した用紙サイズできれいに印刷できます。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'paper', TOOLS.paper.name, function(){
+        return s.label+' '+d+'dpi → 必要ピクセル数 '+pw+'×'+ph+'px';
+      });
+    }
+    dpi.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 3. アスペクト比のクロップサイズ計算 ---------- */
+var CROP_RATIOS = {
+  '1:1': { label:'1:1(正方形)', rw:1, rh:1 },
+  '4:3': { label:'4:3', rw:4, rh:3 },
+  '3:2': { label:'3:2', rw:3, rh:2 },
+  '16:9': { label:'16:9', rw:16, rh:9 }
+};
+TOOLS.crop = {
+  name:'アスペクト比のクロップサイズ計算', emoji:'✂️', sub:'元画像のサイズと目的の比率から、クロップ後のサイズを算出', color:'#8a5fd1',
+  render: function(body){
+    var pxW = field(body, { label:'元画像の幅', unit:'px', value:4000 });
+    var pxH = field(body, { label:'元画像の高さ', unit:'px', value:3000 });
+    var ratio = toggleGroup(body, { label:'目的の比率', value:'1:1', options: Object.keys(CROP_RATIOS).map(function(k){ return { value:k, label:CROP_RATIOS[k].label }; }), onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(pxW.value)||0, h = parseFloat(pxH.value)||0;
+      var r = CROP_RATIOS[ratio.value];
+      var targetRatio = r.rw / r.rh;
+      var curRatio = h>0 ? w/h : 0;
+      var newW, newH;
+      if(curRatio > targetRatio){ newH = h; newW = h * targetRatio; }
+      else { newW = w; newH = w / targetRatio; }
+      newW = Math.round(newW); newH = Math.round(newH);
+      var trimW = Math.round((w - newW)/2), trimH = Math.round((h - newH)/2);
+      box.innerHTML = '<div class="r-label">クロップ後のサイズ(' + r.label + ')</div><div class="r-main">' + newW.toLocaleString('ja-JP') + ' × ' + newH.toLocaleString('ja-JP') + ' px</div>' +
+        '<div class="r-row"><span>左右のトリム量</span><b>' + trimW + ' px</b></div>' +
+        '<div class="r-row"><span>上下のトリム量</span><b>' + trimH + ' px</b></div>' +
+        '<div class="r-sub">画像の中央を基準に、最大の面積を保ちながら指定の比率に合わせた場合の目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'crop', TOOLS.crop.name, function(){
+        return w+'×'+h+'px を'+r.label+'に → '+newW+'×'+newH+'px';
+      });
+    }
+    [pxW, pxH].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 4. 写真データの容量目安計算 ---------- */
+var FILE_FORMATS = {
+  jpeg_high: { label:'JPEG(高画質)', bytesPerPx:0.5 },
+  jpeg_std: { label:'JPEG(標準)', bytesPerPx:0.2 },
+  png: { label:'PNG', bytesPerPx:2.5 }
+};
+TOOLS.filesize = {
+  name:'写真データの容量目安計算', emoji:'💾', sub:'画像サイズと保存形式から、ファイルサイズの目安を算出', color:'#4d9a7a',
+  render: function(body){
+    var pxW = field(body, { label:'画像の幅', unit:'px', value:4000 });
+    var pxH = field(body, { label:'画像の高さ', unit:'px', value:3000 });
+    var format = toggleGroup(body, { label:'保存形式', value:'jpeg_high', options: Object.keys(FILE_FORMATS).map(function(k){ return { value:k, label:FILE_FORMATS[k].label }; }), onChange: function(){ calc(); } });
+    var count = field(body, { label:'枚数', unit:'枚', value:1 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(pxW.value)||0, h = parseFloat(pxH.value)||0, c = parseFloat(count.value)||0;
+      var fmtInfo = FILE_FORMATS[format.value];
+      var perMB = w * h * fmtInfo.bytesPerPx / 1e6;
+      var totalMB = perMB * c;
+      var totalDisp = totalMB >= 1000 ? fmt(totalMB/1000,2) + ' GB' : fmt(totalMB,1) + ' MB';
+      box.innerHTML = '<div class="r-label">1枚あたりの目安</div><div class="r-main">約 ' + fmt(perMB,1) + ' MB</div>' +
+        '<div class="r-row"><span>' + c + '枚の合計</span><b>約 ' + totalDisp + '</b></div>' +
+        '<div class="r-sub">実際のファイルサイズは被写体の複雑さや圧縮設定によって変わるため、あくまで目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'filesize', TOOLS.filesize.name, function(){
+        return w+'×'+h+'px '+fmtInfo.label+' ×'+c+'枚 → 約'+totalDisp;
+      });
+    }
+    [pxW, pxH, count].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. SDカードの保存可能枚数計算 ---------- */
+TOOLS.card = {
+  name:'SDカードの保存可能枚数計算', emoji:'💳', sub:'カード容量と1枚のサイズから、保存できる枚数を算出', color:'#c9a13f',
+  render: function(body){
+    var capacity = field(body, { label:'カードの容量', unit:'GB', value:32 });
+    var perPhoto = field(body, { label:'1枚あたりのファイルサイズ', unit:'MB', value:6 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var cap = parseFloat(capacity.value)||0, pp = parseFloat(perPhoto.value)||1;
+      var totalMB = cap * 1000;
+      var count = Math.floor(totalMB / pp);
+      box.innerHTML = '<div class="r-label">保存できる枚数(目安)</div><div class="r-main">約 ' + count.toLocaleString('ja-JP') + ' 枚</div>' +
+        '<div class="r-sub">フォーマット時の管理領域などを考慮していない概算です。実際に保存できる枚数はこれよりやや少なくなります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'card', TOOLS.card.name, function(){
+        return cap+'GB ÷ '+pp+'MB/枚 → 約'+count+'枚';
+      });
+    }
+    [capacity, perPhoto].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>

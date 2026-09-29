@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>筋トレ計算</title>
+<meta name="description" content="1RM推定・バーベルのプレート計算・%1RM早見表・FFMI・タンパク質摂取量の目安をその場で計算。筋力トレーニングのための計算アプリ。">
+<meta name="theme-color" content="#f7f5f4">
+<link rel="canonical" href="https://subaru5678.github.io/-/gym-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="筋トレ計算">
+<meta property="og:description" content="1RM推定・バーベルのプレート計算・%1RM早見表・FFMI・タンパク質摂取量の目安をその場で計算。筋力トレーニングのための計算アプリ。">
+<meta property="og:url" content="https://subaru5678.github.io/-/gym-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="筋トレ計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#f7f5f4; --panel:#ffffff; --panel2:#efe9e7; --line:#e2d8d5;
+  --ink:#221c1a; --muted:#7d716d; --label:#453835; --accent:#d94f4f; --accent2:#3f6fc9;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#d94f4f;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    repeating-linear-gradient(0deg, rgba(217,79,79,.06) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg, rgba(217,79,79,.06) 0 1px, transparent 1px 28px);
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600; letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(217,79,79,.08) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700; letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted); margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color); box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden; box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:28px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink)); letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px; font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color)); color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">筋トレ計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">STRENGTH CALCULATOR</div>
+        <h2>重量設定を、その場で計算。</h2>
+        <p>1RM推定・バーベルのプレート計算・%1RM早見表・FFMI・タンパク質摂取量の目安まで。<b>筋力トレーニング</b>のための計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'gymcalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); }); }
+  else { toast('この端末では共有できません'); }
+};
+
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '筋トレ計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 1RM推定計算 ---------- */
+TOOLS.orm = {
+  name:'1RM推定計算', emoji:'🏋️', sub:'重量とレップ数から、最大挙上重量を推定', color:'#d94f4f',
+  render: function(body){
+    var weight = field(body, { label:'挙上した重量', unit:'kg', value:80 });
+    var reps = field(body, { label:'レップ数', unit:'回', value:5 });
+    var formula = toggleGroup(body, { label:'計算式', options:[
+      { value:'epley', label:'エプリー式' },
+      { value:'brzycki', label:'ブライキ式' }
+    ], onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weight.value)||0, r = parseFloat(reps.value)||0;
+      var orm;
+      if(formula.value === 'brzycki'){
+        orm = r < 37 ? w * 36 / (37 - r) : w;
+      } else {
+        orm = w * (1 + r/30);
+      }
+      box.innerHTML = '<div class="r-label">推定1RM</div><div class="r-main">約 ' + fmt(orm,1) + ' kg</div>' +
+        '<div class="r-sub">' + (formula.value==='brzycki'?'ブライキ式':'エプリー式') + 'による推定値です。レップ数が多いほど誤差が大きくなる傾向があります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'orm', TOOLS.orm.name, function(){
+        return w+'kg×'+r+'回 → 推定1RM 約'+fmt(orm,1)+'kg';
+      });
+    }
+    [weight, reps].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. プレート計算 ---------- */
+var PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+TOOLS.plates = {
+  name:'プレート計算', emoji:'⚫', sub:'目標重量から、片側に付けるプレートの内訳を算出', color:'#3f6fc9',
+  render: function(body){
+    var target = field(body, { label:'目標重量(バー込み)', unit:'kg', value:100 });
+    var barWeight = field(body, { label:'バーの重さ', unit:'kg', value:20 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var t = parseFloat(target.value)||0, bw = parseFloat(barWeight.value)||0;
+      var perSide = Math.max(0, (t - bw) / 2);
+      var remaining = perSide;
+      var breakdown = PLATES.map(function(p){
+        var count = Math.floor(remaining / p + 1e-9);
+        remaining -= count * p;
+        return { plate:p, count:count };
+      });
+      var rows = breakdown.filter(function(b){ return b.count>0; })
+        .map(function(b){ return '<div class="r-row"><span>' + fmt(b.plate,2) + 'kgプレート</span><b>片側 ' + b.count + ' 枚</b></div>'; }).join('');
+      box.innerHTML = '<div class="r-label">片側の重量</div><div class="r-main">' + fmt(perSide,2) + ' kg</div>' +
+        (rows || '<div class="r-row"><span>内訳</span><b>-</b></div>') +
+        (remaining > 0.01 ? '<div class="r-sub" style="color:var(--warn)">⚠ ' + fmt(remaining,2) + 'kg分は、お使いのプレートセットでは正確に組めません。</div>' : '') +
+        '<div class="r-sub">一般的なプレート重量(25/20/15/10/5/2.5/1.25kg)での最小枚数の組み合わせです。ジムにより在庫は異なります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'plates', TOOLS.plates.name, function(){
+        return t+'kg(バー'+bw+'kg) → 片側'+fmt(perSide,2)+'kg = ' + breakdown.filter(function(b){return b.count>0;}).map(function(b){return fmt(b.plate,2)+'kg×'+b.count;}).join(', ');
+      });
+    }
+    [target, barWeight].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 3. %1RM早見表 ---------- */
+TOOLS.percent = {
+  name:'%1RM早見表', emoji:'📊', sub:'1RMから、強度別のトレーニング重量を算出', color:'#c9a13f',
+  render: function(body){
+    var orm = field(body, { label:'1RM(最大挙上重量)', unit:'kg', value:100 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+    var percents = [50, 60, 70, 75, 80, 85, 90, 95, 100];
+
+    function calc(){
+      var o = parseFloat(orm.value)||0;
+      var rows = percents.map(function(p){
+        return '<div class="r-row"><span>' + p + '%</span><b>' + fmt(o*p/100,1) + ' kg</b></div>';
+      }).join('');
+      box.innerHTML = '<div class="r-label">1RM</div><div class="r-main">' + fmt(o,1) + ' kg</div>' + rows +
+        '<div class="r-sub">目的別の目安: 筋力向上85%以上、筋肥大65〜80%、筋持久力65%未満、が一般的な目安とされています。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'percent', TOOLS.percent.name, function(){
+        return '1RM '+fmt(o,1)+'kg → 80%='+fmt(o*0.8,1)+'kg, 70%='+fmt(o*0.7,1)+'kg';
+      });
+    }
+    orm.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 4. FFMI計算 ---------- */
+TOOLS.ffmi = {
+  name:'FFMI(除脂肪体重指数)計算', emoji:'💪', sub:'体重・体脂肪率・身長から、除脂肪体重指数を算出', color:'#4d9a53',
+  render: function(body){
+    var weight = field(body, { label:'体重', unit:'kg', value:70 });
+    var bodyFat = field(body, { label:'体脂肪率', unit:'%', value:15 });
+    var height = field(body, { label:'身長', unit:'cm', value:170 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weight.value)||0, bf = parseFloat(bodyFat.value)||0, h = (parseFloat(height.value)||0)/100;
+      var leanMass = w * (1 - bf/100);
+      var ffmi = h>0 ? leanMass/(h*h) + 6.1*(1.8-h) : 0;
+      box.innerHTML = '<div class="r-label">FFMI(目安)</div><div class="r-main">' + fmt(ffmi,1) + '</div>' +
+        '<div class="r-row"><span>除脂肪体重</span><b>' + fmt(leanMass,1) + ' kg</b></div>' +
+        '<div class="r-sub">FFMIは身長を考慮した筋肉量の指標です。一般成人男性の平均は18〜20程度、20を超えるとかなり筋肉質、自然な範囲の上限は25程度とされています(個人差・測定誤差あり)。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'ffmi', TOOLS.ffmi.name, function(){
+        return w+'kg 体脂肪'+bf+'% 身長'+height.value+'cm → FFMI '+fmt(ffmi,1);
+      });
+    }
+    [weight, bodyFat, height].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. タンパク質摂取量の目安計算 ---------- */
+TOOLS.protein = {
+  name:'タンパク質摂取量の目安計算', emoji:'🥚', sub:'体重とトレーニング強度から、1日の目安量を算出', color:'#8a5fd1',
+  render: function(body){
+    var weight = field(body, { label:'体重', unit:'kg', value:70 });
+    var level = toggleGroup(body, { label:'活動レベル', value:'2.0', options:[
+      { value:'1.6', label:'一般・軽い運動' },
+      { value:'2.0', label:'筋トレ習慣あり' },
+      { value:'2.4', label:'増量期・強度高め' }
+    ], onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weight.value)||0, l = parseFloat(level.value)||2.0;
+      var protein = w * l;
+      box.innerHTML = '<div class="r-label">1日のタンパク質目安量</div><div class="r-main">約 ' + fmt(protein,0) + ' g</div>' +
+        '<div class="r-sub">スポーツ栄養学で一般的に紹介されている体重あたりの目安値です。腎機能に問題がある場合は医師にご相談ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'protein', TOOLS.protein.name, function(){
+        return w+'kg × '+l+'g/kg → 1日約'+fmt(protein,0)+'g';
+      });
+    }
+    weight.addEventListener('input', calc);
+    calc();
+  }
+};
+
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>

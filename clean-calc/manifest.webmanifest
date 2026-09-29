@@ -1,0 +1,17 @@
+{
+  "name": "掃除・洗濯計算",
+  "short_name": "掃除計算",
+  "description": "洗剤の使用量・希釈・洗濯物の適正量・掃除時間の目安をその場で計算",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f8fa",
+  "theme_color": "#f2f8fa",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

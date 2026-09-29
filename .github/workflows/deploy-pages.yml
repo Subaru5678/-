@@ -3,7 +3,20 @@ name: Deploy apps to GitHub Pages
 on:
   push:
     branches: [claude/revenue-app-idea-m4880t]
-    paths: ["diy-calc/**", "cooking-calc/**", "moving-calc/**"]
+    paths:
+      - "diy-calc/**"
+      - "cooking-calc/**"
+      - "moving-calc/**"
+      - "gift-calc/**"
+      - "pet-calc/**"
+      - "garden-calc/**"
+      - "craft-calc/**"
+      - "gym-calc/**"
+      - "clean-calc/**"
+      - "camp-calc/**"
+      - "sleep-calc/**"
+      - "photo-calc/**"
+      - "savings-calc/**"
   workflow_dispatch: {}
 
 permissions:
@@ -27,10 +40,10 @@ jobs:
         run: |
           mkdir -p _site
           cp -r diy-calc/. _site/
-          mkdir -p _site/cooking-calc
-          cp -r cooking-calc/. _site/cooking-calc/
-          mkdir -p _site/moving-calc
-          cp -r moving-calc/. _site/moving-calc/
+          for app in cooking-calc moving-calc gift-calc pet-calc garden-calc craft-calc gym-calc clean-calc camp-calc sleep-calc photo-calc savings-calc; do
+            mkdir -p "_site/$app"
+            cp -r "$app/." "_site/$app/"
+          done
       - uses: actions/configure-pages@v5
         with:
           enablement: true

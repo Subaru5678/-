@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>家庭菜園・ガーデニング計算</title>
+<meta name="description" content="プランターの土の必要量・液体肥料の希釈・種まき収穫時期の逆算・株間から植えられる株数・用土の配合をその場で計算。家庭菜園とガーデニングのための計算アプリ。">
+<meta name="theme-color" content="#f6f8f2">
+<link rel="canonical" href="https://subaru5678.github.io/-/garden-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="家庭菜園・ガーデニング計算">
+<meta property="og:description" content="プランターの土の必要量・液体肥料の希釈・種まき収穫時期の逆算・株間から植えられる株数・用土の配合をその場で計算。家庭菜園とガーデニングのための計算アプリ。">
+<meta property="og:url" content="https://subaru5678.github.io/-/garden-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="菜園計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#f6f8f2; --panel:#ffffff; --panel2:#edf2e6; --line:#dde6d2;
+  --ink:#202a18; --muted:#748268; --label:#3d4a32; --accent:#5a9e3d; --accent2:#a56b3a;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#5a9e3d;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    radial-gradient(rgba(90,158,61,.1) 1.6px, transparent 1.6px);
+  background-size:auto, 26px 26px;
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600; letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(90,158,61,.08) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700; letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted); margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field input[type=date], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color); box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden; box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:28px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink)); letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px; font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color)); color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">家庭菜園・ガーデニング計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">GARDEN CALCULATOR</div>
+        <h2>土づくりから収穫まで、その場で計算。</h2>
+        <p>プランターの土の必要量・液肥の希釈・種まき収穫時期の逆算・植えられる株数・用土の配合まで。<b>家庭菜園とガーデニング</b>のための計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'gardencalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); }); }
+  else { toast('この端末では共有できません'); }
+};
+
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '家庭菜園・ガーデニング計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. プランターの土の必要量計算 ---------- */
+TOOLS.soil = {
+  name:'プランターの土の必要量計算', emoji:'🪴', sub:'プランターのサイズから、必要な培養土の量を算出', color:'#a56b3a',
+  render: function(body){
+    var w = field(body, { label:'プランターの幅', unit:'cm', placeholder:'例: 65' });
+    var d = field(body, { label:'プランターの奥行き', unit:'cm', placeholder:'例: 20' });
+    var h = field(body, { label:'土を入れる深さ', unit:'cm', placeholder:'例: 15', hint:'フチから2〜3cm(ウォータースペース)を引いた深さです。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var ww = parseFloat(w.value)||0, dd = parseFloat(d.value)||0, hh = parseFloat(h.value)||0;
+      var liters = ww*dd*hh/1000;
+      var bags5 = Math.ceil(liters/5);
+      var bags14 = Math.ceil(liters/14);
+      box.innerHTML = '<div class="r-label">必要な培養土の量(目安)</div><div class="r-main">約 ' + fmt(liters,1) + ' L</div>' +
+        '<div class="r-row"><span>5L袋で換算</span><b>' + bags5 + ' 袋</b></div>' +
+        '<div class="r-row"><span>14L袋で換算</span><b>' + bags14 + ' 袋</b></div>' +
+        '<div class="r-sub">鉢底石を入れる場合は、その分を差し引いてください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'soil', TOOLS.soil.name, function(){
+        return ww+'×'+dd+'×'+hh+'cm → 培養土 約'+fmt(liters,1)+'L(5L袋'+bags5+'袋)';
+      });
+    }
+    [w,d,h].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. 液体肥料の希釈計算 ---------- */
+TOOLS.fertilizer = {
+  name:'液体肥料の希釈計算', emoji:'💧', sub:'希釈倍率と作りたい量から、原液と水の量を算出', color:'#5a9e3d',
+  render: function(body){
+    var ratio = field(body, { label:'希釈倍率', value:1000, hint:'商品ラベルに記載の倍率(例: 1000倍)を入力してください。' });
+    var total = field(body, { label:'作りたい液肥の量', unit:'ml', value:2000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var r = parseFloat(ratio.value)||1, t = parseFloat(total.value)||0;
+      var conc = t/r;
+      var water = t - conc;
+      box.innerHTML = '<div class="r-label">原液の量</div><div class="r-main">' + fmt(conc,1) + ' ml</div>' +
+        '<div class="r-row"><span>水の量</span><b>' + fmt(water,0) + ' ml</b></div>' +
+        '<div class="r-row"><span>できあがり量</span><b>' + fmt(t,0) + ' ml</b></div>' +
+        '<div class="r-sub">植物や生育段階により適正な倍率は異なります。製品ラベルの表記を優先してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'fertilizer', TOOLS.fertilizer.name, function(){
+        return r+'倍希釈 / 総量'+fmt(t,0)+'ml → 原液'+fmt(conc,1)+'ml + 水'+fmt(water,0)+'ml';
+      });
+    }
+    [ratio, total].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 3. 種まき・収穫時期の逆算計算 ---------- */
+TOOLS.schedule = {
+  name:'種まき・収穫時期の逆算計算', emoji:'🌱', sub:'種袋の目安日数から、種まき日または収穫予定日を算出', color:'#c9a13f',
+  render: function(body){
+    var mode = toggleGroup(body, { label:'計算方法', value:'fromHarvest', options:[
+      { value:'fromHarvest', label:'収穫日から逆算' },
+      { value:'fromSowing', label:'種まき日から計算' }
+    ], onChange: function(){ update(); } });
+
+    var todayStr = new Date().toISOString().slice(0,10);
+    var harvestWrap = document.createElement('div');
+    var harvestDate = field(harvestWrap, { label:'収穫したい目安日', type:'date', value: todayStr });
+    body.appendChild(harvestWrap);
+
+    var sowingWrap = document.createElement('div');
+    var sowingDate = field(sowingWrap, { label:'種まき日', type:'date', value: todayStr });
+    body.appendChild(sowingWrap);
+    sowingWrap.style.display = 'none';
+
+    var days = field(body, { label:'発芽から収穫までの目安日数', unit:'日', value:60, hint:'種袋に記載されている「収穫まで(発芽後)」の日数を入力してください。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function update(){
+      harvestWrap.style.display = mode.value === 'fromHarvest' ? '' : 'none';
+      sowingWrap.style.display = mode.value === 'fromSowing' ? '' : 'none';
+      calc();
+    }
+    function calc(){
+      var d = parseFloat(days.value)||0;
+      var resultDate, label;
+      if(mode.value === 'fromHarvest'){
+        var h = harvestDate.value ? new Date(harvestDate.value+'T00:00:00') : new Date();
+        resultDate = new Date(h.getTime() - d*86400000);
+        label = '種まきの目安日';
+      } else {
+        var s = sowingDate.value ? new Date(sowingDate.value+'T00:00:00') : new Date();
+        resultDate = new Date(s.getTime() + d*86400000);
+        label = '収穫予定日の目安';
+      }
+      var dStr = resultDate.getFullYear() + '/' + (resultDate.getMonth()+1) + '/' + resultDate.getDate();
+      box.innerHTML = '<div class="r-label">' + label + '</div><div class="r-main">' + dStr + '</div>' +
+        '<div class="r-sub">品種・気候・栽培環境により実際の日数は前後します。種袋の説明を優先してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'schedule', TOOLS.schedule.name, function(){
+        return label + ' → ' + dStr;
+      });
+    }
+    [harvestDate, sowingDate, days].forEach(function(i){ i.addEventListener('input', calc); });
+    update();
+  }
+};
+
+/* ---------- 4. 株間から植えられる株数計算 ---------- */
+TOOLS.spacing = {
+  name:'植えられる株数計算', emoji:'🥬', sub:'畑・プランターの幅と株間から、植えられる株数を算出', color:'#4d9a53',
+  render: function(body){
+    var width = field(body, { label:'畑・プランターの幅', unit:'cm', value:100 });
+    var depth = field(body, { label:'畑・プランターの奥行き(列数を出す場合)', unit:'cm', placeholder:'例: 60(省略可)' });
+    var spacing = field(body, { label:'株間(苗と苗の間隔)', unit:'cm', value:30 });
+    var rowSpacing = field(body, { label:'条間(列と列の間隔・任意)', unit:'cm', placeholder:'例: 40(省略可)' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(width.value)||0, sp = parseFloat(spacing.value)||1;
+      var perRow = sp>0 ? Math.floor(w/sp) + 1 : 0;
+      var d = parseFloat(depth.value)||0, rs = parseFloat(rowSpacing.value)||0;
+      var rows = (d>0 && rs>0) ? Math.floor(d/rs) + 1 : 1;
+      var total = perRow * rows;
+      box.innerHTML = '<div class="r-label">植えられる株数(目安)</div><div class="r-main">' + total + ' 株</div>' +
+        '<div class="r-row"><span>1列あたりの株数</span><b>' + perRow + ' 株</b></div>' +
+        (rows>1 ? '<div class="r-row"><span>列数</span><b>' + rows + ' 列</b></div>' : '') +
+        '<div class="r-sub">端の余白は考慮していない単純計算です。作物により推奨株間は異なります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'spacing', TOOLS.spacing.name, function(){
+        return '幅'+w+'cm 株間'+sp+'cm → '+total+'株';
+      });
+    }
+    [width, depth, spacing, rowSpacing].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. 用土の配合計算 ---------- */
+var SOIL_MIX = {
+  general: { label:'観葉植物・草花用', ratio:[7,3,0], names:['赤玉土','腐葉土','軽石'] },
+  succulent: { label:'多肉植物・サボテン用', ratio:[7,2,1], names:['赤玉土','軽石','腐葉土'] },
+  vegetable: { label:'野菜・ハーブ用', ratio:[6,3,1], names:['赤玉土','腐葉土','堆肥'] }
+};
+TOOLS.mix = {
+  name:'用土の配合計算', emoji:'🌾', sub:'配合パターンと必要量から、各資材の量を算出', color:'#8a5a3a',
+  render: function(body){
+    var type = toggleGroup(body, { label:'配合パターン', options: Object.keys(SOIL_MIX).map(function(k){ return { value:k, label:SOIL_MIX[k].label }; }), onChange: function(){ calc(); } });
+    var total = field(body, { label:'必要な用土の総量', unit:'L', value:10 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var mix = SOIL_MIX[type.value];
+      var t = parseFloat(total.value)||0;
+      var sum = mix.ratio.reduce(function(a,b){ return a+b; }, 0) || 1;
+      var amounts = mix.ratio.map(function(r){ return t * r / sum; });
+      box.innerHTML = '<div class="r-label">' + mix.label + '(比率 ' + mix.ratio.filter(function(r){return r>0;}).join(':') + ')</div><div class="r-main">' + fmt(t,1) + ' L</div>' +
+        mix.names.map(function(name, i){
+          return mix.ratio[i] > 0 ? '<div class="r-row"><span>' + name + '</span><b>約 ' + fmt(amounts[i],1) + ' L</b></div>' : '';
+        }).join('') +
+        '<div class="r-sub">植物の種類や好みにより配合は調整してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'mix', TOOLS.mix.name, function(){
+        return mix.label + ' 総量' + fmt(t,1) + 'L → ' + mix.names.map(function(n,i){ return mix.ratio[i]>0 ? n+'約'+fmt(amounts[i],1)+'L' : null; }).filter(Boolean).join(' / ');
+      });
+    }
+    total.addEventListener('input', calc);
+    calc();
+  }
+};
+
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>

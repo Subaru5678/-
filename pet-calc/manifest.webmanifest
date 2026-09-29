@@ -1,0 +1,18 @@
+{
+  "name": "ペットのお世話計算",
+  "short_name": "ペット計算",
+  "description": "犬・猫の年齢の人間換算、体重の変化率、散歩の消費カロリー、1日の給餌量、災害時の備蓄量をその場で計算する犬猫のお世話アプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f7f6",
+  "theme_color": "#f5f7f6",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

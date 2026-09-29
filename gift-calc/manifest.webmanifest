@@ -1,0 +1,18 @@
+{
+  "name": "ご祝儀・香典 相場計算",
+  "short_name": "ご祝儀計算",
+  "description": "結婚式のご祝儀・お香典・出産や新築などのお祝いの相場、のし袋の金額の漢数字表記、新札の枚数内訳をその場で計算する冠婚葬祭準備アプリ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9f6f0",
+  "theme_color": "#f9f6f0",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

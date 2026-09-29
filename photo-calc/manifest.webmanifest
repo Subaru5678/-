@@ -1,0 +1,17 @@
+{
+  "name": "写真・印刷計算",
+  "short_name": "写真計算",
+  "description": "印刷解像度(DPI)判定・用紙サイズの必要ピクセル数・クロップサイズ・データ容量・SDカードの保存枚数をその場で計算",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f4ee",
+  "theme_color": "#f8f4ee",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

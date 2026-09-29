@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>手芸・裁縫計算</title>
+<meta name="description" content="毛糸の必要量・生地の必要量・ゴム紐の長さ・ゲージ換算・ボタンの等間隔配置をその場で計算。編み物と裁縫のための計算アプリ。">
+<meta name="theme-color" content="#faf6f8">
+<link rel="canonical" href="https://subaru5678.github.io/-/craft-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="手芸・裁縫計算">
+<meta property="og:description" content="毛糸の必要量・生地の必要量・ゴム紐の長さ・ゲージ換算・ボタンの等間隔配置をその場で計算。編み物と裁縫のための計算アプリ。">
+<meta property="og:url" content="https://subaru5678.github.io/-/craft-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="手芸計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#faf6f8; --panel:#ffffff; --panel2:#f4ebf0; --line:#ecdce5;
+  --ink:#271c22; --muted:#8a7480; --label:#4a3540; --accent:#c9598a; --accent2:#5a8fc9;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#c9598a;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    repeating-linear-gradient(0deg, rgba(201,89,138,.06) 0 1px, transparent 1px 20px),
+    repeating-linear-gradient(90deg, rgba(90,143,201,.06) 0 1px, transparent 1px 20px);
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600; letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(201,89,138,.08) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700; letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted); margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color); box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden; box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:28px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink)); letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px; font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color)); color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.addrow-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+.addrow-item{ display:flex; gap:6px; align-items:center; background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:8px; }
+.addrow-item input{ min-width:0; background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+  border-radius:8px; padding:8px; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; }
+.addrow-item input.w{ flex:1; }
+.addrow-item input.h{ flex:1; }
+.addrow-item input.c{ flex:.7; }
+.addrow-item .rm{ width:28px; height:28px; border-radius:8px; background:var(--bad); color:#fff; flex:none; font-weight:900; }
+
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">手芸・裁縫計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">CRAFT CALCULATOR</div>
+        <h2>編み物・裁縫の分量を、その場で計算。</h2>
+        <p>毛糸の必要量・生地の必要量・ゴム紐の長さ・ゲージ換算・ボタンの等間隔配置まで。<b>編み物と裁縫</b>のための計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'craftcalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); }); }
+  else { toast('この端末では共有できません'); }
+};
+
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '手芸・裁縫計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 毛糸の必要量計算 ---------- */
+TOOLS.yarn = {
+  name:'毛糸の必要量計算', emoji:'🧶', sub:'編み地のサイズとゲージから、必要な毛糸の重さを算出', color:'#c9598a',
+  render: function(body){
+    var w = field(body, { label:'編み地の幅', unit:'cm', placeholder:'例: 40' });
+    var h = field(body, { label:'編み地の長さ', unit:'cm', placeholder:'例: 150' });
+    var gauge = field(body, { label:'10cm角あたりの糸の重さ', unit:'g', value:8, hint:'試し編みで実際に測るか、糸のラベルの標準ゲージから概算してください。' });
+    var loss = field(body, { label:'ロス率(縁編み・失敗分)', unit:'%', value:15 });
+    var ballWeight = field(body, { label:'毛糸1玉の重さ(任意)', unit:'g', placeholder:'例: 40' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var ww = parseFloat(w.value)||0, hh = parseFloat(h.value)||0;
+      var g = parseFloat(gauge.value)||0, l = parseFloat(loss.value)||0;
+      var area = ww*hh/100; // 10cm角の数
+      var grams = area * g * (1+l/100);
+      var bw = parseFloat(ballWeight.value)||0;
+      var balls = bw>0 ? Math.ceil(grams/bw) : null;
+      box.innerHTML = '<div class="r-label">必要な毛糸の重さ(目安)</div><div class="r-main">約 ' + fmt(grams,0) + ' g</div>' +
+        (balls!=null ? '<div class="r-row"><span>必要な玉数(' + fmt(bw,0) + 'g玉)</span><b>' + balls + ' 玉</b></div>' : '') +
+        '<div class="r-sub">ゲージ・編み方・糸の種類により実際の使用量は変わります。試し編みでの実測をおすすめします。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'yarn', TOOLS.yarn.name, function(){
+        return ww+'×'+hh+'cm → 毛糸 約'+fmt(grams,0)+'g' + (balls!=null?'('+balls+'玉)':'');
+      });
+    }
+    [w,h,gauge,loss,ballWeight].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. 生地の必要量計算 ---------- */
+TOOLS.fabric = {
+  name:'生地の必要量計算', emoji:'✂️', sub:'型紙のパーツ寸法から、必要な生地の長さを算出', color:'#5a8fc9',
+  render: function(body){
+    var fabricWidth = field(body, { label:'生地の幅', unit:'cm', value:110 });
+    var loss = field(body, { label:'ロス率(裁ち代・柄合わせ)', unit:'%', value:15 });
+
+    var listTitle = document.createElement('div'); listTitle.className='section-title'; listTitle.textContent='パーツ(幅×高さ×枚数)';
+    body.appendChild(listTitle);
+    var list = document.createElement('div'); list.className='addrow-list'; body.appendChild(list);
+
+    var rows = [];
+    function addRow(w, h, c){
+      var item = document.createElement('div'); item.className='addrow-item';
+      var wi = document.createElement('input'); wi.type='number'; wi.inputMode='decimal'; wi.className='w'; wi.placeholder='幅cm'; wi.value = w!=null?w:'';
+      var hi = document.createElement('input'); hi.type='number'; hi.inputMode='decimal'; hi.className='h'; hi.placeholder='高さcm'; hi.value = h!=null?h:'';
+      var ci = document.createElement('input'); ci.type='number'; ci.inputMode='numeric'; ci.className='c'; ci.placeholder='枚数'; ci.value = c!=null?c:1;
+      var rm = document.createElement('button'); rm.className='rm'; rm.textContent='×'; rm.setAttribute('aria-label','この行を削除');
+      item.appendChild(wi); item.appendChild(hi); item.appendChild(ci); item.appendChild(rm);
+      list.appendChild(item);
+      var rowObj = { wi:wi, hi:hi, ci:ci, el:item };
+      rows.push(rowObj);
+      [wi,hi,ci].forEach(function(i){ i.addEventListener('input', calc); });
+      rm.addEventListener('click', function(){ rows = rows.filter(function(r){ return r!==rowObj; }); item.remove(); calc(); });
+    }
+    var addBtn = document.createElement('button'); addBtn.className='btn btn-ghost'; addBtn.style.width='100%'; addBtn.style.marginBottom='14px';
+    addBtn.textContent = '+ パーツを追加';
+    addBtn.addEventListener('click', function(){ addRow(); });
+    body.appendChild(addBtn);
+
+    addRow(60, 40, 2);
+    addRow(30, 20, 1);
+
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var fw = parseFloat(fabricWidth.value)||0, l = parseFloat(loss.value)||0;
+      var totalArea = 0;
+      rows.forEach(function(r){
+        var w = parseFloat(r.wi.value)||0, h = parseFloat(r.hi.value)||0, c = parseFloat(r.ci.value)||0;
+        totalArea += w*h*c;
+      });
+      var lengthCm = fw>0 ? (totalArea/fw) * (1+l/100) : 0;
+      var lengthM = lengthCm/100;
+      box.innerHTML = '<div class="r-label">必要な生地の長さ(目安)</div><div class="r-main">約 ' + fmt(lengthM,2) + ' m</div>' +
+        '<div class="r-row"><span>生地幅</span><b>' + fmt(fw,0) + ' cm</b></div>' +
+        '<div class="r-row"><span>パーツ合計面積</span><b>' + fmt(totalArea/10000,2) + ' m²</b></div>' +
+        '<div class="r-sub">面積から単純計算した目安です。実際の裁断効率(型紙の配置)により前後します。柄物は柄合わせでさらに多く必要になる場合があります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'fabric', TOOLS.fabric.name, function(){
+        return '生地幅'+fw+'cm → 必要な長さ 約'+fmt(lengthM,2)+'m';
+      });
+    }
+    [fabricWidth, loss].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 3. ゴム紐の必要な長さ計算 ---------- */
+TOOLS.elastic = {
+  name:'ゴム紐の必要な長さ計算', emoji:'➰', sub:'仕上がりサイズから、縫い代を含めたゴム紐の長さを算出', color:'#4d9a53',
+  render: function(body){
+    var size = field(body, { label:'仕上がりの周囲サイズ(ウエスト等)', unit:'cm', value:64 });
+    var shrink = field(body, { label:'縮める割合', unit:'%', value:10, hint:'一般的に元の周囲の10〜20%縮めるとフィットしやすくなります。' });
+    var overlap = field(body, { label:'縫い代(結び目・重なり分)', unit:'cm', value:2 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var s = parseFloat(size.value)||0, sh = parseFloat(shrink.value)||0, o = parseFloat(overlap.value)||0;
+      var base = s * (1 - sh/100);
+      var total = base + o;
+      box.innerHTML = '<div class="r-label">必要なゴム紐の長さ(目安)</div><div class="r-main">約 ' + fmt(total,1) + ' cm</div>' +
+        '<div class="r-row"><span>縮めた後の長さ</span><b>' + fmt(base,1) + ' cm</b></div>' +
+        '<div class="r-sub">ゴムの伸縮性・素材により実際の仕上がりは変わります。試着しながらの微調整をおすすめします。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'elastic', TOOLS.elastic.name, function(){
+        return s+'cm(縮め'+sh+'%) → ゴム紐 約'+fmt(total,1)+'cm';
+      });
+    }
+    [size, shrink, overlap].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 4. ゲージ換算計算 ---------- */
+TOOLS.gauge = {
+  name:'ゲージ換算計算', emoji:'📐', sub:'自分のゲージに合わせて、編み図の目数・段数を調整', color:'#8a5fc9',
+  render: function(body){
+    var patternGauge = field(body, { label:'編み図のゲージ(10cmあたり)', unit:'目', value:20 });
+    var myGauge = field(body, { label:'自分のゲージ(10cmあたり)', unit:'目', value:22 });
+    var patternStitches = field(body, { label:'編み図の目数', unit:'目', value:100 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var pg = parseFloat(patternGauge.value)||0, mg = parseFloat(myGauge.value)||0, ps = parseFloat(patternStitches.value)||0;
+      var adjusted = pg>0 ? ps * (mg/pg) : 0;
+      box.innerHTML = '<div class="r-label">調整後の目数(目安)</div><div class="r-main">約 ' + fmt(adjusted,0) + ' 目</div>' +
+        '<div class="r-sub">自分のゲージが編み図と異なる場合、同じサイズに仕上げるための目数の目安です。段数も同じ考え方で計算できます。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'gauge', TOOLS.gauge.name, function(){
+        return '編み図' + ps + '目(ゲージ' + pg + ') → 自分のゲージ(' + mg + ')で約' + fmt(adjusted,0) + '目';
+      });
+    }
+    [patternGauge, myGauge, patternStitches].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. ボタン等間隔配置計算 ---------- */
+TOOLS.buttons = {
+  name:'ボタン等間隔配置計算', emoji:'🔘', sub:'配置したい範囲とボタンの数から、等間隔の位置を算出', color:'#c9a13f',
+  render: function(body){
+    var length = field(body, { label:'配置したい範囲の長さ', unit:'cm', value:30 });
+    var count = field(body, { label:'ボタンの個数', unit:'個', value:5 });
+    var margin = field(body, { label:'両端の余白', unit:'cm', value:1.5, hint:'端から最初・最後のボタンまでの距離です。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var l = parseFloat(length.value)||0, c = parseInt(count.value)||0, m = parseFloat(margin.value)||0;
+      var usable = l - m*2;
+      var interval = c>1 ? usable/(c-1) : 0;
+      var positions = [];
+      for(var i=0;i<c;i++){ positions.push(m + interval*i); }
+      box.innerHTML = '<div class="r-label">ボタンの間隔(目安)</div><div class="r-main">約 ' + fmt(interval,1) + ' cm</div>' +
+        '<div class="r-row"><span>配置位置(端からの距離)</span><b>' + positions.map(function(p){ return fmt(p,1); }).join(', ') + ' cm</b></div>' +
+        '<div class="r-sub">端の余白を除いた範囲に等間隔で配置した場合の目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'buttons', TOOLS.buttons.name, function(){
+        return l+'cmに'+c+'個 → 間隔約'+fmt(interval,1)+'cm';
+      });
+    }
+    [length, count, margin].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>
