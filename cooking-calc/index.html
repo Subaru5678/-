@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>料理の計量計算</title>
+<meta name="description" content="人数分の分量換算・ベーカーズパーセント・計量カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算をその場で計算。料理と製菓のための計量計算アプリ。">
+<meta name="theme-color" content="#14100f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+     審査前・ローカルプレビュー中は入れないでください(ポリシー違反になります)。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#14100f; --panel:#211a18; --panel2:#2a211e; --line:#3b302c;
+  --ink:#f6efe9; --muted:#a39289; --label:#dccec4; --accent:#ff6b4a; --accent2:#6bc9a0;
+  --ok:#7bc47f; --warn:#e0b23f; --bad:#e0654f;
+  --tool-color:#ff6b4a;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    radial-gradient(rgba(255,107,74,.07) 1.4px, transparent 1.4px);
+  background-size:auto, 26px 26px;
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600;
+  letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.25); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+/* Home grid */
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 65%, #2e1c16 130%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(255,107,74,.06) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700;
+  letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted);
+  margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+/* Tool view */
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px;
+  border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#1a0a04; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.divider{ height:1px; background:var(--line); margin:18px 0; }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden;
+  box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:30px; font-weight:600; color:var(--tool-color);
+  letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0;
+  border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px;
+  font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 92%, white), var(--tool-color));
+  color:#1a0a04; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.addrow-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+.addrow-item{ display:flex; gap:6px; align-items:center; background:var(--panel); border:1px solid var(--line);
+  border-radius:10px; padding:8px; }
+.addrow-item input{ min-width:0; background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+  border-radius:8px; padding:8px; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; }
+.addrow-item input.name{ flex:1.4; }
+.addrow-item input.amount{ flex:1; }
+.addrow-item input.unit{ flex:.7; }
+.addrow-item .rm{ width:28px; height:28px; border-radius:8px; background:var(--bad); color:#fff; flex:none; font-weight:900; }
+
+/* Saved list */
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;
+  gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+  background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+/* Ad slot */
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,14,12,.95);
+  backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20;
+  max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.5); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">料理の計量計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">KITCHEN CALCULATOR</div>
+        <h2>はかりなしでも、ぴったり計量。</h2>
+        <p>人数分の分量換算・ベーカーズパーセント・計量カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算まで。<b>料理と製菓</b>のための実用計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px; display:flex; flex-direction:column; gap:6px;">
+        <a href="../" style="font-size:12px; color:var(--accent2); font-weight:800;">📏 現場の資材計算 も見る</a>
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <!-- Web版(AdSense)用。パブリッシャーID・広告ユニットIDを設定すると自動的に有効になります -->
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- utils ---------- */
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'cookingcalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){
+    navigator.share({ text: text }).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); });
+  } else {
+    toast('この端末では共有できません');
+  }
+};
+
+/* ---------- routing ---------- */
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '料理の計量計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+/* ---------- tool definitions ---------- */
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function selectField(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var select = document.createElement('select');
+  opts.options.forEach(function(o){
+    var op = document.createElement('option'); op.value = o.value; op.textContent = o.label;
+    select.appendChild(op);
+  });
+  if(opts.value != null) select.value = opts.value;
+  wrap.appendChild(select);
+  container.appendChild(wrap);
+  return select;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 人数分量換算 ---------- */
+TOOLS.scale = {
+  name:'人数分量換算計算', emoji:'👥', sub:'元のレシピを、作りたい人数分に換算', color:'#ff6b4a',
+  render: function(body){
+    var from = field(body, { label:'元の人数(レシピ通り)', unit:'人分', value:2 });
+    var to = field(body, { label:'作りたい人数', unit:'人分', value:4 });
+
+    var listTitle = document.createElement('div'); listTitle.className='section-title'; listTitle.textContent='材料(名前・分量・単位)';
+    body.appendChild(listTitle);
+    var list = document.createElement('div'); list.className='addrow-list'; body.appendChild(list);
+
+    var rows = [];
+    function addRow(name, amount, unit){
+      var item = document.createElement('div'); item.className='addrow-item';
+      var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.className='name'; nameInput.placeholder='材料名'; nameInput.value = name||'';
+      var amountInput = document.createElement('input'); amountInput.type='number'; amountInput.inputMode='decimal'; amountInput.className='amount'; amountInput.placeholder='分量'; amountInput.value = amount!=null?amount:'';
+      var unitInput = document.createElement('input'); unitInput.type='text'; unitInput.className='unit'; unitInput.placeholder='単位'; unitInput.value = unit||'g';
+      var rm = document.createElement('button'); rm.className='rm'; rm.textContent='×';
+      item.appendChild(nameInput); item.appendChild(amountInput); item.appendChild(unitInput); item.appendChild(rm);
+      list.appendChild(item);
+      var rowObj = { nameInput: nameInput, amountInput: amountInput, unitInput: unitInput, el: item };
+      rows.push(rowObj);
+      [nameInput, amountInput, unitInput].forEach(function(i){ i.addEventListener('input', calc); });
+      rm.addEventListener('click', function(){
+        rows = rows.filter(function(r){ return r !== rowObj; });
+        item.remove(); calc();
+      });
+    }
+    var addBtn = document.createElement('button'); addBtn.className='btn btn-ghost'; addBtn.style.width='100%'; addBtn.style.marginBottom='14px';
+    addBtn.textContent = '+ 材料を追加';
+    addBtn.addEventListener('click', function(){ addRow('', '', 'g'); });
+    body.appendChild(addBtn);
+
+    addRow('小麦粉', 200, 'g');
+    addRow('砂糖', 50, 'g');
+    addRow('卵', 2, '個');
+
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var f = parseFloat(from.value)||0, t = parseFloat(to.value)||0;
+      var ratio = f>0 ? (t/f) : 0;
+      var lines = rows.map(function(r){
+        var amt = parseFloat(r.amountInput.value)||0;
+        var scaled = amt * ratio;
+        var name = r.nameInput.value || '(材料名未入力)';
+        var unit = r.unitInput.value || '';
+        return { name: name, scaled: scaled, unit: unit };
+      });
+      box.innerHTML = '<div class="r-label">倍率</div><div class="r-main">× ' + fmt(ratio,2) + '</div>' +
+        lines.map(function(l){
+          return '<div class="r-row"><span>' + l.name + '</span><b>' + fmt(l.scaled,1) + ' ' + l.unit + '</b></div>';
+        }).join('') +
+        '<div class="r-sub">' + f + '人分 → ' + t + '人分に換算。塩・スパイスなど微量な調味料は倍率通りにせず味を見ながら調整してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'scale', TOOLS.scale.name, function(){
+        return f + '人分→' + t + '人分(×' + fmt(ratio,2) + ') / ' + lines.map(function(l){ return l.name + ' ' + fmt(l.scaled,1) + l.unit; }).join(', ');
+      });
+    }
+    [from, to].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. ベーカーズパーセント計算 ---------- */
+TOOLS.bakers = {
+  name:'ベーカーズパーセント計算', emoji:'🍞', sub:'小麦粉の重量から、パン生地の配合を算出', color:'#c9975c',
+  render: function(body){
+    var flour = field(body, { label:'小麦粉の重量(基準100%)', unit:'g', value:300 });
+    var water = field(body, { label:'水分(加水率)', unit:'%', value:65, hint:'食パンで60〜70%、ハード系パンで70%以上が目安です。' });
+    var salt = field(body, { label:'塩', unit:'%', value:2 });
+    var yeast = field(body, { label:'イースト', unit:'%', value:1 });
+    var sugar = field(body, { label:'砂糖', unit:'%', value:5 });
+    var butter = field(body, { label:'バター/油脂', unit:'%', value:5 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var fl = parseFloat(flour.value)||0;
+      var items = [
+        { name:'水分', pct: parseFloat(water.value)||0 },
+        { name:'塩', pct: parseFloat(salt.value)||0 },
+        { name:'イースト', pct: parseFloat(yeast.value)||0 },
+        { name:'砂糖', pct: parseFloat(sugar.value)||0 },
+        { name:'バター/油脂', pct: parseFloat(butter.value)||0 }
+      ];
+      var total = fl;
+      items.forEach(function(it){ it.g = fl * it.pct/100; total += it.g; });
+      box.innerHTML = '<div class="r-label">生地の総重量</div><div class="r-main">' + fmt(total,0) + ' g</div>' +
+        '<div class="r-row"><span>小麦粉(100%)</span><b>' + fmt(fl,0) + ' g</b></div>' +
+        items.map(function(it){ return '<div class="r-row"><span>' + it.name + '(' + it.pct + '%)</span><b>' + fmt(it.g,1) + ' g</b></div>'; }).join('') +
+        '<div class="r-sub">ベーカーズパーセントは小麦粉の重量を100%とした配合表記です。生地の種類によって適正な加水率・塩分は変わります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'bakers', TOOLS.bakers.name, function(){
+        return '小麦粉' + fmt(fl,0) + 'g → 生地総重量約' + fmt(total,0) + 'g(' + items.map(function(it){ return it.name+fmt(it.g,1)+'g'; }).join(', ') + ')';
+      });
+    }
+    [flour, water, salt, yeast, sugar, butter].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 3. カップ・スプーン ⇔ g/ml換算 ---------- */
+var INGREDIENTS = [
+  { id:'water', name:'水・酢・酒', cup:200, tbsp:15, tsp:5 },
+  { id:'soy', name:'醤油・みりん・味噌', cup:230, tbsp:18, tsp:6 },
+  { id:'sugar', name:'上白糖(砂糖)', cup:130, tbsp:9, tsp:3 },
+  { id:'salt', name:'食塩', cup:240, tbsp:18, tsp:6 },
+  { id:'flour', name:'小麦粉(薄力粉・強力粉)', cup:110, tbsp:9, tsp:3 },
+  { id:'katakuri', name:'片栗粉', cup:130, tbsp:9, tsp:3 },
+  { id:'butter', name:'バター・マーガリン・油', cup:180, tbsp:12, tsp:4 },
+  { id:'honey', name:'はちみつ・水あめ', cup:280, tbsp:21, tsp:7 }
+];
+TOOLS.volume = {
+  name:'カップ・スプーン⇔g換算', emoji:'🥄', sub:'計量カップ・大さじ・小さじと重さを変換', color:'#4fb0e0',
+  render: function(body){
+    var ing = selectField(body, { label:'材料', options: INGREDIENTS.map(function(i){ return { value:i.id, label:i.name }; }) });
+    var mode = toggleGroup(body, { label:'変換方向', options:[
+      { value:'v2w', label:'体積 → 重さ' },
+      { value:'w2v', label:'重さ → 体積' }
+    ], onChange: function(){ update(); } });
+
+    var volWrap = document.createElement('div');
+    var cups = field(volWrap, { label:'カップ(200ml)', unit:'カップ', placeholder:'例: 1' });
+    var tbsps = field(volWrap, { label:'大さじ(15ml)', unit:'杯', placeholder:'例: 2' });
+    var tsps = field(volWrap, { label:'小さじ(5ml)', unit:'杯', placeholder:'例: 1' });
+    body.appendChild(volWrap);
+
+    var weightWrap = document.createElement('div');
+    var grams = field(weightWrap, { label:'重さ', unit:'g', placeholder:'例: 100' });
+    body.appendChild(weightWrap);
+    weightWrap.style.display = 'none';
+
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function getIng(){ return INGREDIENTS.filter(function(i){ return i.id === ing.value; })[0] || INGREDIENTS[0]; }
+
+    function update(){
+      volWrap.style.display = mode.value === 'v2w' ? '' : 'none';
+      weightWrap.style.display = mode.value === 'w2v' ? '' : 'none';
+      calc();
+    }
+    function calc(){
+      var i = getIng();
+      if(mode.value === 'v2w'){
+        var c = parseFloat(cups.value)||0, tb = parseFloat(tbsps.value)||0, ts = parseFloat(tsps.value)||0;
+        var g = c*i.cup + tb*i.tbsp + ts*i.tsp;
+        box.innerHTML = '<div class="r-label">重さ(目安)</div><div class="r-main">' + fmt(g,1) + ' g</div>' +
+          '<div class="r-sub">' + i.name + ' はカップ1杯=約' + i.cup + 'g、大さじ1=約' + i.tbsp + 'g、小さじ1=約' + i.tsp + 'gで換算した目安です。</div>';
+        actions.innerHTML = '';
+        actionsRow(actions, 'volume', TOOLS.volume.name, function(){
+          return i.name + ' カップ' + c + '+大さじ' + tb + '+小さじ' + ts + ' → 約' + fmt(g,1) + 'g';
+        });
+      } else {
+        var gv = parseFloat(grams.value)||0;
+        var cEq = i.cup>0 ? gv/i.cup : 0, tbEq = i.tbsp>0 ? gv/i.tbsp : 0, tsEq = i.tsp>0 ? gv/i.tsp : 0;
+        box.innerHTML = '<div class="r-label">体積換算(目安)</div><div class="r-main">' + fmt(gv,0) + ' g</div>' +
+          '<div class="r-row"><span>カップ換算</span><b>約 ' + fmt(cEq,2) + ' カップ</b></div>' +
+          '<div class="r-row"><span>大さじ換算</span><b>約 ' + fmt(tbEq,1) + ' 杯</b></div>' +
+          '<div class="r-row"><span>小さじ換算</span><b>約 ' + fmt(tsEq,1) + ' 杯</b></div>' +
+          '<div class="r-sub">' + i.name + 'の密度目安で換算した参考値です。粉類はふるい方・詰め方で誤差が出ます。</div>';
+        actions.innerHTML = '';
+        actionsRow(actions, 'volume', TOOLS.volume.name, function(){
+          return i.name + ' ' + fmt(gv,0) + 'g → 大さじ約' + fmt(tbEq,1) + '杯 / 小さじ約' + fmt(tsEq,1) + '杯';
+        });
+      }
+    }
+    [cups, tbsps, tsps, grams].forEach(function(i){ i.addEventListener('input', calc); });
+    ing.addEventListener('change', calc);
+    update();
+  }
+};
+
+/* ---------- 4. 塩分濃度計算 ---------- */
+TOOLS.brine = {
+  name:'塩分濃度計算', emoji:'🧂', sub:'塩水・漬物の塩分濃度から必要な塩の量を算出', color:'#5fc9b4',
+  render: function(body){
+    var water = field(body, { label:'水(または食材)の重さ', unit:'g', value:500, hint:'ml表記の水は1ml=1gとして計算できます。' });
+    var pct = field(body, { label:'目標塩分濃度', unit:'%', value:3, hint:'浅漬けは2〜3%、しっかり漬けるなら8〜10%程度が目安です。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(water.value)||0, p = parseFloat(pct.value)||0;
+      var salt = w * p/100;
+      box.innerHTML = '<div class="r-label">必要な塩の量(目安)</div><div class="r-main">' + fmt(salt,1) + ' g</div>' +
+        '<div class="r-row"><span>水(食材)の重さ</span><b>' + fmt(w,0) + ' g</b></div>' +
+        '<div class="r-row"><span>目標濃度</span><b>' + fmt(p,1) + ' %</b></div>' +
+        '<div class="r-sub">水の重さに対する塩分濃度(対水比)での簡易計算です。漬物・ソミュール液・塩水漬けなど、多くのレシピで使われる簡便法です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'brine', TOOLS.brine.name, function(){
+        return '水' + fmt(w,0) + 'g × 濃度' + fmt(p,1) + '% → 塩 約' + fmt(salt,1) + 'g';
+      });
+    }
+    [water, pct].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. めんつゆ・だし希釈計算 ---------- */
+TOOLS.tsuyu = {
+  name:'めんつゆ・だし希釈計算', emoji:'🍶', sub:'濃縮タイプと作りたい量から、水との割合を算出', color:'#d2a94c',
+  render: function(body){
+    var conc = toggleGroup(body, { label:'めんつゆの濃縮タイプ', options:[
+      { value:'3', label:'3倍濃縮' },
+      { value:'2', label:'2倍濃縮' },
+      { value:'1', label:'ストレート' }
+    ], onChange: function(){ calc(); } });
+    var total = field(body, { label:'作りたい総量', unit:'ml', value:500 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var c = parseFloat(conc.value)||1, t = parseFloat(total.value)||0;
+      var tsuyuAmt = t / c;
+      var waterAmt = t - tsuyuAmt;
+      box.innerHTML = '<div class="r-label">めんつゆの量</div><div class="r-main">' + fmt(tsuyuAmt,0) + ' ml</div>' +
+        '<div class="r-row"><span>水の量</span><b>' + fmt(waterAmt,0) + ' ml</b></div>' +
+        '<div class="r-row"><span>できあがり総量</span><b>' + fmt(t,0) + ' ml</b></div>' +
+        '<div class="r-sub">' + c + '倍濃縮のめんつゆを' + c + '倍に薄めて使う場合の目安です。料理により最適な濃さは調整してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'tsuyu', TOOLS.tsuyu.name, function(){
+        return c + '倍濃縮 / 総量' + fmt(t,0) + 'ml → めんつゆ' + fmt(tsuyuAmt,0) + 'ml + 水' + fmt(waterAmt,0) + 'ml';
+      });
+    }
+    total.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 6. オーブン温度換算 ---------- */
+TOOLS.oven = {
+  name:'オーブン温度換算', emoji:'🌡️', sub:'摂氏⇔華氏の変換とコンベクションの目安', color:'#e0654f',
+  render: function(body){
+    var c = field(body, { label:'摂氏', unit:'℃', value:180, allowNegative:true });
+    var f = field(body, { label:'華氏', unit:'℉', allowNegative:true });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    var syncing = false;
+    function fromC(){
+      if(syncing) return; syncing = true;
+      var cv = parseFloat(c.value);
+      if(isFinite(cv)) f.value = fmt(cv*9/5+32, 0);
+      syncing = false;
+      calc();
+    }
+    function fromF(){
+      if(syncing) return; syncing = true;
+      var fv = parseFloat(f.value);
+      if(isFinite(fv)) c.value = fmt((fv-32)*5/9, 0);
+      syncing = false;
+      calc();
+    }
+    function calc(){
+      var cv = parseFloat(c.value)||0, fv = parseFloat(f.value)||(cv*9/5+32);
+      var convection = cv - 20;
+      box.innerHTML = '<div class="r-label">対応する温度</div><div class="r-main">' + fmt(cv,0) + '℃ ≒ ' + fmt(fv,0) + '℉</div>' +
+        '<div class="r-row"><span>コンベクション(ファン式)の目安</span><b>約 ' + fmt(convection,0) + '℃</b></div>' +
+        '<div class="r-sub">庫内が対流するコンベクション/ファンオーブンはレシピの設定温度から10〜20℃下げるのが一般的な目安です(機種差あり)。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'oven', TOOLS.oven.name, function(){
+        return fmt(cv,0) + '℃ ≒ ' + fmt(fv,0) + '℉(コンベクション目安 約' + fmt(convection,0) + '℃)';
+      });
+    }
+    c.addEventListener('input', fromC);
+    f.addEventListener('input', fromF);
+    fromC();
+  }
+};
+
+/* ---------- home grid ---------- */
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+/* ---------- saved list ---------- */
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + item.toolName + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + item.summary + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑';
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+/* ---------- PWA install ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+/* ---------- AdSense (web only) ----------
+   Only activates once you've uncommented the adsbygoogle <script> in <head>
+   and replaced the placeholder client/slot IDs on the <ins> below the ad
+   placeholder — until then this safely no-ops and the "広告スペース"
+   placeholder box keeps showing. */
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>
