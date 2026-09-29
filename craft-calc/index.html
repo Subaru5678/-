@@ -493,6 +493,84 @@ TOOLS.buttons = {
   }
 };
 
+/* ---------- 6. リボン・レースの必要量計算 ---------- */
+TOOLS.ribbon = {
+  name:'リボン・レースの必要量計算', emoji:'🎀', sub:'周囲長と個数から、必要な長さを算出', color:'#d16fa0',
+  render: function(body){
+    var perimeter = field(body, { label:'1個あたりの周囲長', unit:'cm', value:50 });
+    var count = field(body, { label:'個数', unit:'個', value:1 });
+    var margin = field(body, { label:'縫い代・結び目の余裕', unit:'cm', value:5 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var p = parseFloat(perimeter.value)||0, c = parseFloat(count.value)||0, m = parseFloat(margin.value)||0;
+      var totalCm = (p + m) * c;
+      var totalM = totalCm/100;
+      box.innerHTML = '<div class="r-label">必要な長さ(目安)</div><div class="r-main">約 ' + fmt(totalM,2) + ' m</div>' +
+        '<div class="r-row"><span>cm換算</span><b>約 ' + fmt(totalCm,0) + ' cm</b></div>' +
+        '<div class="r-sub">1個あたりの周囲長に余裕分を加え、個数を掛けた目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'ribbon', TOOLS.ribbon.name, function(){
+        return p+'cm × '+c+'個 → 必要な長さ 約'+fmt(totalM,2)+'m';
+      });
+    }
+    [perimeter, count, margin].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. ファスナーの必要な長さ計算 ---------- */
+var ZIPPER_SIZES = [5,10,15,18,20,25,30,40,50];
+TOOLS.zipper = {
+  name:'ファスナーの必要な長さ計算', emoji:'🤐', sub:'開口部の長さから、必要なファスナーの長さを算出', color:'#4d7a9a',
+  render: function(body){
+    var opening = field(body, { label:'開口部の長さ', unit:'cm', value:20 });
+    var margin = field(body, { label:'縫い代の余裕', unit:'cm', value:3 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var o = parseFloat(opening.value)||0, m = parseFloat(margin.value)||0;
+      var needed = o + m;
+      var standard = ZIPPER_SIZES.filter(function(s){ return s >= needed; })[0] || ZIPPER_SIZES[ZIPPER_SIZES.length-1];
+      box.innerHTML = '<div class="r-label">必要な長さ(目安)</div><div class="r-main">約 ' + fmt(needed,1) + ' cm</div>' +
+        '<div class="r-row"><span>市販の標準サイズ換算</span><b>' + standard + ' cm</b></div>' +
+        '<div class="r-sub">市販のファスナーは5cm刻みなど決まったサイズで売られていることが多いため、必要な長さ以上の標準サイズを選び、長い分は端で処理します。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'zipper', TOOLS.zipper.name, function(){
+        return '開口部'+o+'cm → 必要な長さ 約'+fmt(needed,1)+'cm(標準'+standard+'cm)';
+      });
+    }
+    [opening, margin].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. 型紙拡大縮小コピー倍率計算 ---------- */
+TOOLS.scale = {
+  name:'型紙拡大縮小コピー倍率計算', emoji:'🔍', sub:'元のサイズと仕上げたいサイズから、コピー機の倍率を算出', color:'#c9a13f',
+  render: function(body){
+    var original = field(body, { label:'型紙(元)のサイズ', unit:'cm', value:20 });
+    var target = field(body, { label:'仕上げたいサイズ', unit:'cm', value:24 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var o = parseFloat(original.value)||0, t = parseFloat(target.value)||0;
+      var ratio = o>0 ? t/o*100 : 0;
+      box.innerHTML = '<div class="r-label">コピー機の倍率</div><div class="r-main">' + fmt(ratio,1) + ' %</div>' +
+        '<div class="r-sub">同じ対角線上の2点間の長さ(例: 元のサイズと仕上げたいサイズ)を使って算出しています。長さ・幅どちらの辺で計算しても、同じ倍率になります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'scale', TOOLS.scale.name, function(){
+        return o+'cm → '+t+'cm(倍率 '+fmt(ratio,1)+'%)';
+      });
+    }
+    [original, target].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

@@ -465,6 +465,87 @@ TOOLS.progress = {
   }
 };
 
+/* ---------- 6. ボーナス併用の積立計算 ---------- */
+TOOLS.bonus = {
+  name:'ボーナス併用の積立計算', emoji:'🎊', sub:'毎月積立とボーナス加算から、積立総額を算出', color:'#5a9e6b',
+  render: function(body){
+    var monthly = field(body, { label:'毎月の積立額', unit:'円', value:20000 });
+    var bonusAmount = field(body, { label:'ボーナス月の加算額(1回あたり)', unit:'円', value:100000 });
+    var bonusTimes = field(body, { label:'年間のボーナス回数', unit:'回', value:2 });
+    var years = field(body, { label:'積立期間', unit:'年', value:5 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var m = parseFloat(monthly.value)||0, b = parseFloat(bonusAmount.value)||0, bt = parseFloat(bonusTimes.value)||0, y = parseFloat(years.value)||0;
+      var total = m*12*y + b*bt*y;
+      var yearlyTotal = m*12 + b*bt;
+      box.innerHTML = '<div class="r-label">積立総額(利息を考慮しない場合)</div><div class="r-main">約 ' + yen(total) + ' 円</div>' +
+        '<div class="r-row"><span>年間の積立額</span><b>' + yen(yearlyTotal) + ' 円</b></div>' +
+        '<div class="r-sub">毎月の積立にボーナス月の加算を組み合わせた場合の、単純な合計額です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'bonus', TOOLS.bonus.name, function(){
+        return '毎月'+yen(m)+'円+ボーナス'+yen(b)+'円×'+bt+'回 '+y+'年 → 総額 約'+yen(total)+'円';
+      });
+    }
+    [monthly, bonusAmount, bonusTimes, years].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. 先取り貯金の割合計算 ---------- */
+TOOLS.rate = {
+  name:'先取り貯金の割合計算', emoji:'✂️', sub:'手取り収入と貯金額から、貯金率を算出', color:'#d9865a',
+  render: function(body){
+    var income = field(body, { label:'手取り月収', unit:'円', value:250000 });
+    var saving = field(body, { label:'毎月の貯金額', unit:'円', value:30000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var inc = parseFloat(income.value)||0, s = parseFloat(saving.value)||0;
+      var rate = inc>0 ? s/inc*100 : 0;
+      var judge = rate >= 20 ? '高い水準です' : rate >= 10 ? '一般的な水準です' : '無理のない範囲で少しずつ増やすのがおすすめです';
+      box.innerHTML = '<div class="r-label">貯金率</div><div class="r-main">' + fmt(rate,1) + ' %</div>' +
+        '<div class="r-row"><span>判定</span><b>' + judge + '</b></div>' +
+        '<div class="r-sub">一般的に貯金率は手取りの10〜20%程度が目安とされることが多いですが、収入やライフステージにより適切な水準は異なります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'rate', TOOLS.rate.name, function(){
+        return '手取り'+yen(inc)+'円 貯金'+yen(s)+'円 → 貯金率 '+fmt(rate,1)+'%';
+      });
+    }
+    [income, saving].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. インフレ考慮後の実質価値計算 ---------- */
+TOOLS.inflation = {
+  name:'インフレ考慮後の実質価値計算', emoji:'📉', sub:'現在の金額とインフレ率から、将来の実質価値を算出', color:'#8a5fd1',
+  render: function(body){
+    var amount = field(body, { label:'現在の金額', unit:'円', value:1000000 });
+    var rate = field(body, { label:'年間のインフレ率', unit:'%', value:2, step:'0.1' });
+    var years = field(body, { label:'年数', unit:'年', value:10 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var a = parseFloat(amount.value)||0, r = (parseFloat(rate.value)||0)/100, y = parseFloat(years.value)||0;
+      var realValue = a / Math.pow(1+r, y);
+      var loss = a - realValue;
+      box.innerHTML = '<div class="r-label">' + y + '年後の実質価値(目安)</div><div class="r-main">約 ' + yen(realValue) + ' 円</div>' +
+        '<div class="r-row"><span>目減りする価値</span><b>約 ' + yen(loss) + ' 円</b></div>' +
+        '<div class="r-sub">物価上昇により、同じ金額でも購入できるモノやサービスの量が減ることを試算した目安です。将来のインフレ率を保証するものではありません。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'inflation', TOOLS.inflation.name, function(){
+        return yen(a)+'円 インフレ率'+rate.value+'% '+y+'年後 → 実質価値 約'+yen(realValue)+'円';
+      });
+    }
+    [amount, rate, years].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

@@ -473,6 +473,81 @@ TOOLS.stock = {
   }
 };
 
+/* ---------- 6. 多頭飼いのフード費用計算 ---------- */
+TOOLS.multipet = {
+  name:'多頭飼いのフード費用計算', emoji:'🐈‍⬛', sub:'頭数と1頭あたりの費用から、月間のフード代を算出', color:'#5a8fd1',
+  render: function(body){
+    var heads = field(body, { label:'頭数', unit:'頭', value:2 });
+    var perHead = field(body, { label:'1頭あたりの月間フード代', unit:'円', value:5000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var h = parseFloat(heads.value)||0, p = parseFloat(perHead.value)||0;
+      var total = h*p;
+      box.innerHTML = '<div class="r-label">月間のフード代(目安)</div><div class="r-main">約 ' + fmt(total,0) + ' 円</div>' +
+        '<div class="r-row"><span>年間換算</span><b>約 ' + fmt(total*12,0) + ' 円</b></div>' +
+        '<div class="r-sub">フードの種類や体格により1頭あたりの費用は変わります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'multipet', TOOLS.multipet.name, function(){
+        return h+'頭 × '+fmt(p,0)+'円 → 月間 約'+fmt(total,0)+'円';
+      });
+    }
+    [heads, perHead].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. 医療費積立の月額計算 ---------- */
+TOOLS.medical = {
+  name:'医療費積立の月額計算', emoji:'🏥', sub:'年間の想定医療費から、毎月の積立額を算出', color:'#c9483f',
+  render: function(body){
+    var yearly = field(body, { label:'年間の想定医療費', unit:'円', value:60000, hint:'ペット保険に入らない場合の、通院・予防接種・健康診断などを見込んだ金額です。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var y = parseFloat(yearly.value)||0;
+      var monthly = y/12;
+      box.innerHTML = '<div class="r-label">毎月の積立額(目安)</div><div class="r-main">約 ' + fmt(monthly,0) + ' 円</div>' +
+        '<div class="r-row"><span>年間の想定医療費</span><b>' + fmt(y,0) + ' 円</b></div>' +
+        '<div class="r-sub">予防接種やフィラリア予防などの定期費用に加え、急な通院に備えた金額です。ペット保険への加入も選択肢のひとつです。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'medical', TOOLS.medical.name, function(){
+        return '年間'+fmt(y,0)+'円 → 毎月 約'+fmt(monthly,0)+'円';
+      });
+    }
+    yearly.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 8. 留守番時に必要な飲み水の量計算 ---------- */
+TOOLS.water = {
+  name:'留守番時に必要な飲み水の量計算', emoji:'💧', sub:'体重と留守時間から、用意しておきたい水の量を算出', color:'#3f9ecf',
+  render: function(body){
+    var weight = field(body, { label:'体重', unit:'kg', value:5 });
+    var hours = field(body, { label:'留守にする時間', unit:'時間', value:8 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weight.value)||0, h = parseFloat(hours.value)||0;
+      var dailyWater = w * 50;
+      var needed = dailyWater * (h/24);
+      box.innerHTML = '<div class="r-label">用意しておきたい水の量(目安)</div><div class="r-main">約 ' + fmt(needed,0) + ' ml</div>' +
+        '<div class="r-row"><span>1日あたりの必要量の目安</span><b>約 ' + fmt(dailyWater,0) + ' ml</b></div>' +
+        '<div class="r-sub">体重1kgあたり約50mlを1日の必要水分量の目安として計算しています。こぼれ・蒸発分を考え、目安より多めに用意すると安心です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'water', TOOLS.water.name, function(){
+        return w+'kg '+h+'時間の留守番 → 水 約'+fmt(needed,0)+'ml';
+      });
+    }
+    [weight, hours].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

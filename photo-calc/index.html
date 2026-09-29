@@ -472,6 +472,86 @@ TOOLS.card = {
   }
 };
 
+/* ---------- 6. 35mm換算焦点距離計算 ---------- */
+var CROP_FACTORS = {
+  full: { label:'フルサイズ', factor:1 },
+  apsc_n: { label:'APS-C(ニコン・ソニー等)', factor:1.5 },
+  apsc_c: { label:'APS-C(キヤノン)', factor:1.6 },
+  m43: { label:'マイクロフォーサーズ', factor:2 }
+};
+TOOLS.focal = {
+  name:'35mm換算焦点距離計算', emoji:'🔭', sub:'焦点距離とセンサーサイズから、35mm換算の焦点距離を算出', color:'#8a5fd1',
+  render: function(body){
+    var focal = field(body, { label:'レンズの焦点距離', unit:'mm', value:35 });
+    var sensor = toggleGroup(body, { label:'センサーサイズ', value:'apsc_n', options: Object.keys(CROP_FACTORS).map(function(k){ return { value:k, label:CROP_FACTORS[k].label }; }), onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var f = parseFloat(focal.value)||0;
+      var s = CROP_FACTORS[sensor.value];
+      var converted = f * s.factor;
+      box.innerHTML = '<div class="r-label">35mm換算の焦点距離</div><div class="r-main">約 ' + fmt(converted,0) + ' mm</div>' +
+        '<div class="r-sub">クロップファクター(' + s.label + ': ×' + s.factor + ')を掛けた、フルサイズ換算の画角の目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'focal', TOOLS.focal.name, function(){
+        return f+'mm('+s.label+') → 35mm換算 約'+fmt(converted,0)+'mm';
+      });
+    }
+    focal.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 7. 動画の必要ストレージ容量計算 ---------- */
+TOOLS.video = {
+  name:'動画の必要ストレージ容量計算', emoji:'🎥', sub:'ビットレートと撮影時間から、必要な容量を算出', color:'#4d9a7a',
+  render: function(body){
+    var bitrate = field(body, { label:'ビットレート', unit:'Mbps', value:50 });
+    var minutes = field(body, { label:'撮影時間', unit:'分', value:30 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var b = parseFloat(bitrate.value)||0, m = parseFloat(minutes.value)||0;
+      var sizeGB = b * 60 * m / 8 / 1000;
+      box.innerHTML = '<div class="r-label">必要なストレージ容量(目安)</div><div class="r-main">約 ' + fmt(sizeGB,2) + ' GB</div>' +
+        '<div class="r-sub">ビットレート(Mbps)から概算した理論値です。実際のファイルサイズは記録形式や撮影内容により変わります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'video', TOOLS.video.name, function(){
+        return b+'Mbps × '+m+'分 → 約'+fmt(sizeGB,2)+'GB';
+      });
+    }
+    [bitrate, minutes].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. 印刷用の塗り足し込みサイズ計算 ---------- */
+TOOLS.bleed = {
+  name:'印刷用の塗り足し込みサイズ計算', emoji:'📐', sub:'仕上がりサイズと塗り足し幅から、入稿サイズを算出', color:'#d9865a',
+  render: function(body){
+    var width = field(body, { label:'仕上がり幅', unit:'mm', value:90 });
+    var height = field(body, { label:'仕上がり高さ', unit:'mm', value:55 });
+    var bleed = field(body, { label:'塗り足し幅', unit:'mm', value:3, hint:'一般的な印刷入稿では、天地左右に3mm程度の塗り足しを付けるのが標準的です。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(width.value)||0, h = parseFloat(height.value)||0, b = parseFloat(bleed.value)||0;
+      var outW = w + b*2, outH = h + b*2;
+      box.innerHTML = '<div class="r-label">塗り足し込みサイズ</div><div class="r-main">' + fmt(outW,1) + ' × ' + fmt(outH,1) + ' mm</div>' +
+        '<div class="r-sub">仕上がりサイズの外側に塗り足しを付けた、入稿用データのサイズです。印刷会社の規定によって推奨される塗り足し幅は異なるため、事前にご確認ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'bleed', TOOLS.bleed.name, function(){
+        return w+'×'+h+'mm(塗り足し'+b+'mm) → 入稿サイズ '+fmt(outW,1)+'×'+fmt(outH,1)+'mm';
+      });
+    }
+    [width, height, bleed].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

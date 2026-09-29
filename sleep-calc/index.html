@@ -482,6 +482,83 @@ TOOLS.recommend = {
   }
 };
 
+/* ---------- 6. カフェインの残存量計算 ---------- */
+TOOLS.caffeine = {
+  name:'カフェインの残存量計算', emoji:'☕', sub:'摂取量と経過時間から、体内の残存量を算出', color:'#8a5a3a',
+  render: function(body){
+    var amount = field(body, { label:'摂取したカフェイン量', unit:'mg', value:150, hint:'コーヒー1杯(150ml)で約60〜100mg、缶コーヒーやエナジードリンクは製品表示をご確認ください。' });
+    var hours = field(body, { label:'摂取からの経過時間', unit:'時間', value:4, step:'0.5' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var a = parseFloat(amount.value)||0, h = parseFloat(hours.value)||0;
+      var halfLife = 5;
+      var remaining = a * Math.pow(0.5, h/halfLife);
+      box.innerHTML = '<div class="r-label">体内に残っているカフェイン量(目安)</div><div class="r-main">約 ' + fmt(remaining,0) + ' mg</div>' +
+        '<div class="r-sub">カフェインの半減期を約5時間として計算した目安です。個人差が大きく、就寝の6〜8時間前を過ぎたカフェイン摂取は睡眠に影響しやすいとされています。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'caffeine', TOOLS.caffeine.name, function(){
+        return a+'mg 経過'+h+'時間 → 残存量 約'+fmt(remaining,0)+'mg';
+      });
+    }
+    [amount, hours].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. スマホ・PCをやめるべき時刻の計算 ---------- */
+TOOLS.screentime = {
+  name:'スマホ・PCをやめるべき時刻の計算', emoji:'📵', sub:'就寝予定時刻から、画面を見るのをやめる時刻を算出', color:'#5a6bd9',
+  render: function(body){
+    var bedtime = field(body, { label:'就寝予定時刻', type:'time', value:'23:30' });
+    var minutes = field(body, { label:'就寝前に断つ時間', unit:'分', value:60, hint:'ブルーライトの影響を減らすため、就寝の1時間前を目安にする考え方が一般的です。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var t = parseTime(bedtime.value);
+      var m = parseFloat(minutes.value)||0;
+      if(t == null){ box.innerHTML = '<div class="r-sub">時刻を入力してください。</div>'; actions.innerHTML=''; return; }
+      var cutoff = formatMinutes(t - m);
+      box.innerHTML = '<div class="r-label">画面を見るのをやめたい時刻</div><div class="r-main">' + cutoff + '</div>' +
+        '<div class="r-sub">この時刻以降は、スマホ・PC・テレビなどの強い光を避けると入眠しやすくなるとされています。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'screentime', TOOLS.screentime.name, function(){
+        return '就寝'+bedtime.value+'の'+m+'分前 → '+cutoff+'までに画面をオフ';
+      });
+    }
+    [bedtime, minutes].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. 睡眠効率の計算 ---------- */
+TOOLS.efficiency = {
+  name:'睡眠効率の計算', emoji:'📈', sub:'布団にいた時間と実際に眠った時間から、睡眠効率を算出', color:'#4d9a6a',
+  render: function(body){
+    var inBed = field(body, { label:'布団にいた時間', unit:'分', value:480 });
+    var asleep = field(body, { label:'実際に眠っていた時間', unit:'分', value:420 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var b = parseFloat(inBed.value)||0, a = parseFloat(asleep.value)||0;
+      var efficiency = b>0 ? a/b*100 : 0;
+      var judge = efficiency >= 85 ? '良好です' : efficiency >= 75 ? 'やや改善の余地があります' : '改善をおすすめします';
+      box.innerHTML = '<div class="r-label">睡眠効率</div><div class="r-main">' + fmt(efficiency,1) + ' %</div>' +
+        '<div class="r-row"><span>判定</span><b>' + judge + '</b></div>' +
+        '<div class="r-sub">睡眠効率は「実際に眠っていた時間 ÷ 布団にいた時間」で計算され、85%以上が良好の目安とされています。低い場合は就寝・起床時刻を見直すことで改善することがあります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'efficiency', TOOLS.efficiency.name, function(){
+        return '布団'+b+'分 睡眠'+a+'分 → 睡眠効率 '+fmt(efficiency,1)+'%('+judge+')';
+      });
+    }
+    [inBed, asleep].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

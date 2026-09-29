@@ -463,6 +463,86 @@ TOOLS.cooler = {
   }
 };
 
+/* ---------- 6. キャンプ場までのガソリン代計算 ---------- */
+TOOLS.gas = {
+  name:'キャンプ場までのガソリン代計算', emoji:'⛽', sub:'走行距離と燃費から、ガソリン代を算出', color:'#c9a13f',
+  render: function(body){
+    var distance = field(body, { label:'走行距離(往復)', unit:'km', value:200 });
+    var efficiency = field(body, { label:'燃費', unit:'km/L', value:15 });
+    var price = field(body, { label:'ガソリン価格', unit:'円/L', value:170 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var d = parseFloat(distance.value)||0, e = parseFloat(efficiency.value)||1, p = parseFloat(price.value)||0;
+      var liters = d/e;
+      var cost = liters*p;
+      box.innerHTML = '<div class="r-label">ガソリン代(目安)</div><div class="r-main">約 ' + fmt(cost,0) + ' 円</div>' +
+        '<div class="r-row"><span>必要な燃料量</span><b>約 ' + fmt(liters,1) + ' L</b></div>' +
+        '<div class="r-sub">高速道路料金や渋滞による燃費の変動は含んでいません。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'gas', TOOLS.gas.name, function(){
+        return d+'km 燃費'+e+'km/L → ガソリン代 約'+fmt(cost,0)+'円';
+      });
+    }
+    [distance, efficiency, price].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. 張り綱・ロープの必要な長さ計算 ---------- */
+TOOLS.rope = {
+  name:'張り綱・ロープの必要な長さ計算', emoji:'🪢', sub:'本数と1本あたりの長さから、必要な総量を算出', color:'#8a6b3a',
+  render: function(body){
+    var count = field(body, { label:'張り綱の本数', unit:'本', value:8 });
+    var perLength = field(body, { label:'1本あたりの長さ', unit:'m', value:2.5 });
+    var extra = field(body, { label:'予備の割合', unit:'%', value:20 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var c = parseFloat(count.value)||0, l = parseFloat(perLength.value)||0, e = parseFloat(extra.value)||0;
+      var total = c * l * (1 + e/100);
+      box.innerHTML = '<div class="r-label">必要な長さ(目安)</div><div class="r-main">約 ' + fmt(total,1) + ' m</div>' +
+        '<div class="r-sub">予備分を含めた目安です。設営場所の地形により必要な長さは変わります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'rope', TOOLS.rope.name, function(){
+        return c+'本 × '+l+'m → 必要な長さ 約'+fmt(total,1)+'m';
+      });
+    }
+    [count, perLength, extra].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. ゴミ袋の必要枚数計算 ---------- */
+TOOLS.trash = {
+  name:'ゴミ袋の必要枚数計算', emoji:'🗑️', sub:'人数と日数から、必要なゴミ袋の枚数を算出', color:'#4d9a7a',
+  render: function(body){
+    var people = field(body, { label:'人数', unit:'人', value:4 });
+    var days = field(body, { label:'日数', unit:'日', value:2 });
+    var perPerson = field(body, { label:'1人1日あたりのゴミ量', unit:'L', value:1 });
+    var bagSize = field(body, { label:'ゴミ袋1枚の容量', unit:'L', value:45 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var p = parseFloat(people.value)||0, d = parseFloat(days.value)||0, pp = parseFloat(perPerson.value)||0, b = parseFloat(bagSize.value)||1;
+      var totalL = p*d*pp;
+      var count = Math.ceil(totalL/b);
+      box.innerHTML = '<div class="r-label">必要なゴミ袋の枚数(目安)</div><div class="r-main">約 ' + count + ' 枚</div>' +
+        '<div class="r-row"><span>ゴミの総量</span><b>約 ' + fmt(totalL,1) + ' L</b></div>' +
+        '<div class="r-sub">キャンプ場によってはゴミの持ち帰りが必要な場合があります。分別用に複数枚を用意すると安心です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'trash', TOOLS.trash.name, function(){
+        return p+'人 '+d+'日 → ゴミ袋 約'+count+'枚';
+      });
+    }
+    [people, days, perPerson, bagSize].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

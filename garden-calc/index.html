@@ -486,6 +486,88 @@ TOOLS.mix = {
   }
 };
 
+/* ---------- 6. 支柱の必要本数計算 ---------- */
+TOOLS.pole = {
+  name:'支柱の必要本数計算', emoji:'🎋', sub:'株数と立て方から、必要な支柱の本数を算出', color:'#8a6b3a',
+  render: function(body){
+    var plants = field(body, { label:'株数', unit:'株', value:10 });
+    var style = toggleGroup(body, { label:'支柱の立て方', value:'straight', options:[
+      { value:'straight', label:'直立(1株に1本)' },
+      { value:'gassho', label:'合掌式(2株を3本で支える)' }
+    ], onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var p = parseFloat(plants.value)||0;
+      var count = style.value === 'gassho' ? Math.ceil(p/2)*3 : p;
+      box.innerHTML = '<div class="r-label">必要な支柱の本数(目安)</div><div class="r-main">約 ' + count + ' 本</div>' +
+        '<div class="r-sub">' + (style.value==='gassho' ? '2株を1組にして、交差させた支柱をひもで結ぶ「合掌式」の目安です。' : '1株につき1本立てる、もっとも基本的な立て方の目安です。') + '風で倒れやすい作物は、より頑丈な補強をおすすめします。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'pole', TOOLS.pole.name, function(){
+        return p+'株('+(style.value==='gassho'?'合掌式':'直立')+') → 支柱 約'+count+'本';
+      });
+    }
+    plants.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 7. コンポストが満杯になるまでの日数計算 ---------- */
+TOOLS.compost = {
+  name:'コンポストが満杯になるまでの日数計算', emoji:'♻️', sub:'容量と1日の投入量から、満杯までの日数を算出', color:'#5a9e3d',
+  render: function(body){
+    var capacity = field(body, { label:'コンポストの容量', unit:'L', value:200 });
+    var perDay = field(body, { label:'1日あたりの生ごみ投入量', unit:'L', value:0.5, step:'0.1' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var c = parseFloat(capacity.value)||0, p = parseFloat(perDay.value)||0;
+      var days = p>0 ? Math.floor(c/p) : 0;
+      var weeks = days/7;
+      box.innerHTML = '<div class="r-label">満杯になるまでの目安</div><div class="r-main">約 ' + days + ' 日</div>' +
+        '<div class="r-row"><span>週数換算</span><b>約 ' + fmt(weeks,1) + ' 週間</b></div>' +
+        '<div class="r-sub">生ごみは分解が進むと体積が減るため、実際にはこれより長く使える場合が多いです。攪拌・水分調整で分解を促進できます。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'compost', TOOLS.compost.name, function(){
+        return c+'L 1日'+p+'L → 満杯まで約'+days+'日';
+      });
+    }
+    [capacity, perDay].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. 防虫ネットの必要な面積計算 ---------- */
+TOOLS.net = {
+  name:'防虫ネットの必要な面積計算', emoji:'🕸️', sub:'畝のサイズとトンネルの高さから、必要な面積を算出', color:'#4d7a9a',
+  render: function(body){
+    var length = field(body, { label:'畝の長さ', unit:'m', value:3 });
+    var width = field(body, { label:'畝の幅', unit:'m', value:1 });
+    var height = field(body, { label:'トンネルの高さ', unit:'m', value:0.5, step:'0.1' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var l = parseFloat(length.value)||0, w = parseFloat(width.value)||0, h = parseFloat(height.value)||0;
+      var coverWidth = w + h*2;
+      var coverLength = l + 0.4;
+      var area = coverWidth * coverLength;
+      box.innerHTML = '<div class="r-label">必要な面積(目安)</div><div class="r-main">約 ' + fmt(area,1) + ' m²</div>' +
+        '<div class="r-row"><span>必要な幅</span><b>約 ' + fmt(coverWidth,1) + ' m</b></div>' +
+        '<div class="r-row"><span>必要な長さ</span><b>約 ' + fmt(coverLength,1) + ' m</b></div>' +
+        '<div class="r-sub">支柱を立ててアーチ状に覆うトンネル掛けを想定し、地面への固定用に両端20cmずつの余裕を含めた目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'net', TOOLS.net.name, function(){
+        return l+'×'+w+'m(高さ'+h+'m) → ネット 約'+fmt(area,1)+'m²';
+      });
+    }
+    [length, width, height].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

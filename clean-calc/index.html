@@ -445,6 +445,81 @@ TOOLS.time = {
   }
 };
 
+/* ---------- 6. 食器洗い洗剤の使用量計算 ---------- */
+TOOLS.dish = {
+  name:'食器洗い洗剤の使用量計算', emoji:'🍽️', sub:'洗い桶の水量から、洗剤の使用量を算出', color:'#e0a13f',
+  render: function(body){
+    var water = field(body, { label:'洗い桶の水量', unit:'L', value:3 });
+    var perL = field(body, { label:'洗剤の使用量目安', unit:'ml / 水1L', value:1, step:'0.1', hint:'洗剤ボトルに記載の「水○Lあたり○ml」の表示を入力してください。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(water.value)||0, p = parseFloat(perL.value)||0;
+      var amount = w*p;
+      box.innerHTML = '<div class="r-label">洗剤の使用量(目安)</div><div class="r-main">約 ' + fmt(amount,1) + ' ml</div>' +
+        '<div class="r-sub">油汚れがひどい食器は、あらかじめ拭き取ってから洗うと少ない洗剤量で済みます。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'dish', TOOLS.dish.name, function(){
+        return '水'+w+'L → 洗剤 約'+fmt(amount,1)+'ml';
+      });
+    }
+    [water, perL].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. 月間の洗剤消費量・ボトル本数計算 ---------- */
+TOOLS.monthly = {
+  name:'月間の洗剤消費量・ボトル本数計算', emoji:'🧴', sub:'1回の使用量と頻度から、月間の消費量を算出', color:'#5a8fd1',
+  render: function(body){
+    var perUse = field(body, { label:'1回の使用量', unit:'ml', value:20 });
+    var timesPerWeek = field(body, { label:'週の使用回数', unit:'回', value:5 });
+    var bottleSize = field(body, { label:'ボトル1本の容量', unit:'ml', value:1000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var p = parseFloat(perUse.value)||0, t = parseFloat(timesPerWeek.value)||0, b = parseFloat(bottleSize.value)||1;
+      var monthly = p * t * 4.345;
+      var bottles = Math.ceil(monthly / b);
+      box.innerHTML = '<div class="r-label">月間の消費量(目安)</div><div class="r-main">約 ' + fmt(monthly,0) + ' ml</div>' +
+        '<div class="r-row"><span>必要なボトル本数</span><b>約 ' + bottles + ' 本</b></div>' +
+        '<div class="r-sub">1ヶ月を4.345週として計算した目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'monthly', TOOLS.monthly.name, function(){
+        return p+'ml × 週'+t+'回 → 月間 約'+fmt(monthly,0)+'ml('+bottles+'本)';
+      });
+    }
+    [perUse, timesPerWeek, bottleSize].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. カーペットの重曹クリーニング使用量計算 ---------- */
+TOOLS.carpet = {
+  name:'カーペットの重曹クリーニング使用量計算', emoji:'🧹', sub:'面積から、重曹の使用量を算出', color:'#8a6b3a',
+  render: function(body){
+    var area = field(body, { label:'カーペット・ラグの面積', unit:'m²', value:6 });
+    var perM2 = field(body, { label:'1m²あたりの重曹使用量', unit:'g', value:30 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var a = parseFloat(area.value)||0, p = parseFloat(perM2.value)||0;
+      var total = a*p;
+      box.innerHTML = '<div class="r-label">重曹の使用量(目安)</div><div class="r-main">約 ' + fmt(total,0) + ' g</div>' +
+        '<div class="r-sub">重曹を全体にふりかけ、30分〜1晩置いてから掃除機で吸い取ります。色柄物は変色しないか目立たない場所で試してから行ってください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'carpet', TOOLS.carpet.name, function(){
+        return a+'m² → 重曹 約'+fmt(total,0)+'g';
+      });
+    }
+    [area, perM2].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

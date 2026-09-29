@@ -517,6 +517,86 @@ TOOLS.bills = {
   }
 };
 
+/* ---------- 6. 快気祝いの金額計算 ---------- */
+TOOLS.kaiki = {
+  name:'快気祝いの金額計算', emoji:'🎗️', sub:'いただいたお見舞い金額から、お返しの目安を算出', color:'#c98a3f',
+  render: function(body){
+    var received = field(body, { label:'いただいたお見舞いの金額', unit:'円', value:10000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var r = parseFloat(received.value)||0;
+      var low = r/3, high = r/2;
+      box.innerHTML = '<div class="r-label">お返しの目安(3分の1〜半返し)</div><div class="r-main">' + yen(low) + ' 〜 ' + yen(high) + '</div>' +
+        '<div class="r-sub">快気祝いは、いただいた金額の1/3〜半額程度をお返しするのが一般的とされています。高額をいただいた場合は3分の1程度が目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'kaiki', TOOLS.kaiki.name, function(){
+        return 'お見舞い'+yen(r)+' → お返し目安 '+yen(low)+'〜'+yen(high);
+      });
+    }
+    received.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 7. 香典返しの金額計算 ---------- */
+TOOLS.kodenkaeshi = {
+  name:'香典返しの金額計算', emoji:'🙏', sub:'いただいた香典の金額から、お返しの目安を算出', color:'#5a5a6b',
+  render: function(body){
+    var received = field(body, { label:'いただいた香典の金額', unit:'円', value:10000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var r = parseFloat(received.value)||0;
+      var low = r/3, high = r/2;
+      var note = r >= 50000 ? '高額をいただいた場合は、半返しにこだわらず3分の1程度でも失礼にはあたらないとされています。' : '';
+      box.innerHTML = '<div class="r-label">香典返しの目安(半返し)</div><div class="r-main">' + yen(low) + ' 〜 ' + yen(high) + '</div>' +
+        '<div class="r-sub">香典返しは、いただいた金額の半額(半返し)程度が目安とされています。' + note + '</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'kodenkaeshi', TOOLS.kodenkaeshi.name, function(){
+        return '香典'+yen(r)+' → 香典返し目安 '+yen(low)+'〜'+yen(high);
+      });
+    }
+    received.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 8. 御車代・御礼の相場計算 ---------- */
+var OKURUMADAI = [
+  { id:'guest', name:'主賓・乾杯の発声者', yen:10000 },
+  { id:'speech', name:'スピーチを頼んだ友人代表', yen:5000 },
+  { id:'helper', name:'受付・余興を頼んだ友人', yen:5000 }
+];
+TOOLS.okurumadai = {
+  name:'御車代・御礼の相場計算', emoji:'🚗', sub:'依頼する内容から、お車代・お礼の目安を算出', color:'#4d7a9a',
+  render: function(body){
+    var rel = selectField(body, { label:'依頼する内容', options: OKURUMADAI.map(function(r){ return { value:r.id, label:r.name }; }) });
+    var count = field(body, { label:'人数', unit:'人', value:1 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function getRel(){ return OKURUMADAI.filter(function(r){ return r.id===rel.value; })[0] || OKURUMADAI[0]; }
+    function calc(){
+      var r = getRel();
+      var c = parseFloat(count.value)||1;
+      var total = r.yen * c;
+      box.innerHTML = '<div class="r-label">お礼の目安</div><div class="r-main">' + yen(total) + '</div>' +
+        '<div class="r-row"><span>1人あたりの目安</span><b>' + yen(r.yen) + '</b></div>' +
+        '<div class="r-sub">遠方からの招待や、乾杯・スピーチなどを依頼した方へのお礼・お車代の一般的な目安です。地域や関係性により異なります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'okurumadai', TOOLS.okurumadai.name, function(){
+        return r.name + ' × ' + c + '人 → お礼目安 ' + yen(total);
+      });
+    }
+    rel.addEventListener('change', calc);
+    count.addEventListener('input', calc);
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){

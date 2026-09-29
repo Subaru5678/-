@@ -461,6 +461,91 @@ TOOLS.protein = {
   }
 };
 
+/* ---------- 6. BMI計算 ---------- */
+TOOLS.bmi = {
+  name:'BMI計算', emoji:'📏', sub:'身長と体重から、BMIと判定を算出', color:'#3f6fc9',
+  render: function(body){
+    var height = field(body, { label:'身長', unit:'cm', value:170 });
+    var weight = field(body, { label:'体重', unit:'kg', value:65 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var h = parseFloat(height.value)||0, w = parseFloat(weight.value)||0;
+      var m = h/100;
+      var bmi = m>0 ? w/(m*m) : 0;
+      var judge = bmi < 18.5 ? '低体重' : bmi < 25 ? '普通体重' : bmi < 30 ? '肥満(1度)' : '肥満(2度以上)';
+      box.innerHTML = '<div class="r-label">BMI</div><div class="r-main">' + fmt(bmi,1) + '</div>' +
+        '<div class="r-row"><span>判定</span><b>' + judge + '</b></div>' +
+        '<div class="r-sub">日本肥満学会の基準(18.5未満:低体重、18.5〜25未満:普通体重、25以上:肥満)による目安です。標準体重の目安はBMI22とされています。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'bmi', TOOLS.bmi.name, function(){
+        return h+'cm '+w+'kg → BMI '+fmt(bmi,1)+'('+judge+')';
+      });
+    }
+    [height, weight].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. 除脂肪体重(LBM)計算 ---------- */
+TOOLS.lbm = {
+  name:'除脂肪体重(LBM)計算', emoji:'💪', sub:'体重と体脂肪率から、除脂肪体重を算出', color:'#4d9a53',
+  render: function(body){
+    var weight = field(body, { label:'体重', unit:'kg', value:70 });
+    var bodyFat = field(body, { label:'体脂肪率', unit:'%', value:20 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weight.value)||0, bf = parseFloat(bodyFat.value)||0;
+      var lbm = w * (1 - bf/100);
+      var fatMass = w - lbm;
+      box.innerHTML = '<div class="r-label">除脂肪体重(目安)</div><div class="r-main">約 ' + fmt(lbm,1) + ' kg</div>' +
+        '<div class="r-row"><span>体脂肪量</span><b>約 ' + fmt(fatMass,1) + ' kg</b></div>' +
+        '<div class="r-sub">除脂肪体重は筋肉・骨・内臓などを含めた脂肪以外の体重です。体組成計の体脂肪率はあくまで推定値のため、目安としてご活用ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'lbm', TOOLS.lbm.name, function(){
+        return w+'kg 体脂肪率'+bf+'% → 除脂肪体重 約'+fmt(lbm,1)+'kg';
+      });
+    }
+    [weight, bodyFat].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. 運動の消費カロリー計算 ---------- */
+var EXERCISE_METS = {
+  walk: { label:'ウォーキング', mets:3.5 },
+  jog: { label:'ジョギング', mets:7.0 },
+  strength: { label:'筋トレ(高強度)', mets:5.0 },
+  cycle: { label:'サイクリング(普通)', mets:6.8 }
+};
+TOOLS.calories = {
+  name:'運動の消費カロリー計算', emoji:'🔥', sub:'体重・時間・運動種目から、消費カロリーを算出', color:'#c9483f',
+  render: function(body){
+    var weight = field(body, { label:'体重', unit:'kg', value:65 });
+    var minutes = field(body, { label:'運動時間', unit:'分', value:30 });
+    var type = toggleGroup(body, { label:'運動種目', value:'walk', options: Object.keys(EXERCISE_METS).map(function(k){ return { value:k, label:EXERCISE_METS[k].label }; }), onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weight.value)||0, min = parseFloat(minutes.value)||0;
+      var ex = EXERCISE_METS[type.value];
+      var kcal = ex.mets * 3.5 * w / 200 * min;
+      box.innerHTML = '<div class="r-label">消費カロリー(目安)</div><div class="r-main">約 ' + fmt(kcal,0) + ' kcal</div>' +
+        '<div class="r-sub">METs(メッツ)を用いた一般的な推定式による目安です。個人差・強度により実際の消費量は変わります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'calories', TOOLS.calories.name, function(){
+        return ex.label+' '+w+'kg × '+min+'分 → 消費カロリー約'+fmt(kcal,0)+'kcal';
+      });
+    }
+    [weight, minutes].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
 (function renderGrid(){
   var grid = $('#toolGrid');
   Object.keys(TOOLS).forEach(function(id){
