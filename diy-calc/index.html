@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>現場の資材計算 - DIY&リフォーム</title>
+<meta name="description" content="塗料・壁紙・モルタル配合・フローリング・木材カットの必要量をその場で計算。DIYとリフォーム現場向けの計算アプリ。">
+<meta name="theme-color" content="#12161c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#12161c; --panel:#1b212b; --panel2:#232a36; --line:#2c3542;
+  --ink:#eef1f5; --muted:#8b93a0; --accent:#ff8a3d; --accent2:#4fb0e0;
+  --ok:#7bc47f; --warn:#e0b23f; --bad:#e0654f;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:14px 16px 10px; flex:none; }
+#topbar h1{ font-size:17px; margin:0; flex:1; font-weight:900; letter-spacing:.02em; }
+#topbar .ic-btn{ width:36px; height:36px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none; }
+#topbar .ic-btn:active{ transform:translateY(1px); }
+#backBtn{ display:none; }
+#backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+/* Home grid */
+.hero{ background:linear-gradient(135deg, var(--panel), var(--panel2)); border:1px solid var(--line);
+  border-radius:16px; padding:16px; margin-bottom:16px; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.6; }
+.hero b{ color:var(--accent); }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 12px;
+  text-align:left; display:flex; flex-direction:column; gap:6px; min-height:96px; }
+.card:active{ transform:translateY(1px); background:var(--panel2); }
+.card .emoji{ font-size:24px; }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ font-size:12px; font-weight:900; color:var(--muted); margin:20px 0 8px; letter-spacing:.05em; }
+
+/* Tool view */
+.tool-head{ display:flex; align-items:center; gap:10px; margin:6px 0 14px; }
+.tool-head .emoji{ font-size:28px; }
+.tool-head h2{ font-size:16px; margin:0; font-weight:900; }
+.tool-head .sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+
+.field{ margin-bottom:12px; }
+.field label{ display:block; font-size:12px; color:var(--muted); font-weight:700; margin-bottom:5px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:11px 12px; font-size:15px; font-weight:700; }
+.field input[type=number]:focus, .field select:focus{ outline:2px solid var(--accent2); }
+.unit{ font-size:12px; color:var(--muted); font-weight:700; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:5px; line-height:1.5; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:8px 12px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--muted); }
+.toggle.active{ background:var(--accent); color:#221202; border-color:var(--accent); }
+
+.divider{ height:1px; background:var(--line); margin:18px 0; }
+
+.result-box{ background:var(--panel); border:1px solid var(--accent); border-radius:14px; padding:16px; margin-top:6px; }
+.result-box .r-main{ font-size:26px; font-weight:900; color:var(--accent); }
+.result-box .r-label{ font-size:12px; color:var(--muted); font-weight:700; margin-bottom:2px; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6; }
+.result-box .r-row{ display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:12px; border-radius:12px;
+  font-weight:900; font-size:13px; }
+.btn-primary{ background:var(--accent); color:#221202; }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn-row{ display:flex; gap:8px; margin-top:12px; }
+.btn-row .btn{ flex:1; }
+
+.addrow-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+.addrow-item{ display:flex; gap:6px; align-items:center; background:var(--panel); border:1px solid var(--line);
+  border-radius:10px; padding:8px; }
+.addrow-item input{ flex:1; min-width:0; background:var(--panel2); border:1px solid var(--line); color:var(--ink);
+  border-radius:8px; padding:8px; font-size:13px; font-weight:700; }
+.addrow-item .rm{ width:28px; height:28px; border-radius:8px; background:var(--bad); color:#fff; flex:none; font-weight:900; }
+
+.plan-board{ background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:8px; }
+.plan-board .b-title{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:6px; }
+.plan-bar{ display:flex; height:26px; border-radius:6px; overflow:hidden; border:1px solid var(--line); }
+.plan-seg{ display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff;
+  border-right:1px solid rgba(0,0,0,.35); overflow:hidden; white-space:nowrap; }
+.plan-seg.waste{ background:repeating-linear-gradient(45deg, #3a4150, #3a4150 4px, #2c3241 4px, #2c3241 8px); color:var(--muted); }
+
+/* Saved list */
+.saved-item{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:8px;
+  display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:3px; }
+.saved-item .del{ width:30px; height:30px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:40px 12px; }
+
+/* Ad slot */
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  border:1px solid var(--line); padding:10px 16px; border-radius:12px; font-weight:800; font-size:13px;
+  opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">現場の資材計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <p>塗料・壁紙・モルタル配合・フローリング・木材カットの必要量を、その場でサッと計算。<b>DIYとリフォーム現場</b>のための目安計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot"><div class="ad-box">広告スペース</div></div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- utils ---------- */
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'diycalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){
+    navigator.share({ text: text }).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); });
+  } else {
+    toast('この端末では共有できません');
+  }
+};
+
+/* ---------- routing ---------- */
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '現場の資材計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+/* ---------- tool definitions ---------- */
+var TOOLS = {}; // filled below by each register() call
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="emoji">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = 'number'; input.inputMode = 'decimal'; input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 塗料計算 ---------- */
+TOOLS.paint = {
+  name:'塗料必要量計算', emoji:'🎨', sub:'壁・天井の塗装に必要な塗料量と缶数',
+  desc:'面積とコート数から必要リットル数を算出',
+  render: function(body){
+    var area = field(body, { label:'塗装する面積', unit:'㎡', placeholder:'例: 30', hint:'幅×高さの合計から、窓やドアの開口部を引いた面積を入力してください。' });
+    var coverage = field(body, { label:'塗料1Lで塗れる面積の目安', unit:'㎡/L', value:8, hint:'一般的な水性塗料は下地により8〜10㎡/L程度が目安です。缶のラベルに記載の数値があればそちらを優先してください。' });
+    var coats = field(body, { label:'塗り回数', unit:'回', value:2 });
+    var canSize = field(body, { label:'塗料缶の容量(任意)', unit:'L/缶', placeholder:'例: 3', hint:'入力すると必要な缶数も計算します。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var a = parseFloat(area.value)||0, c = parseFloat(coverage.value)||0, n = parseFloat(coats.value)||0, cs = parseFloat(canSize.value)||0;
+      var liters = (c>0) ? (a * n / c) : 0;
+      var cans = cs>0 ? Math.ceil(liters/cs) : null;
+      box.innerHTML = '<div class="r-label">必要な塗料量(目安)</div><div class="r-main">' + fmt(liters,1) + ' L</div>' +
+        (cans!=null ? '<div class="r-row"><span>必要な缶数(' + fmt(cs,1) + 'L缶)</span><b>' + cans + ' 缶</b></div>' : '') +
+        '<div class="r-sub">塗り面積 ' + fmt(a,1) + '㎡ × ' + n + '回 ÷ ' + fmt(c,1) + '㎡/L で算出。下地の状態や塗料により前後します。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'paint', TOOLS.paint.name, function(){
+        return '面積' + fmt(a,1) + '㎡ / ' + n + '回塗り → 塗料 約' + fmt(liters,1) + 'L' + (cans!=null?'(' + cans + '缶)':'');
+      });
+    }
+    [area, coverage, coats, canSize].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. 壁紙(クロス) ---------- */
+TOOLS.wallpaper = {
+  name:'壁紙(クロス)必要量計算', emoji:'🧻', sub:'張り替えに必要なロール数を算出',
+  render: function(body){
+    var area = field(body, { label:'施工する壁の面積', unit:'㎡', placeholder:'例: 25', hint:'幅×高さの合計。窓・ドアは差し引いてください。' });
+    var perRoll = field(body, { label:'クロス1本あたりの施工可能面積', unit:'㎡/本', value:7.6, hint:'国内量産クロス(幅約92cm×長さ10m)は柄合わせロスを含めて約7〜8㎡/本が目安です。' });
+    var loss = field(body, { label:'追加のロス率(柄合わせ・端材)', unit:'%', value:10 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var a = parseFloat(area.value)||0, p = parseFloat(perRoll.value)||0, l = parseFloat(loss.value)||0;
+      var needArea = a * (1 + l/100);
+      var rolls = p>0 ? Math.ceil(needArea/p) : 0;
+      box.innerHTML = '<div class="r-label">必要なロール数(目安)</div><div class="r-main">' + rolls + ' 本</div>' +
+        '<div class="r-row"><span>ロス込み施工面積</span><b>' + fmt(needArea,1) + '㎡</b></div>' +
+        '<div class="r-sub">柄の大きいクロスや複雑な形状の部屋はロス率を15〜20%に上げて計算すると安全です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'wallpaper', TOOLS.wallpaper.name, function(){
+        return '面積' + fmt(a,1) + '㎡(ロス' + l + '%) → クロス ' + rolls + '本';
+      });
+    }
+    [area, perRoll, loss].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 3. モルタル/コンクリート配合 ---------- */
+TOOLS.mortar = {
+  name:'モルタル/コンクリート配合計算', emoji:'🧱', sub:'体積から材料量・セメント袋数を算出',
+  render: function(body){
+    var mode = toggleGroup(body, { label:'種類', options:[
+      { value:'concrete', label:'コンクリート(1:2:3)' },
+      { value:'mortar', label:'モルタル(1:3)' },
+      { value:'custom', label:'配合を指定' }
+    ], onChange: function(){ update(); } });
+
+    var customWrap = document.createElement('div');
+    var ratioC = field(customWrap, { label:'セメント比率', value:1 });
+    var ratioS = field(customWrap, { label:'砂比率', value:3 });
+    var ratioG = field(customWrap, { label:'砂利比率(モルタルは0)', value:0 });
+    body.appendChild(customWrap);
+    customWrap.style.display = 'none';
+
+    var w = field(body, { label:'幅', unit:'m', placeholder:'例: 2' });
+    var d = field(body, { label:'奥行き', unit:'m', placeholder:'例: 1.5' });
+    var t = field(body, { label:'厚み', unit:'cm', placeholder:'例: 10' });
+    var volDirect = field(body, { label:'または直接、体積を入力', unit:'m³', placeholder:'幅・奥行き・厚みより優先されます' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function getRatio(){
+      if(mode.value === 'concrete') return [1,2,3];
+      if(mode.value === 'mortar') return [1,3,0];
+      return [parseFloat(ratioC.value)||0, parseFloat(ratioS.value)||0, parseFloat(ratioG.value)||0];
+    }
+    function update(){
+      customWrap.style.display = mode.value === 'custom' ? '' : 'none';
+      calc();
+    }
+    function calc(){
+      var vol = parseFloat(volDirect.value);
+      if(!(vol>0)){
+        var ww = parseFloat(w.value)||0, dd = parseFloat(d.value)||0, tt = parseFloat(t.value)||0;
+        vol = ww * dd * (tt/100);
+      }
+      var r = getRatio(); var sum = r[0]+r[1]+r[2] || 1;
+      // 割増(締固め・調合ロス)を約1.2倍で概算、セメント密度目安 約1400kg/m3(乾燥かさ密度), 砂利/砂 約1600kg/m3
+      var factor = 1.2;
+      var totalVol = vol * factor;
+      var cementVol = totalVol * r[0]/sum;
+      var sandVol = totalVol * r[1]/sum;
+      var gravelVol = totalVol * r[2]/sum;
+      var cementKg = cementVol * 1400;
+      var sandKg = sandVol * 1600;
+      var gravelKg = gravelVol * 1600;
+      var bags25 = Math.ceil(cementKg/25);
+      box.innerHTML =
+        '<div class="r-label">必要体積</div><div class="r-main">' + fmt(vol,3) + ' m³</div>' +
+        '<div class="r-row"><span>セメント</span><b>約' + fmt(cementKg,0) + ' kg(25kg袋 ' + bags25 + '袋)</b></div>' +
+        '<div class="r-row"><span>砂</span><b>約' + fmt(sandKg,0) + ' kg</b></div>' +
+        (r[2]>0 ? '<div class="r-row"><span>砂利</span><b>約' + fmt(gravelKg,0) + ' kg</b></div>' : '') +
+        '<div class="r-sub">締固め・調合ロスを考慮し約1.2倍で概算した目安値です。実際の配合・密度は製品や含水率により異なります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'mortar', TOOLS.mortar.name, function(){
+        return '体積' + fmt(vol,3) + 'm³(比率' + r.join(':') + ') → セメント約' + fmt(cementKg,0) + 'kg(' + bags25 + '袋) / 砂約' + fmt(sandKg,0) + 'kg';
+      });
+    }
+    [w,d,t,volDirect,ratioC,ratioS,ratioG].forEach(function(i){ i.addEventListener('input', calc); });
+    update();
+  }
+};
+
+/* ---------- 4. フローリング ---------- */
+TOOLS.flooring = {
+  name:'フローリング必要量計算', emoji:'🪵', sub:'床材の必要箱数をロス込みで算出',
+  render: function(body){
+    var w = field(body, { label:'部屋の幅', unit:'m', placeholder:'例: 3.6' });
+    var d = field(body, { label:'部屋の奥行き', unit:'m', placeholder:'例: 2.7' });
+    var areaDirect = field(body, { label:'または直接、床面積を入力', unit:'㎡', placeholder:'幅・奥行きより優先されます' });
+    var perBox = field(body, { label:'1箱あたりの施工面積', unit:'㎡/箱', value:1.65, hint:'複合フローリングは1箱あたり約1.5〜1.8㎡が一般的です。製品の箱表示を確認してください。' });
+    var loss = field(body, { label:'ロス率(カット端材・柄合わせ)', unit:'%', value:10 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var area = parseFloat(areaDirect.value);
+      if(!(area>0)){
+        var ww = parseFloat(w.value)||0, dd = parseFloat(d.value)||0;
+        area = ww*dd;
+      }
+      var l = parseFloat(loss.value)||0, p = parseFloat(perBox.value)||0;
+      var needArea = area*(1+l/100);
+      var boxes = p>0 ? Math.ceil(needArea/p) : 0;
+      box.innerHTML = '<div class="r-label">必要な箱数(目安)</div><div class="r-main">' + boxes + ' 箱</div>' +
+        '<div class="r-row"><span>床面積</span><b>' + fmt(area,2) + '㎡</b></div>' +
+        '<div class="r-row"><span>ロス込み面積</span><b>' + fmt(needArea,2) + '㎡</b></div>' +
+        '<div class="r-sub">部屋形状が複雑な場合や斜め張りはロス率15%以上を目安にしてください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'flooring', TOOLS.flooring.name, function(){
+        return '床面積' + fmt(area,2) + '㎡(ロス' + l + '%) → フローリング ' + boxes + '箱';
+      });
+    }
+    [w,d,areaDirect,perBox,loss].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. 木材カット計算(ビンパッキング) ---------- */
+TOOLS.lumber = {
+  name:'木材カット必要本数計算', emoji:'📏', sub:'元材の長さから必要本数と切り出し計画を算出',
+  render: function(body){
+    var stock = field(body, { label:'元の材の長さ', unit:'mm', value:1820, hint:'木材(1x4材など)の定尺は1820mm/2730mm/3640mmが一般的です。' });
+    var kerf = field(body, { label:'切りしろ(のこ刃の厚み)', unit:'mm', value:3 });
+
+    var listTitle = document.createElement('div'); listTitle.className='section-title'; listTitle.textContent='必要なカット(長さ×本数)';
+    body.appendChild(listTitle);
+    var list = document.createElement('div'); list.className='addrow-list'; body.appendChild(list);
+
+    var rows = [];
+    function addRow(len, qty){
+      var item = document.createElement('div'); item.className='addrow-item';
+      var lenInput = document.createElement('input'); lenInput.type='number'; lenInput.inputMode='decimal'; lenInput.placeholder='長さ(mm)'; lenInput.value = len!=null?len:'';
+      var qtyInput = document.createElement('input'); qtyInput.type='number'; qtyInput.inputMode='numeric'; qtyInput.placeholder='本数'; qtyInput.value = qty!=null?qty:1; qtyInput.style.maxWidth='70px';
+      var rm = document.createElement('button'); rm.className='rm'; rm.textContent='×';
+      item.appendChild(lenInput); item.appendChild(qtyInput); item.appendChild(rm);
+      list.appendChild(item);
+      var rowObj = { lenInput: lenInput, qtyInput: qtyInput, el: item };
+      rows.push(rowObj);
+      lenInput.addEventListener('input', calc);
+      qtyInput.addEventListener('input', calc);
+      rm.addEventListener('click', function(){
+        rows = rows.filter(function(r){ return r !== rowObj; });
+        item.remove(); calc();
+      });
+    }
+    var addBtn = document.createElement('button'); addBtn.className='btn btn-ghost'; addBtn.style.width='100%'; addBtn.style.marginBottom='14px';
+    addBtn.textContent = '+ カットを追加';
+    addBtn.addEventListener('click', function(){ addRow(); });
+    body.appendChild(addBtn);
+
+    addRow(600, 4);
+    addRow(450, 2);
+
+    var box = resultBox(body);
+    var planHost = document.createElement('div'); planHost.style.marginTop='12px'; body.appendChild(planHost);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var stockLen = parseFloat(stock.value)||0;
+      var kerfLen = parseFloat(kerf.value)||0;
+      var pieces = [];
+      rows.forEach(function(r){
+        var len = parseFloat(r.lenInput.value)||0;
+        var qty = parseInt(r.qtyInput.value)||0;
+        for(var i=0;i<qty;i++){ if(len>0) pieces.push(len); }
+      });
+      pieces.sort(function(a,b){ return b-a; });
+
+      var boards = []; // each: array of piece lengths
+      pieces.forEach(function(p){
+        var placed = false;
+        for(var i=0;i<boards.length;i++){
+          var used = boards[i].reduce(function(s,x){ return s+x+kerfLen; }, 0);
+          if(used + p <= stockLen + 1e-9){ boards[i].push(p); placed = true; break; }
+        }
+        if(!placed){
+          if(p <= stockLen) boards.push([p]);
+          else boards.push([p]); // oversized piece flagged separately
+        }
+      });
+
+      var oversized = pieces.filter(function(p){ return p > stockLen; });
+      var validBoards = boards.length;
+
+      box.innerHTML = '<div class="r-label">必要な材料本数(目安)</div><div class="r-main">' + validBoards + ' 本</div>' +
+        '<div class="r-row"><span>元材の長さ</span><b>' + fmt(stockLen,0) + ' mm</b></div>' +
+        '<div class="r-row"><span>カット総数</span><b>' + pieces.length + ' 本</b></div>' +
+        (oversized.length ? '<div class="r-sub" style="color:var(--bad)">⚠ ' + oversized.length + '本は元材より長いため1本では切り出せません。</div>' : '') +
+        '<div class="r-sub">先頭から詰めて割り付ける簡易計算です。実際の木目・節の位置は考慮していません。</div>';
+
+      planHost.innerHTML = '';
+      if(boards.length){
+        var pt = document.createElement('div'); pt.className='section-title'; pt.textContent='切り出し計画'; planHost.appendChild(pt);
+        boards.forEach(function(b, idx){
+          var used = b.reduce(function(s,x){ return s+x; }, 0) + Math.max(0,b.length-1)*kerfLen;
+          var waste = Math.max(0, stockLen - used);
+          var card = document.createElement('div'); card.className='plan-board';
+          var title = document.createElement('div'); title.className='b-title';
+          title.textContent = (idx+1) + '本目: ' + b.join('mm + ') + 'mm' + (waste>0?'  (端材 約' + fmt(waste,0) + 'mm)':'');
+          card.appendChild(title);
+          var bar = document.createElement('div'); bar.className='plan-bar';
+          var colors = ['#ff8a3d','#4fb0e0','#7bc47f','#e0b23f','#c98ae0','#e0654f'];
+          b.forEach(function(len, i2){
+            var seg = document.createElement('div'); seg.className='plan-seg';
+            seg.style.background = colors[i2 % colors.length];
+            seg.style.width = (len/stockLen*100) + '%';
+            seg.textContent = len;
+            bar.appendChild(seg);
+          });
+          if(waste > 0){
+            var ws = document.createElement('div'); ws.className='plan-seg waste';
+            ws.style.width = (waste/stockLen*100) + '%';
+            bar.appendChild(ws);
+          }
+          card.appendChild(bar);
+          planHost.appendChild(card);
+        });
+      }
+
+      actions.innerHTML = '';
+      actionsRow(actions, 'lumber', TOOLS.lumber.name, function(){
+        return '元材' + fmt(stockLen,0) + 'mm × カット' + pieces.length + '本 → 必要本数 ' + validBoards + '本';
+      });
+    }
+    stock.addEventListener('input', calc);
+    kerf.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- home grid ---------- */
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.innerHTML = '<div class="emoji">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+/* ---------- saved list ---------- */
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + item.toolName + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + item.summary + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑';
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+/* ---------- PWA install ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+})();
+</script>
+</body>
+</html>
