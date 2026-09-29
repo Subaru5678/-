@@ -2,14 +2,39 @@
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#232a36"/>
-      <stop offset="1" stop-color="#12161c"/>
+      <stop offset="1" stop-color="#0f1319"/>
     </linearGradient>
+    <linearGradient id="ruler" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb668"/>
+      <stop offset="1" stop-color="#ff8a3d"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#ff8a3d" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ff8a3d" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="round"><rect width="512" height="512" rx="104"/></clipPath>
   </defs>
-  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
-  <g stroke="#ff8a3d" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <path d="M140 372 L300 212"/>
-    <path d="M270 182 L330 242 L300 272 L240 212 Z" fill="#ff8a3d"/>
-    <path d="M120 392 L140 372 L160 392 L140 412 Z" fill="#4fb0e0" stroke="#4fb0e0"/>
+
+  <g clip-path="url(#round)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <g stroke="#4fb0e0" stroke-opacity="0.07" stroke-width="2">
+      <path d="M0 96H512M0 192H512M0 288H512M0 384H512"/>
+      <path d="M96 0V512M192 0V512M288 0V512M384 0V512"/>
+    </g>
+    <circle cx="256" cy="215" r="230" fill="url(#glow)"/>
+
+    <!-- diagonal measuring rule -->
+    <g transform="rotate(-38 256 256)">
+      <rect x="96" y="230" width="320" height="52" rx="12" fill="url(#ruler)"/>
+      <g stroke="#0f1319" stroke-width="7" stroke-linecap="round">
+        <path d="M132 230v20"/><path d="M164 230v32"/><path d="M196 230v20"/><path d="M228 230v32"/>
+        <path d="M260 230v20"/><path d="M292 230v32"/><path d="M324 230v20"/><path d="M356 230v32"/>
+        <path d="M388 230v20"/>
+      </g>
+    </g>
+
+    <!-- paint dab accent -->
+    <circle cx="356" cy="356" r="46" fill="#4fb0e0"/>
+    <circle cx="356" cy="356" r="46" fill="none" stroke="#0f1319" stroke-width="8"/>
   </g>
-  <text x="256" y="452" text-anchor="middle" font-family="Arial, sans-serif" font-size="46" font-weight="900" fill="#eef1f5">計算</text>
 </svg>

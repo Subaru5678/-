@@ -5,110 +5,154 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>現場の資材計算 - DIY&リフォーム</title>
 <meta name="description" content="塗料・壁紙・モルタル配合・フローリング・タイル・木材カットの必要量をその場で計算。DIYとリフォーム現場向けの計算アプリ。">
-<meta name="theme-color" content="#12161c">
+<meta name="theme-color" content="#0f1319">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#12161c; --panel:#1b212b; --panel2:#232a36; --line:#2c3542;
+  --bg:#0f1319; --panel:#1b212b; --panel2:#232a36; --line:#2c3542;
   --ink:#eef1f5; --muted:#8b93a0; --accent:#ff8a3d; --accent2:#4fb0e0;
   --ok:#7bc47f; --warn:#e0b23f; --bad:#e0654f;
+  --tool-color:#ff8a3d;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
 }
 *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
   font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
   overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    repeating-linear-gradient(0deg, rgba(79,176,224,.05) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(79,176,224,.05) 0 1px, transparent 1px 32px);
+}
 button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
 input,select{ font-family:inherit; }
 #app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
 
-#topbar{ display:flex; align-items:center; gap:10px; padding:14px 16px 10px; flex:none; }
-#topbar h1{ font-size:17px; margin:0; flex:1; font-weight:900; letter-spacing:.02em; }
-#topbar .ic-btn{ width:36px; height:36px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
-  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none; }
-#topbar .ic-btn:active{ transform:translateY(1px); }
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600;
+  letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.25); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
 #topbar #backBtn{ display:none; }
 #topbar #backBtn.show{ display:flex; }
 
 main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 
 /* Home grid */
-.hero{ background:linear-gradient(135deg, var(--panel), var(--panel2)); border:1px solid var(--line);
-  border-radius:16px; padding:16px; margin-bottom:16px; }
-.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.6; }
-.hero b{ color:var(--accent); }
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 65%, #1c2e33 130%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(255,138,61,.06) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700;
+  letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
 
 .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-.card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 12px;
-  text-align:left; display:flex; flex-direction:column; gap:6px; min-height:96px; }
-.card:active{ transform:translateY(1px); background:var(--panel2); }
-.card .emoji{ font-size:24px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
 .card .name{ font-weight:900; font-size:14px; line-height:1.3; }
 .card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
 
-.section-title{ font-size:12px; font-weight:900; color:var(--muted); margin:20px 0 8px; letter-spacing:.05em; }
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted);
+  margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
 
 /* Tool view */
-.tool-head{ display:flex; align-items:center; gap:10px; margin:6px 0 14px; }
-.tool-head .emoji{ font-size:28px; }
-.tool-head h2{ font-size:16px; margin:0; font-weight:900; }
-.tool-head .sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px;
+  border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
 
-.field{ margin-bottom:12px; }
-.field label{ display:block; font-size:12px; color:var(--muted); font-weight:700; margin-bottom:5px; }
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:12px; color:var(--muted); font-weight:700; margin-bottom:6px; }
 .field .row{ display:flex; gap:8px; align-items:center; }
 .field input[type=number], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
-  color:var(--ink); border-radius:10px; padding:11px 12px; font-size:15px; font-weight:700; }
-.field input[type=number]:focus, .field select:focus{ outline:2px solid var(--accent2); }
-.unit{ font-size:12px; color:var(--muted); font-weight:700; white-space:nowrap; }
-.hint{ font-size:11px; color:var(--muted); margin-top:5px; line-height:1.5; }
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; }
+.field input[type=number]:focus, .field select:focus{ outline:none; border-color:var(--tool-color);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--muted); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
 
 .toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
-.toggle{ padding:8px 12px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
-  font-size:12px; font-weight:800; color:var(--muted); }
-.toggle.active{ background:var(--accent); color:#221202; border-color:var(--accent); }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--muted); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#181000; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
 
 .divider{ height:1px; background:var(--line); margin:18px 0; }
 
-.result-box{ background:var(--panel); border:1px solid var(--accent); border-radius:14px; padding:16px; margin-top:6px; }
-.result-box .r-main{ font-size:26px; font-weight:900; color:var(--accent); }
-.result-box .r-label{ font-size:12px; color:var(--muted); font-weight:700; margin-bottom:2px; }
-.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:8px; line-height:1.6; }
-.result-box .r-row{ display:flex; justify-content:space-between; padding:6px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden;
+  box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:30px; font-weight:600; color:var(--tool-color);
+  letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0;
+  border-top:1px solid var(--line); font-size:13px; }
 .result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
 
-.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:12px; border-radius:12px;
-  font-weight:900; font-size:13px; }
-.btn-primary{ background:var(--accent); color:#221202; }
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px;
+  font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 92%, white), var(--tool-color));
+  color:#181000; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
 .btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
-.btn-row{ display:flex; gap:8px; margin-top:12px; }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
 .btn-row .btn{ flex:1; }
 
 .addrow-list{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
 .addrow-item{ display:flex; gap:6px; align-items:center; background:var(--panel); border:1px solid var(--line);
   border-radius:10px; padding:8px; }
 .addrow-item input{ flex:1; min-width:0; background:var(--panel2); border:1px solid var(--line); color:var(--ink);
-  border-radius:8px; padding:8px; font-size:13px; font-weight:700; }
+  border-radius:8px; padding:8px; font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; }
 .addrow-item .rm{ width:28px; height:28px; border-radius:8px; background:var(--bad); color:#fff; flex:none; font-weight:900; }
 
-.plan-board{ background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:8px; }
-.plan-board .b-title{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:6px; }
+.plan-board{ background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px; margin-bottom:8px;
+  border-left:3px solid var(--tool-color); }
+.plan-board .b-title{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:6px; font-variant-numeric:tabular-nums; }
 .plan-bar{ display:flex; height:26px; border-radius:6px; overflow:hidden; border:1px solid var(--line); }
 .plan-seg{ display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff;
-  border-right:1px solid rgba(0,0,0,.35); overflow:hidden; white-space:nowrap; }
+  border-right:1px solid rgba(0,0,0,.35); overflow:hidden; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .plan-seg.waste{ background:repeating-linear-gradient(45deg, #3a4150, #3a4150 4px, #2c3241 4px, #2c3241 8px); color:var(--muted); }
 
 /* Saved list */
-.saved-item{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:8px;
-  display:flex; justify-content:space-between; align-items:center; gap:10px; }
-.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:3px; }
-.saved-item .del{ width:30px; height:30px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
-.empty{ text-align:center; color:var(--muted); font-size:13px; padding:40px 12px; }
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;
+  gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+  background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
 
 /* Ad slot */
 #adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
@@ -116,12 +160,15 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
   display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
 
 #toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
-  border:1px solid var(--line); padding:10px 16px; border-radius:12px; font-weight:800; font-size:13px;
-  opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; }
+  backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20;
+  max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.5); }
 #toast.show{ opacity:1; transform:translate(-50%,0); }
 
 .view{ display:none; }
-.view.active{ display:block; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
 </style>
 </head>
 <body>
@@ -135,6 +182,8 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
   <main id="main">
     <div id="view-home" class="view active">
       <div class="hero">
+        <div class="kicker">CALCULATOR TOOLKIT</div>
+        <h2>現場でサッと、資材の量を出す。</h2>
         <p>塗料・壁紙・モルタル配合・フローリング・タイル・木材カットの必要量を、その場でサッと計算。<b>DIYとリフォーム現場</b>のための目安計算ツールです。</p>
       </div>
       <div class="section-title">ツールを選ぶ</div>
@@ -208,11 +257,12 @@ var TOOLS = {}; // filled below by each register() call
 function openTool(id){
   state.toolId = id;
   var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
   var host = $('#view-tool');
   host.innerHTML = '';
   var head = document.createElement('div');
   head.className = 'tool-head';
-  head.innerHTML = '<div class="emoji">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
   host.appendChild(head);
   var body = document.createElement('div');
   host.appendChild(body);
@@ -277,7 +327,7 @@ function actionsRow(container, toolId, toolName, getSummary){
 
 /* ---------- 1. 塗料計算 ---------- */
 TOOLS.paint = {
-  name:'塗料必要量計算', emoji:'🎨', sub:'壁・天井の塗装に必要な塗料量と缶数',
+  name:'塗料必要量計算', emoji:'🎨', sub:'壁・天井の塗装に必要な塗料量と缶数', color:'#ff8a3d',
   desc:'面積とコート数から必要リットル数を算出',
   render: function(body){
     var area = field(body, { label:'塗装する面積', unit:'㎡', placeholder:'例: 30', hint:'幅×高さの合計から、窓やドアの開口部を引いた面積を入力してください。' });
@@ -306,7 +356,7 @@ TOOLS.paint = {
 
 /* ---------- 2. 壁紙(クロス) ---------- */
 TOOLS.wallpaper = {
-  name:'壁紙(クロス)必要量計算', emoji:'🧻', sub:'張り替えに必要なロール数を算出',
+  name:'壁紙(クロス)必要量計算', emoji:'🧻', sub:'張り替えに必要なロール数を算出', color:'#4fb0e0',
   render: function(body){
     var area = field(body, { label:'施工する壁の面積', unit:'㎡', placeholder:'例: 25', hint:'幅×高さの合計。窓・ドアは差し引いてください。' });
     var perRoll = field(body, { label:'クロス1本あたりの施工可能面積', unit:'㎡/本', value:7.6, hint:'国内量産クロス(幅約92cm×長さ10m)は柄合わせロスを含めて約7〜8㎡/本が目安です。' });
@@ -333,7 +383,7 @@ TOOLS.wallpaper = {
 
 /* ---------- 3. モルタル/コンクリート配合 ---------- */
 TOOLS.mortar = {
-  name:'モルタル/コンクリート配合計算', emoji:'🧱', sub:'体積から材料量・セメント袋数を算出',
+  name:'モルタル/コンクリート配合計算', emoji:'🧱', sub:'体積から材料量・セメント袋数を算出', color:'#c9a15a',
   render: function(body){
     var mode = toggleGroup(body, { label:'種類', options:[
       { value:'concrete', label:'コンクリート(1:2:3)' },
@@ -399,7 +449,7 @@ TOOLS.mortar = {
 
 /* ---------- 4. フローリング ---------- */
 TOOLS.flooring = {
-  name:'フローリング必要量計算', emoji:'🪵', sub:'床材の必要箱数をロス込みで算出',
+  name:'フローリング必要量計算', emoji:'🪵', sub:'床材の必要箱数をロス込みで算出', color:'#c9975c',
   render: function(body){
     var w = field(body, { label:'部屋の幅', unit:'m', placeholder:'例: 3.6' });
     var d = field(body, { label:'部屋の奥行き', unit:'m', placeholder:'例: 2.7' });
@@ -434,7 +484,7 @@ TOOLS.flooring = {
 
 /* ---------- 5. タイル必要枚数計算 ---------- */
 TOOLS.tile = {
-  name:'タイル必要枚数計算', emoji:'🔲', sub:'枚数と目地材(グラウト)量をロス込みで算出',
+  name:'タイル必要枚数計算', emoji:'🔲', sub:'枚数と目地材(グラウト)量をロス込みで算出', color:'#5fc9b4',
   render: function(body){
     var w = field(body, { label:'施工する幅', unit:'m', placeholder:'例: 2' });
     var d = field(body, { label:'施工する高さ・奥行き', unit:'m', placeholder:'例: 1.2' });
@@ -485,7 +535,7 @@ TOOLS.tile = {
 
 /* ---------- 6. 木材カット計算(ビンパッキング) ---------- */
 TOOLS.lumber = {
-  name:'木材カット必要本数計算', emoji:'📏', sub:'元材の長さから必要本数と切り出し計画を算出',
+  name:'木材カット必要本数計算', emoji:'📏', sub:'元材の長さから必要本数と切り出し計画を算出', color:'#7bc47f',
   render: function(body){
     var stock = field(body, { label:'元の材の長さ', unit:'mm', value:1820, hint:'木材(1x4材など)の定尺は1820mm/2730mm/3640mmが一般的です。' });
     var kerf = field(body, { label:'切りしろ(のこ刃の厚み)', unit:'mm', value:3 });
@@ -602,7 +652,8 @@ TOOLS.lumber = {
   Object.keys(TOOLS).forEach(function(id){
     var t = TOOLS[id];
     var card = document.createElement('button'); card.className = 'card';
-    card.innerHTML = '<div class="emoji">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
     card.addEventListener('click', function(){ openTool(id); });
     grid.appendChild(card);
   });
@@ -619,6 +670,8 @@ function renderSaved(){
   }
   list.forEach(function(item){
     var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
     var date = new Date(item.ts);
     var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
       String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
