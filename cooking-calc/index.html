@@ -8,7 +8,9 @@
 <meta name="theme-color" content="#14100f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<!-- iOS Safari ignores SVG for apple-touch-icon, so a PNG is required for a correct home-screen icon -->
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
@@ -219,6 +221,8 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 /* ---------- utils ---------- */
 var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
 var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
 var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
   var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
   return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
@@ -368,7 +372,7 @@ TOOLS.scale = {
       var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.className='name'; nameInput.placeholder='材料名'; nameInput.value = name||'';
       var amountInput = document.createElement('input'); amountInput.type='number'; amountInput.inputMode='decimal'; amountInput.className='amount'; amountInput.placeholder='分量'; amountInput.value = amount!=null?amount:'';
       var unitInput = document.createElement('input'); unitInput.type='text'; unitInput.className='unit'; unitInput.placeholder='単位'; unitInput.value = unit||'g';
-      var rm = document.createElement('button'); rm.className='rm'; rm.textContent='×';
+      var rm = document.createElement('button'); rm.className='rm'; rm.textContent='×'; rm.setAttribute('aria-label','この行を削除');
       item.appendChild(nameInput); item.appendChild(amountInput); item.appendChild(unitInput); item.appendChild(rm);
       list.appendChild(item);
       var rowObj = { nameInput: nameInput, amountInput: amountInput, unitInput: unitInput, el: item };
@@ -403,7 +407,7 @@ TOOLS.scale = {
       });
       box.innerHTML = '<div class="r-label">倍率</div><div class="r-main">× ' + fmt(ratio,2) + '</div>' +
         lines.map(function(l){
-          return '<div class="r-row"><span>' + l.name + '</span><b>' + fmt(l.scaled,1) + ' ' + l.unit + '</b></div>';
+          return '<div class="r-row"><span>' + esc(l.name) + '</span><b>' + fmt(l.scaled,1) + ' ' + esc(l.unit) + '</b></div>';
         }).join('') +
         '<div class="r-sub">' + f + '人分 → ' + t + '人分に換算。塩・スパイスなど微量な調味料は倍率通りにせず味を見ながら調整してください。</div>';
       actions.innerHTML = '';
@@ -592,23 +596,17 @@ TOOLS.oven = {
     var box = resultBox(body);
     var actions = document.createElement('div'); body.appendChild(actions);
 
-    var syncing = false;
-    function fromC(){
-      if(syncing) return; syncing = true;
-      var cv = parseFloat(c.value);
-      if(isFinite(cv)) f.value = fmt(cv*9/5+32, 0);
-      syncing = false;
-      calc();
-    }
-    function fromF(){
-      if(syncing) return; syncing = true;
-      var fv = parseFloat(f.value);
-      if(isFinite(fv)) c.value = fmt((fv-32)*5/9, 0);
-      syncing = false;
-      calc();
-    }
-    function calc(){
-      var cv = parseFloat(c.value)||0, fv = parseFloat(f.value)||(cv*9/5+32);
+    // Each field's own input always drives the other from a single source of
+    // value (never reads both fields independently), so a cleared/invalid
+    // field can't leave the other side showing a stale, inconsistent number.
+    function render(cv){
+      if(!isFinite(cv)){
+        box.innerHTML = '<div class="r-label">対応する温度</div><div class="r-main">-</div>' +
+          '<div class="r-sub">摂氏または華氏を入力してください。</div>';
+        actions.innerHTML = '';
+        return;
+      }
+      var fv = cv*9/5+32;
       var convection = cv - 20;
       box.innerHTML = '<div class="r-label">対応する温度</div><div class="r-main">' + fmt(cv,0) + '℃ ≒ ' + fmt(fv,0) + '℉</div>' +
         '<div class="r-row"><span>コンベクション(ファン式)の目安</span><b>約 ' + fmt(convection,0) + '℃</b></div>' +
@@ -617,6 +615,17 @@ TOOLS.oven = {
       actionsRow(actions, 'oven', TOOLS.oven.name, function(){
         return fmt(cv,0) + '℃ ≒ ' + fmt(fv,0) + '℉(コンベクション目安 約' + fmt(convection,0) + '℃)';
       });
+    }
+    function fromC(){
+      var cv = parseFloat(c.value);
+      f.value = isFinite(cv) ? fmt(cv*9/5+32, 0) : '';
+      render(cv);
+    }
+    function fromF(){
+      var fv = parseFloat(f.value);
+      var cv = isFinite(fv) ? (fv-32)*5/9 : NaN;
+      c.value = isFinite(cv) ? fmt(cv, 0) : '';
+      render(cv);
     }
     c.addEventListener('input', fromC);
     f.addEventListener('input', fromF);
@@ -653,10 +662,10 @@ function renderSaved(){
     var date = new Date(item.ts);
     var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
       String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
-    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + item.toolName + '</div>' +
-      '<div style="font-size:12px;margin-top:3px">' + item.summary + '</div>' +
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
       '<div class="meta">' + dateStr + '</div></div>';
-    var del = document.createElement('button'); del.className='del'; del.textContent='🗑';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
     del.addEventListener('click', function(){
       writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
       renderSaved();

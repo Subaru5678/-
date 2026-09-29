@@ -1,5 +1,6 @@
-const CACHE = 'diycalc-v2';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './privacy.html'];
+const CACHE = 'diycalc-v3';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './privacy.html',
+  './icons/icon.svg', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));

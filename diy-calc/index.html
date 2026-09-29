@@ -8,7 +8,9 @@
 <meta name="theme-color" content="#0f1319">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<!-- iOS Safari ignores SVG for apple-touch-icon, so a PNG is required for a correct home-screen icon -->
+<link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
@@ -224,6 +226,8 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 /* ---------- utils ---------- */
 var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
 var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
 var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
   var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
   return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
@@ -564,7 +568,7 @@ TOOLS.lumber = {
       var item = document.createElement('div'); item.className='addrow-item';
       var lenInput = document.createElement('input'); lenInput.type='number'; lenInput.inputMode='decimal'; lenInput.placeholder='長さ(mm)'; lenInput.value = len!=null?len:'';
       var qtyInput = document.createElement('input'); qtyInput.type='number'; qtyInput.inputMode='numeric'; qtyInput.placeholder='本数'; qtyInput.value = qty!=null?qty:1; qtyInput.style.maxWidth='70px';
-      var rm = document.createElement('button'); rm.className='rm'; rm.textContent='×';
+      var rm = document.createElement('button'); rm.className='rm'; rm.textContent='×'; rm.setAttribute('aria-label','この行を削除');
       item.appendChild(lenInput); item.appendChild(qtyInput); item.appendChild(rm);
       list.appendChild(item);
       var rowObj = { lenInput: lenInput, qtyInput: qtyInput, el: item };
@@ -690,10 +694,10 @@ function renderSaved(){
     var date = new Date(item.ts);
     var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
       String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
-    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + item.toolName + '</div>' +
-      '<div style="font-size:12px;margin-top:3px">' + item.summary + '</div>' +
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
       '<div class="meta">' + dateStr + '</div></div>';
-    var del = document.createElement('button'); del.className='del'; del.textContent='🗑';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
     del.addEventListener('click', function(){
       writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
       renderSaved();
