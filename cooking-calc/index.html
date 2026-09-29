@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>料理の計量計算</title>
-<meta name="description" content="人数分の分量換算・ベーカーズパーセント・計量カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算をその場で計算。料理と製菓のための計量計算アプリ。">
-<meta name="theme-color" content="#14100f">
+<meta name="description" content="人数分の分量換算・ベーカーズパーセント・カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算・賞味期限計算・食材個数換算をその場で計算。料理と製菓のための計量計算アプリ。">
+<meta name="theme-color" content="#fbf8f5">
 <link rel="canonical" href="https://subaru5678.github.io/-/cooking-calc/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:title" content="料理の計量計算">
-<meta property="og:description" content="人数分の分量換算・ベーカーズパーセント・計量カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算をその場で計算。料理と製菓のための計量計算アプリ。">
+<meta property="og:description" content="人数分の分量換算・ベーカーズパーセント・カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算・賞味期限計算・食材個数換算をその場で計算。料理と製菓のための計量計算アプリ。">
 <meta property="og:url" content="https://subaru5678.github.io/-/cooking-calc/">
 <meta name="twitter:card" content="summary">
 <link rel="manifest" href="manifest.webmanifest">
@@ -33,11 +33,12 @@
 -->
 <style>
 :root{
-  --bg:#14100f; --panel:#211a18; --panel2:#2a211e; --line:#3b302c;
-  --ink:#f6efe9; --muted:#a39289; --label:#dccec4; --accent:#ff6b4a; --accent2:#6bc9a0;
-  --ok:#7bc47f; --warn:#e0b23f; --bad:#e0654f;
+  --bg:#fbf8f5; --panel:#ffffff; --panel2:#f5efe9; --line:#e6ddd3;
+  --ink:#241a16; --muted:#8a7a70; --label:#4a3830; --accent:#ff6b4a; --accent2:#2f9e77;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
   --tool-color:#ff6b4a;
   --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
 }
 *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
@@ -46,7 +47,7 @@ html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
 body{
   background-image:
     linear-gradient(var(--bg), var(--bg)),
-    radial-gradient(rgba(255,107,74,.07) 1.4px, transparent 1.4px);
+    radial-gradient(rgba(255,107,74,.10) 1.4px, transparent 1.4px);
   background-size:auto, 26px 26px;
 }
 button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
@@ -67,10 +68,10 @@ input,select{ font-family:inherit; }
 main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 
 /* Home grid */
-.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 65%, #2e1c16 130%);
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
   border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
 .hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
-  background-image:repeating-linear-gradient(45deg, rgba(255,107,74,.06) 0 2px, transparent 2px 14px); }
+  background-image:repeating-linear-gradient(45deg, rgba(255,107,74,.08) 0 2px, transparent 2px 14px); }
 .hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
   color:var(--accent); margin-bottom:8px; }
 .hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent);
@@ -109,9 +110,9 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 .field{ margin-bottom:14px; }
 .field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
 .field .row{ display:flex; gap:8px; align-items:center; }
-.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+.field input[type=number], .field input[type=text], .field input[type=date], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
   color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
-  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; }
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
 .field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color);
   box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
 .unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
@@ -130,7 +131,8 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
   padding:18px; margin-top:8px; overflow:hidden;
   box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
 .result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
-.result-box .r-main{ font-family:var(--font-display); font-size:30px; font-weight:600; color:var(--tool-color);
+.result-box .r-main{ font-family:var(--font-display); font-size:30px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink));
   letter-spacing:.01em; font-variant-numeric:tabular-nums; }
 .result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
 .result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
@@ -175,9 +177,9 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 #adSlot ins.adsbygoogle{ display:none; }
 
 #toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,14,12,.95);
-  backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
   font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20;
-  max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.5); }
+  max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
 #toast.show{ opacity:1; transform:translate(-50%,0); }
 
 .view{ display:none; }
@@ -199,7 +201,7 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
       <div class="hero">
         <div class="kicker">KITCHEN CALCULATOR</div>
         <h2>はかりなしでも、ぴったり計量。</h2>
-        <p>人数分の分量換算・ベーカーズパーセント・計量カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算まで。<b>料理と製菓</b>のための実用計算ツールです。</p>
+        <p>人数分の分量換算・ベーカーズパーセント・カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算・賞味期限計算・食材個数換算まで。<b>料理と製菓</b>のための実用計算ツールです。</p>
       </div>
       <div class="section-title">ツールを選ぶ</div>
       <div class="grid" id="toolGrid"></div>
@@ -642,6 +644,140 @@ TOOLS.oven = {
     c.addEventListener('input', fromC);
     f.addEventListener('input', fromF);
     fromC();
+  }
+};
+
+/* ---------- 7. 賞味期限・消費期限 残り日数計算 ---------- */
+TOOLS.expiry = {
+  name:'賞味期限・消費期限計算', emoji:'📅', sub:'残り日数を計算して、使い切りのタイミングが分かる', color:'#e0b23f',
+  render: function(body){
+    var todayStr = new Date().toISOString().slice(0,10);
+    var mode = toggleGroup(body, { label:'計算方法', options:[
+      { value:'fromDays', label:'保存日数から計算' },
+      { value:'fromDate', label:'期限日から計算' }
+    ], onChange: function(){ update(); } });
+
+    var daysWrap = document.createElement('div');
+    var baseDate = field(daysWrap, { label:'基準日(購入日・開封日)', type:'date', value: todayStr });
+    var shelfDays = field(daysWrap, { label:'保存可能日数', unit:'日', value:3, hint:'パッケージや商品の表示にある日数を入力してください。' });
+    body.appendChild(daysWrap);
+
+    var dateWrap = document.createElement('div');
+    var limitDate = field(dateWrap, { label:'賞味期限・消費期限', type:'date', value: todayStr });
+    body.appendChild(dateWrap);
+    dateWrap.style.display = 'none';
+
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function daysBetween(a, b){ return Math.round((b - a) / 86400000); }
+
+    function update(){
+      daysWrap.style.display = mode.value === 'fromDays' ? '' : 'none';
+      dateWrap.style.display = mode.value === 'fromDate' ? '' : 'none';
+      calc();
+    }
+    function calc(){
+      var today = new Date(todayStr + 'T00:00:00');
+      var limit;
+      if(mode.value === 'fromDays'){
+        var base = baseDate.value ? new Date(baseDate.value + 'T00:00:00') : today;
+        var days = parseFloat(shelfDays.value)||0;
+        limit = new Date(base.getTime() + days*86400000);
+      } else {
+        limit = limitDate.value ? new Date(limitDate.value + 'T00:00:00') : today;
+      }
+      var remain = daysBetween(today, limit);
+      var limitStr = limit.getFullYear() + '/' + (limit.getMonth()+1) + '/' + limit.getDate();
+      var status, statusColor;
+      if(remain < 0){ status = '期限切れです'; statusColor = 'var(--bad)'; }
+      else if(remain === 0){ status = '今日が期限日です'; statusColor = 'var(--bad)'; }
+      else if(remain <= 3){ status = 'まもなく期限です'; statusColor = 'var(--warn)'; }
+      else { status = 'まだ余裕があります'; statusColor = 'var(--ok)'; }
+
+      box.innerHTML = '<div class="r-label">残り日数</div><div class="r-main" style="color:' + statusColor + '">' +
+          (remain < 0 ? fmt(Math.abs(remain),0) + '日超過' : fmt(remain,0) + ' 日') + '</div>' +
+        '<div class="r-row"><span>期限日</span><b>' + limitStr + '</b></div>' +
+        '<div class="r-row"><span>状態</span><b style="color:' + statusColor + '">' + status + '</b></div>' +
+        '<div class="r-sub">日付をまたぐ計算の目安です。実際の保存可能期間は保存状態(温度・開封の有無)により前後します。商品表示を優先してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'expiry', TOOLS.expiry.name, function(){
+        return '期限日 ' + limitStr + ' → 残り' + (remain<0 ? Math.abs(remain)+'日超過' : remain+'日') + '(' + status + ')';
+      });
+    }
+    [baseDate, shelfDays, limitDate].forEach(function(i){ i.addEventListener('input', calc); });
+    update();
+  }
+};
+
+/* ---------- 8. 野菜・食材の個数⇔グラム換算 ---------- */
+var FOOD_ITEMS = [
+  { id:'onion', name:'玉ねぎ(中1個)', g:200 },
+  { id:'potato', name:'じゃがいも(中1個)', g:150 },
+  { id:'carrot', name:'にんじん(1本)', g:150 },
+  { id:'tomato', name:'トマト(中1個)', g:150 },
+  { id:'eggplant', name:'なす(1本)', g:80 },
+  { id:'greenpepper', name:'ピーマン(1個)', g:30 },
+  { id:'cucumber', name:'きゅうり(1本)', g:100 },
+  { id:'cabbage', name:'キャベツ(1玉)', g:1200 },
+  { id:'egg', name:'卵(Mサイズ1個・殻込み)', g:60 },
+  { id:'lemon', name:'レモン(1個)', g:100 },
+  { id:'garlic', name:'にんにく(1片)', g:5 },
+  { id:'ginger', name:'しょうが(1かけ)', g:10 }
+];
+TOOLS.foodcount = {
+  name:'食材の個数⇔グラム換算', emoji:'🥕', sub:'「玉ねぎ1個」のようなレシピ表記を重さに変換', color:'#7bc47f',
+  render: function(body){
+    var item = selectField(body, { label:'食材', options: FOOD_ITEMS.map(function(i){ return { value:i.id, label:i.name }; }) });
+    var mode = toggleGroup(body, { label:'変換方向', options:[
+      { value:'c2w', label:'個数 → 重さ' },
+      { value:'w2c', label:'重さ → 個数' }
+    ], onChange: function(){ update(); } });
+
+    var countWrap = document.createElement('div');
+    var count = field(countWrap, { label:'個数', unit:'個(本)', value:1, step:'0.1' });
+    body.appendChild(countWrap);
+
+    var gramWrap = document.createElement('div');
+    var grams = field(gramWrap, { label:'重さ', unit:'g', placeholder:'例: 300' });
+    body.appendChild(gramWrap);
+    gramWrap.style.display = 'none';
+
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function getItem(){ return FOOD_ITEMS.filter(function(i){ return i.id === item.value; })[0] || FOOD_ITEMS[0]; }
+
+    function update(){
+      countWrap.style.display = mode.value === 'c2w' ? '' : 'none';
+      gramWrap.style.display = mode.value === 'w2c' ? '' : 'none';
+      calc();
+    }
+    function calc(){
+      var it = getItem();
+      if(mode.value === 'c2w'){
+        var c = parseFloat(count.value)||0;
+        var g = c * it.g;
+        box.innerHTML = '<div class="r-label">重さ(目安)</div><div class="r-main">' + fmt(g,0) + ' g</div>' +
+          '<div class="r-sub">' + it.name + ' は1個(1本)あたり約' + it.g + 'gとして換算した目安です。大きさにより前後します。</div>';
+        actions.innerHTML = '';
+        actionsRow(actions, 'foodcount', TOOLS.foodcount.name, function(){
+          return it.name + ' × ' + c + ' → 約' + fmt(g,0) + 'g';
+        });
+      } else {
+        var gv = parseFloat(grams.value)||0;
+        var cEq = it.g>0 ? gv/it.g : 0;
+        box.innerHTML = '<div class="r-label">個数換算(目安)</div><div class="r-main">約 ' + fmt(cEq,2) + ' 個(本)</div>' +
+          '<div class="r-sub">' + it.name + '(1個(本)あたり約' + it.g + 'g)での換算です。</div>';
+        actions.innerHTML = '';
+        actionsRow(actions, 'foodcount', TOOLS.foodcount.name, function(){
+          return it.name + ' ' + fmt(gv,0) + 'g → 約' + fmt(cEq,2) + '個(本)';
+        });
+      }
+    }
+    [count, grams].forEach(function(i){ i.addEventListener('input', calc); });
+    item.addEventListener('change', calc);
+    update();
   }
 };
 

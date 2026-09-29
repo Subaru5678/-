@@ -1,13 +1,13 @@
 {
   "name": "料理の計量計算",
   "short_name": "計量計算",
-  "description": "人数分の分量換算・ベーカーズパーセント・計量カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算をその場で計算する料理と製菓のための計量計算アプリ",
+  "description": "人数分の分量換算・ベーカーズパーセント・カップ⇔グラム変換・塩分濃度・めんつゆ希釈・オーブン温度換算・賞味期限計算・食材個数換算をその場で計算する料理と製菓のための計量計算アプリ",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#14100f",
-  "theme_color": "#14100f",
+  "background_color": "#fbf8f5",
+  "theme_color": "#fbf8f5",
   "lang": "ja",
   "icons": [
     { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
