@@ -14,6 +14,26 @@ python3 -m http.server 8080
 スマホのブラウザで開き、共有メニューから「ホーム画面に追加」するとアプリのように
 インストールできます(PWA)。オフラインでも動作します。
 
+## 無料で公開する(初期費用ゼロ)
+
+ストア登録費($25〜)をかけずに始めたい場合は、このリポジトリの `.github/workflows/deploy-pages.yml`
+がGitHub Pagesへの自動デプロイを用意済みです。有効化の手順:
+
+1. GitHubリポジトリの **Settings → Pages** を開く
+2. 「Build and deployment」の **Source** を **GitHub Actions** に変更
+
+これで `https://<ユーザー名>.github.io/<リポジトリ名>/` にPWAとして無料公開されます。
+広告は [Google AdSense](https://www.google.com/adsense/)(登録・審査ともに無料)で収益化できます。
+審査に通ったら:
+
+1. `index.html` の `<head>` 内、コメントアウトされている adsbygoogle の `<script>` タグを有効化し、
+   `ca-pub-XXXXXXXXXXXXXXXX` を自分のパブリッシャーIDに置き換える
+2. `#adSlot` 内の `<ins class="adsbygoogle">` の `data-ad-client` / `data-ad-slot` も同様に置き換える
+   (プレースホルダーの `XXXX` が残っている間は自動的に無効化されるので安全です)
+
+AdSenseの審査には、サイトに `privacy.html`(同梱済みのプライバシーポリシー)へのリンクがあることが
+役立ちます。ホーム画面下部に既にリンクを設置済みです。
+
 ## なぜこのアイデアか(広告収益 × 低競合という条件での判断)
 
 - 「電卓」「単位変換」「フラッシュライト」のような汎用ツールはストアが飽和しており、
