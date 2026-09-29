@@ -36,26 +36,26 @@ python3 -m http.server 8080
 
 ## ストア公開までの実際のステップ
 
-1. **Capacitorでネイティブ化**
-   ```
-   npm init -y
-   npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
-   npx cap init "現場の資材計算" "com.example.diycalc" --web-dir=diy-calc
-   npx cap add ios
-   npx cap add android
-   npx cap sync
-   ```
-2. **AdMob導入**
-   - Google AdMobでアカウント作成 → アプリ登録 → 広告ユニット(バナー)を発行
-   - `@capacitor-community/admob` を導入し、`#adSlot` の位置にバナーを表示
-   - テスト広告IDでまず動作確認してから本番IDに差し替える
+1. **Capacitorでネイティブ化 — 完了済み**
+   `../mobile` に Capacitor プロジェクト(Android/iOS両方)を用意済みです。
+   詳細は `../mobile/README.md` を参照してください。
+2. **AdMob導入 — 配線済み(テストIDで動作)**
+   - `index.html` の `initAds()` がネイティブ実行時に `@capacitor-community/admob`
+     を呼び出し、バナー広告を表示します(現在はGoogleの公開テストID)
+   - Google AdMobでアカウント作成 → アプリ登録 → 広告ユニット(バナー)を発行し、
+     `../mobile/README.md` の手順で本番IDに差し替えてください
 3. **開発者アカウント**
    - Apple Developer Program(年間$99) / Google Play Developer(初回$25)に登録
 4. **アイコン・スクリーンショット**
-   - `icons/icon.svg` はプレースホルダーです。1024x1024のアプリアイコン(PNG)と
-     ストア掲載用スクリーンショットを別途用意してください
+   - アプリアイコン・スプラッシュ画面は `../mobile/assets/` のプレースホルダーから
+     自動生成済みです。本番公開前に `../mobile/assets/icon.png` を本番デザインに
+     差し替えて `npx capacitor-assets generate` を再実行してください
+   - ストア掲載用スクリーンショットは別途用意してください
 5. **審査・申請**
    - Xcode / Android Studio でビルドし、それぞれのストアコンソールから申請
+     (このセッションのサンドボックスはGoogleのMavenリポジトリ(dl.google.com)への
+     アクセスが制限されているため実機ビルドの確認はできていません。手元のPC/Macか
+     CIでビルドしてください)
 
 ## 収益化に関する現実的な見立て
 

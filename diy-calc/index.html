@@ -590,6 +590,35 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(function(){});
   });
 }
+
+/* ---------- AdMob (native app only) ----------
+   Uses the Capacitor bridge's generic plugin proxy (window.Capacitor.Plugins),
+   so no bundler/build step is needed for this static app. Ad unit IDs below
+   are Google's public TEST IDs — replace with your own AdMob unit IDs (and
+   the App IDs in AndroidManifest.xml / Info.plist) before release. */
+(function initAds(){
+  var Capacitor = window.Capacitor;
+  if(!Capacitor || !Capacitor.isNativePlatform || !Capacitor.isNativePlatform()) return;
+  var AdMob = Capacitor.Plugins && Capacitor.Plugins.AdMob;
+  if(!AdMob) return;
+
+  var platform = Capacitor.getPlatform ? Capacitor.getPlatform() : 'android';
+  var TEST_BANNER_ID = platform === 'ios'
+    ? 'ca-app-pub-3940256099942544/2934735716'
+    : 'ca-app-pub-3940256099942544/6300978111';
+
+  var adSlot = $('#adSlot');
+  if(adSlot) adSlot.style.visibility = 'hidden'; // native banner renders outside the webview
+
+  AdMob.initialize().then(function(){
+    return AdMob.showBanner({
+      adId: TEST_BANNER_ID,
+      adSize: 'ADAPTIVE_BANNER',
+      position: 'BOTTOM_CENTER',
+      margin: 0
+    });
+  }).catch(function(err){ console.warn('AdMob init/show failed', err); });
+})();
 })();
 </script>
 </body>

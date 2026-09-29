@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">現場の資材計算</string>
+    <string name="title_activity_main">現場の資材計算</string>
+    <string name="package_name">com.diycalc.reformtools</string>
+    <string name="custom_url_scheme">com.diycalc.reformtools</string>
+    <!-- Google's public TEST AdMob App ID. Replace with your production App ID before release. -->
+    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+</resources>
