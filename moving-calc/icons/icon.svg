@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#26313f"/>
+      <stop offset="1" stop-color="#12161c"/>
+    </linearGradient>
+    <linearGradient id="box" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5fb1e0"/>
+      <stop offset="1" stop-color="#2f8fc4"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.6">
+      <stop offset="0" stop-color="#2f8fc4" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#2f8fc4" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="round"><rect width="512" height="512" rx="104"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#round)">
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <circle cx="256" cy="230" r="230" fill="url(#glow)"/>
+
+    <!-- moving box -->
+    <g transform="translate(96 148)">
+      <rect x="0" y="60" width="320" height="220" rx="14" fill="url(#box)"/>
+      <path d="M0 100 L160 40 L320 100" fill="none" stroke="#12161c" stroke-opacity="0.25" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M160 60 V280" stroke="#12161c" stroke-opacity="0.22" stroke-width="10"/>
+      <path d="M40 60 V280 M280 60 V280" stroke="#12161c" stroke-opacity="0.15" stroke-width="8"/>
+    </g>
+
+    <!-- tape accent -->
+    <circle cx="368" cy="360" r="44" fill="#c9975c"/>
+    <circle cx="368" cy="360" r="44" fill="none" stroke="#12161c" stroke-width="8"/>
+  </g>
+</svg>

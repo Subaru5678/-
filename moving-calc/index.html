@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>引っ越し準備計算</title>
+<meta name="description" content="段ボール箱の必要数・賃貸初期費用合計・適正家賃・家具の搬入判定・引っ越し費用目安・引っ越しまでの残り日数をその場で計算。引っ越しと部屋探しのための計算アプリ。">
+<meta name="theme-color" content="#f6f7f9">
+<link rel="canonical" href="https://subaru5678.github.io/-/moving-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="引っ越し準備計算">
+<meta property="og:description" content="段ボール箱の必要数・賃貸初期費用合計・適正家賃・家具の搬入判定・引っ越し費用目安・引っ越しまでの残り日数をその場で計算。引っ越しと部屋探しのための計算アプリ。">
+<meta property="og:url" content="https://subaru5678.github.io/-/moving-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<!-- iOS Safari ignores SVG for apple-touch-icon, so a PNG is required for a correct home-screen icon -->
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<!-- Older iOS versions rely on these (rather than the manifest) to open in
+     fullscreen standalone mode instead of Safari's browser chrome -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="引っ越し計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+     審査前・ローカルプレビュー中は入れないでください(ポリシー違反になります)。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --panel2:#eef1f4; --line:#dee2e8;
+  --ink:#1a2029; --muted:#6b7480; --label:#3d4551; --accent:#2f8fc4; --accent2:#c9975c;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#2f8fc4;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    repeating-linear-gradient(0deg, rgba(47,143,196,.07) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(47,143,196,.07) 0 1px, transparent 1px 32px);
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600;
+  letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+/* Home grid */
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(47,143,196,.08) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent);
+  box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700;
+  letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted);
+  margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+/* Tool view */
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px;
+  border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field input[type=date], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.divider{ height:1px; background:var(--line); margin:18px 0; }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden;
+  box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:30px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink));
+  letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0;
+  border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px;
+  font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color));
+  color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+/* Saved list */
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;
+  gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px;
+  background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+/* Ad slot */
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20;
+  max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">引っ越し準備計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">MOVING CALCULATOR</div>
+        <h2>引っ越しの「?」を、その場で計算。</h2>
+        <p>段ボール箱の必要数・賃貸初期費用・適正家賃・家具の搬入判定・引っ越し費用目安・残り日数まで。<b>引っ越しと部屋探し</b>のための実用計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <!-- Web版(AdSense)用。パブリッシャーID・広告ユニットIDを設定すると自動的に有効になります -->
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- utils ---------- */
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var yen = function(n){ return fmt(n,0) + ' 円'; };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'movingcalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){
+    navigator.share({ text: text }).catch(function(){});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); });
+  } else {
+    toast('この端末では共有できません');
+  }
+};
+
+/* ---------- routing ---------- */
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '引っ越し準備計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+/* ---------- tool definitions ---------- */
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 段ボール箱必要数計算 ---------- */
+TOOLS.boxes = {
+  name:'段ボール箱必要数計算', emoji:'📦', sub:'世帯人数と荷物量から、必要な箱数を算出', color:'#c9975c',
+  render: function(body){
+    var persons = field(body, { label:'世帯人数', unit:'人', value:2 });
+    var amount = toggleGroup(body, { label:'荷物量の目安', value:'1', options:[
+      { value:'0.8', label:'少なめ' },
+      { value:'1', label:'普通' },
+      { value:'1.3', label:'多め' }
+    ], onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var p = parseFloat(persons.value)||0;
+      var mult = parseFloat(amount.value)||1;
+      var base = p>0 ? 15 + (p-1)*10 : 0;
+      var total = Math.round(base * mult);
+      var large = Math.round(total*0.5);
+      var small = total - large;
+      box.innerHTML = '<div class="r-label">必要な箱数(目安)</div><div class="r-main">' + total + ' 箱</div>' +
+        '<div class="r-row"><span>大箱(引っ越し用Lサイズ)</span><b>' + large + ' 箱</b></div>' +
+        '<div class="r-row"><span>小箱(引っ越し用Sサイズ・本など重い物用)</span><b>' + small + ' 箱</b></div>' +
+        '<div class="r-sub">世帯人数と荷物量からの一般的な目安です。趣味の物が多い・収納が多い場合は「多め」を選んでください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'boxes', TOOLS.boxes.name, function(){
+        return p + '人・荷物' + (mult==0.8?'少なめ':mult==1.3?'多め':'普通') + ' → 段ボール ' + total + '箱(大' + large + '/小' + small + ')';
+      });
+    }
+    persons.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 2. 賃貸初期費用合計計算 ---------- */
+TOOLS.initcost = {
+  name:'賃貸初期費用合計計算', emoji:'🏠', sub:'敷金・礼金など、入居時にかかる費用の合計を算出', color:'#2f9e5c',
+  render: function(body){
+    var rent = field(body, { label:'家賃', unit:'円/月', value:80000 });
+    var deposit = field(body, { label:'敷金', unit:'ヶ月分', value:1, step:'0.5' });
+    var keymoney = field(body, { label:'礼金', unit:'ヶ月分', value:1, step:'0.5' });
+    var agent = field(body, { label:'仲介手数料', unit:'ヶ月分', value:1, step:'0.5' });
+    var advance = field(body, { label:'前家賃', unit:'ヶ月分', value:1, step:'0.5', hint:'契約月の日割り分は含みません。' });
+    var guarantee = field(body, { label:'保証会社利用料', unit:'ヶ月分', value:0.5, step:'0.1' });
+    var insurance = field(body, { label:'火災保険料', unit:'円', value:20000 });
+    var other = field(body, { label:'その他(鍵交換費用など)', unit:'円', placeholder:'例: 15000' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var r = parseFloat(rent.value)||0;
+      var months = (parseFloat(deposit.value)||0) + (parseFloat(keymoney.value)||0) + (parseFloat(agent.value)||0) +
+        (parseFloat(advance.value)||0) + (parseFloat(guarantee.value)||0);
+      var rentBased = r * months;
+      var flat = (parseFloat(insurance.value)||0) + (parseFloat(other.value)||0);
+      var total = rentBased + flat;
+      box.innerHTML = '<div class="r-label">初期費用合計(目安)</div><div class="r-main">' + yen(total) + '</div>' +
+        '<div class="r-row"><span>家賃換算分(計' + fmt(months,1) + 'ヶ月分)</span><b>' + yen(rentBased) + '</b></div>' +
+        '<div class="r-row"><span>火災保険・その他</span><b>' + yen(flat) + '</b></div>' +
+        '<div class="r-sub">物件・管理会社により内訳や金額は異なります。実際の見積もりでご確認ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'initcost', TOOLS.initcost.name, function(){
+        return '家賃' + yen(r) + ' → 初期費用合計 約' + yen(total);
+      });
+    }
+    [rent, deposit, keymoney, agent, advance, guarantee, insurance, other].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 3. 適正家賃の目安計算 ---------- */
+TOOLS.rent = {
+  name:'適正家賃の目安計算', emoji:'💰', sub:'収入から、無理のない家賃の上限を算出', color:'#2f8fc4',
+  render: function(body){
+    var mode = toggleGroup(body, { label:'収入の入力方法', options:[
+      { value:'takehome', label:'手取り月収' },
+      { value:'gross', label:'額面年収' }
+    ], onChange: function(){ update(); } });
+
+    var takehomeWrap = document.createElement('div');
+    var takehome = field(takehomeWrap, { label:'手取り月収', unit:'円', value:250000 });
+    body.appendChild(takehomeWrap);
+
+    var grossWrap = document.createElement('div');
+    var gross = field(grossWrap, { label:'額面年収', unit:'円', value:4000000, hint:'手取りは額面の約75〜80%として概算します。' });
+    body.appendChild(grossWrap);
+    grossWrap.style.display = 'none';
+
+    var ratio = field(body, { label:'家賃の割合の目安', unit:'%', value:30, hint:'一般的に25〜30%が無理のない範囲とされます。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function update(){
+      takehomeWrap.style.display = mode.value === 'takehome' ? '' : 'none';
+      grossWrap.style.display = mode.value === 'gross' ? '' : 'none';
+      calc();
+    }
+    function calc(){
+      var monthly;
+      if(mode.value === 'takehome'){
+        monthly = parseFloat(takehome.value)||0;
+      } else {
+        monthly = (parseFloat(gross.value)||0) * 0.77 / 12;
+      }
+      var r = parseFloat(ratio.value)||0;
+      var maxRent = monthly * r/100;
+      box.innerHTML = '<div class="r-label">適正家賃の上限(目安)</div><div class="r-main">' + yen(maxRent) + '</div>' +
+        '<div class="r-row"><span>月収(手取り概算)</span><b>' + yen(monthly) + '</b></div>' +
+        '<div class="r-row"><span>割合</span><b>' + fmt(r,1) + ' %</b></div>' +
+        '<div class="r-sub">管理費・駐車場代は別途かかる場合があります。無理のない範囲で余裕を持った設定をおすすめします。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'rent', TOOLS.rent.name, function(){
+        return '月収' + yen(monthly) + ' × ' + fmt(r,1) + '% → 適正家賃 約' + yen(maxRent);
+      });
+    }
+    [takehome, gross, ratio].forEach(function(i){ i.addEventListener('input', calc); });
+    update();
+  }
+};
+
+/* ---------- 4. 家具の搬入判定計算 ---------- */
+TOOLS.furniture = {
+  name:'家具の搬入判定計算', emoji:'🚪', sub:'家具のサイズが玄関・ドアを通るか目安を確認', color:'#8a6fd1',
+  render: function(body){
+    var fw = field(body, { label:'家具の幅', unit:'mm', placeholder:'例: 900' });
+    var fd = field(body, { label:'家具の奥行き', unit:'mm', placeholder:'例: 450' });
+    var fh = field(body, { label:'家具の高さ', unit:'mm', placeholder:'例: 1800' });
+    var ow = field(body, { label:'搬入口(ドア・玄関)の幅', unit:'mm', placeholder:'例: 750' });
+    var oh = field(body, { label:'搬入口(ドア・玄関)の高さ', unit:'mm', placeholder:'例: 2000' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(fw.value)||0, d = parseFloat(fd.value)||0, h = parseFloat(fh.value)||0;
+      var ow_ = parseFloat(ow.value)||0, oh_ = parseFloat(oh.value)||0;
+      var minSide = Math.min(w,d) || 0;
+
+      var straightOk = h <= oh_ && (w <= ow_ || d <= ow_);
+      var furnitureDiag = Math.sqrt(w*w + h*h);
+      var openingDiag = Math.sqrt(ow_*ow_ + oh_*oh_);
+      var diagonalOk = !straightOk && minSide <= ow_ && furnitureDiag <= openingDiag;
+
+      var verdict, verdictColor, detail;
+      if(straightOk){
+        verdict = '直進で搬入できそうです'; verdictColor = 'var(--ok)';
+        detail = '家具の高さと、幅または奥行きのどちらかが搬入口以下です。';
+      } else if(diagonalOk){
+        verdict = '斜めに傾ければ入る可能性があります'; verdictColor = 'var(--warn)';
+        detail = '直進では入りませんが、対角寸法では収まる可能性があります。廊下の広さや天井高により実際は入らないこともあるため、業者に確認するか現地で採寸してください。';
+      } else {
+        verdict = '入らない可能性が高いです'; verdictColor = 'var(--bad)';
+        detail = '分解搬入(吊り上げ・分解)が可能か、購入前に確認することをおすすめします。';
+      }
+
+      box.innerHTML = '<div class="r-label">判定</div><div class="r-main" style="color:' + verdictColor + '; font-size:22px;">' + verdict + '</div>' +
+        '<div class="r-row"><span>家具の最小辺(幅・奥行き)</span><b>' + fmt(minSide,0) + ' mm</b></div>' +
+        '<div class="r-row"><span>搬入口</span><b>' + fmt(ow_,0) + ' × ' + fmt(oh_,0) + ' mm</b></div>' +
+        '<div class="r-sub">' + detail + ' 実際の搬入は廊下の曲がり角や天井高、養生の余白も影響するため、あくまで簡易的な目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'furniture', TOOLS.furniture.name, function(){
+        return '家具' + fmt(w,0) + '×' + fmt(d,0) + '×' + fmt(h,0) + 'mm / 搬入口' + fmt(ow_,0) + '×' + fmt(oh_,0) + 'mm → ' + verdict;
+      });
+    }
+    [fw, fd, fh, ow, oh].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. 引っ越し費用目安計算 ---------- */
+TOOLS.cost = {
+  name:'引っ越し費用目安計算', emoji:'🚚', sub:'距離と人数から、引っ越し費用のざっくりとした目安を算出', color:'#e0834f',
+  render: function(body){
+    var persons = field(body, { label:'世帯人数', unit:'人', value:2 });
+    var distance = field(body, { label:'移動距離', unit:'km', value:50 });
+    var season = toggleGroup(body, { label:'時期', options:[
+      { value:'1', label:'通常期' },
+      { value:'1.4', label:'繁忙期(3〜4月)' }
+    ], onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var p = parseFloat(persons.value)||0;
+      var dist = parseFloat(distance.value)||0;
+      var seasonMult = parseFloat(season.value)||1;
+      var personsFactor = p>0 ? 1 + (p-1)*0.6 : 0;
+      var base = (30000 + dist*200) * personsFactor;
+      var total = base * seasonMult;
+      var low = total * 0.8, high = total * 1.3;
+      box.innerHTML = '<div class="r-label">費用の目安レンジ</div><div class="r-main">' + yen(low) + ' 〜 ' + yen(high) + '</div>' +
+        '<div class="r-row"><span>目安(中央値)</span><b>' + yen(total) + '</b></div>' +
+        '<div class="r-sub">業者・シーズン・オプション(荷造り代行など)により大きく変動します。予算感の把握用の目安とし、実際は複数社から相見積もりを取ることをおすすめします。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'cost', TOOLS.cost.name, function(){
+        return p + '人・' + fmt(dist,0) + 'km(' + (seasonMult>1?'繁忙期':'通常期') + ') → 引っ越し費用目安 ' + yen(low) + '〜' + yen(high);
+      });
+    }
+    [persons, distance].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 6. 引っ越しまでの残り日数カウントダウン ---------- */
+TOOLS.countdown = {
+  name:'引っ越しまでの残り日数', emoji:'📅', sub:'引っ越し予定日までの残り日数を計算', color:'#b3821f',
+  render: function(body){
+    var todayStr = new Date().toISOString().slice(0,10);
+    var moveDate = field(body, { label:'引っ越し予定日', type:'date', value: todayStr });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function daysBetween(a, b){ return Math.round((b - a) / 86400000); }
+
+    function calc(){
+      var today = new Date(todayStr + 'T00:00:00');
+      var target = moveDate.value ? new Date(moveDate.value + 'T00:00:00') : today;
+      var remain = daysBetween(today, target);
+      var targetStr = target.getFullYear() + '/' + (target.getMonth()+1) + '/' + target.getDate();
+      var status, statusColor;
+      if(remain < 0){ status = '引っ越し予定日を過ぎています'; statusColor = 'var(--muted)'; }
+      else if(remain === 0){ status = '今日が引っ越し予定日です'; statusColor = 'var(--bad)'; }
+      else if(remain <= 7){ status = '準備を急ぎましょう'; statusColor = 'var(--warn)'; }
+      else { status = 'まだ余裕があります'; statusColor = 'var(--ok)'; }
+
+      box.innerHTML = '<div class="r-label">残り日数</div><div class="r-main" style="color:' + statusColor + '">' +
+          (remain < 0 ? fmt(Math.abs(remain),0) + '日経過' : fmt(remain,0) + ' 日') + '</div>' +
+        '<div class="r-row"><span>引っ越し予定日</span><b>' + targetStr + '</b></div>' +
+        '<div class="r-row"><span>状態</span><b style="color:' + statusColor + '">' + status + '</b></div>' +
+        '<div class="r-sub">1週間前までに荷造り・ライフラインの手続き・住所変更などを済ませておくのがおすすめです。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'countdown', TOOLS.countdown.name, function(){
+        return '引っ越し予定日 ' + targetStr + ' → 残り' + (remain<0 ? Math.abs(remain)+'日経過' : remain+'日') + '(' + status + ')';
+      });
+    }
+    moveDate.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- home grid ---------- */
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+/* ---------- saved list ---------- */
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+/* ---------- PWA install ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+/* ---------- AdSense (web only) ----------
+   Only activates once you've uncommented the adsbygoogle <script> in <head>
+   and replaced the placeholder client/slot IDs on the <ins> below the ad
+   placeholder — until then this safely no-ops and the "広告スペース"
+   placeholder box keeps showing. */
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>
