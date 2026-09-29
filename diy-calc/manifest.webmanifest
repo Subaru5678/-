@@ -1,7 +1,7 @@
 {
   "name": "現場の資材計算 - DIY&リフォーム",
   "short_name": "資材計算",
-  "description": "塗料・壁紙・モルタル配合・フローリング・木材カットの必要量をその場で計算するDIY&リフォーム向けツール",
+  "description": "塗料・壁紙・モルタル配合・フローリング・タイル・木材カットの必要量をその場で計算するDIY&リフォーム向けツール",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

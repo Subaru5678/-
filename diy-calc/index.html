@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>現場の資材計算 - DIY&リフォーム</title>
-<meta name="description" content="塗料・壁紙・モルタル配合・フローリング・木材カットの必要量をその場で計算。DIYとリフォーム現場向けの計算アプリ。">
+<meta name="description" content="塗料・壁紙・モルタル配合・フローリング・タイル・木材カットの必要量をその場で計算。DIYとリフォーム現場向けの計算アプリ。">
 <meta name="theme-color" content="#12161c">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -135,7 +135,7 @@ main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
   <main id="main">
     <div id="view-home" class="view active">
       <div class="hero">
-        <p>塗料・壁紙・モルタル配合・フローリング・木材カットの必要量を、その場でサッと計算。<b>DIYとリフォーム現場</b>のための目安計算ツールです。</p>
+        <p>塗料・壁紙・モルタル配合・フローリング・タイル・木材カットの必要量を、その場でサッと計算。<b>DIYとリフォーム現場</b>のための目安計算ツールです。</p>
       </div>
       <div class="section-title">ツールを選ぶ</div>
       <div class="grid" id="toolGrid"></div>
@@ -432,7 +432,58 @@ TOOLS.flooring = {
   }
 };
 
-/* ---------- 5. 木材カット計算(ビンパッキング) ---------- */
+/* ---------- 5. タイル必要枚数計算 ---------- */
+TOOLS.tile = {
+  name:'タイル必要枚数計算', emoji:'🔲', sub:'枚数と目地材(グラウト)量をロス込みで算出',
+  render: function(body){
+    var w = field(body, { label:'施工する幅', unit:'m', placeholder:'例: 2' });
+    var d = field(body, { label:'施工する高さ・奥行き', unit:'m', placeholder:'例: 1.2' });
+    var areaDirect = field(body, { label:'または直接、施工面積を入力', unit:'㎡', placeholder:'幅・高さより優先されます' });
+    var tileL = field(body, { label:'タイル1枚の縦', unit:'mm', value:300 });
+    var tileW = field(body, { label:'タイル1枚の横', unit:'mm', value:300 });
+    var joint = field(body, { label:'目地幅', unit:'mm', value:3 });
+    var jointDepth = field(body, { label:'目地の深さ', unit:'mm', value:5 });
+    var loss = field(body, { label:'ロス率(カット・割れ)', unit:'%', value:10 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var area = parseFloat(areaDirect.value);
+      if(!(area>0)){
+        var ww = parseFloat(w.value)||0, dd = parseFloat(d.value)||0;
+        area = ww*dd;
+      }
+      var tl = parseFloat(tileL.value)||0, tw = parseFloat(tileW.value)||0;
+      var j = parseFloat(joint.value)||0, jd = parseFloat(jointDepth.value)||0;
+      var l = parseFloat(loss.value)||0;
+
+      var pitchL = tl + j, pitchW = tw + j; // 目地を含めた実質1枚分のピッチ
+      var tilesPerSqm = (pitchL>0 && pitchW>0) ? 1e6/(pitchL*pitchW) : 0;
+      var tileCount = Math.ceil(area * (1+l/100) * tilesPerSqm);
+
+      // 目地材(グラウト)の概算: 単位面積あたりの目地の総延長 ≒ 面積×(1/縦+1/横)、
+      // それに目地幅・深さ・比重をかけて重量を概算(締固めロス等は考慮しない単純計算)
+      var jointDensity = 1800; // kg/m3 目安
+      var jointLenPerSqm = (tl>0 && tw>0) ? (1000/tl + 1000/tw) : 0; // m / m2
+      var jointVolM3 = area * jointLenPerSqm * (j/1000) * (jd/1000);
+      var groutKg = jointVolM3 * jointDensity;
+
+      box.innerHTML = '<div class="r-label">必要なタイル枚数(目安)</div><div class="r-main">' + tileCount + ' 枚</div>' +
+        '<div class="r-row"><span>施工面積</span><b>' + fmt(area,2) + '㎡</b></div>' +
+        '<div class="r-row"><span>1枚あたりの実質サイズ(目地込み)</span><b>' + fmt(pitchL,0) + '×' + fmt(pitchW,0) + 'mm</b></div>' +
+        '<div class="r-row"><span>目地材(グラウト)</span><b>約' + fmt(groutKg,1) + ' kg</b></div>' +
+        '<div class="r-sub">目地幅・深さから概算した目安値です。実際は施工方法や製品の充填率により前後します。役物(コーナー材など)は別途ご確認ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'tile', TOOLS.tile.name, function(){
+        return '面積' + fmt(area,2) + '㎡(ロス' + l + '%) → タイル ' + tileCount + '枚 / 目地材約' + fmt(groutKg,1) + 'kg';
+      });
+    }
+    [w,d,areaDirect,tileL,tileW,joint,jointDepth,loss].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 6. 木材カット計算(ビンパッキング) ---------- */
 TOOLS.lumber = {
   name:'木材カット必要本数計算', emoji:'📏', sub:'元材の長さから必要本数と切り出し計画を算出',
   render: function(body){
