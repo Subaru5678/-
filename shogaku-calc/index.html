@@ -358,6 +358,7 @@ var TARGET_META = {
   bereaved: 'ひとり親・遺児家庭',
   traffic: '保護者が交通事故で死亡・重度後遺障害',
   disability: '保護者に障がいがある家庭',
+  disability_student: '本人に障がいがある(障害者手帳保有)',
   carexp: '児童養護施設・里親家庭など社会的養護の経験がある',
   ryugakusei: '日本に留学している外国人留学生',
   uturn: '卒業後に地元/特定地域で就職・居住する人'
@@ -447,6 +448,20 @@ var SCHOLARSHIPS = [
     amount:'入学一時金30万円+月額8万円(大学在学中、最長4年間)。大学院は月額10万円',
     desc:'国公立高校3年生で、学業・人物ともに優秀(評定平均4.0以上目安)、かつ住民税課税所得が一定額未満の家庭の生徒を対象にした予約採用型の給付型奨学金。財団の指定校への進学が条件です。',
     url:'https://www.dentsu-ikueikai.or.jp/scholarship/'
+  },
+  {
+    name:'夢を応援基金(ひとり親家庭支援奨学金制度)', org:'一般財団法人 全国母子寡婦福祉団体協議会', type:'grant',
+    targets:['bereaved'],
+    amount:'月額3万円(1年間給付、継続申請も可能。他の奨学金との併用可)',
+    desc:'ひとり親世帯(母子・父子家庭など)で就学が経済的に困難な生徒を対象にした返済不要の給付型奨学金。ローソングループの協力のもと、全国で約400名を支援しています。',
+    url:'https://www.zenbo.org/'
+  },
+  {
+    name:'障がいのある大学生への奨学金', org:'公益財団法人 ヤマト福祉財団', type:'grant',
+    targets:['disability_student'],
+    amount:'月額5万円(4年間で最大240万円、返済不要)',
+    desc:'障害者手帳を保有し、国内4年制・6年制大学に在学(または入学内定)している学生を対象にした給付型奨学金。大学院・通信制大学は対象外で、学校からの推薦が必要です。',
+    url:'https://www.yamato-fukushi.jp/works/scholarship.html'
   }
 ];
 
@@ -460,7 +475,8 @@ var PRESETS = [
   { label:'🚗 交通事故で保護者を亡くした', types:[], targets:['traffic'] },
   { label:'🏠 児童養護施設・里親家庭の出身', types:[], targets:['carexp'] },
   { label:'🌏 留学生です', types:[], targets:['ryugakusei'] },
-  { label:'📍 卒業後は地元で働く予定', types:[], targets:['uturn'] }
+  { label:'📍 卒業後は地元で働く予定', types:[], targets:['uturn'] },
+  { label:'♿ 障がいがある(本人)', types:[], targets:['disability_student'] }
 ];
 
 function applyPreset(preset){
