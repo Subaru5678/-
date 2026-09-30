@@ -361,6 +361,7 @@ var TARGET_META = {
   disability_student: '本人に障がいがある(障害者手帳保有)',
   stem: '理工系分野を専攻',
   emergency: '家計急変・災害などで緊急に必要',
+  women: '女子学生限定',
   carexp: '児童養護施設・里親家庭など社会的養護の経験がある',
   ryugakusei: '日本に留学している外国人留学生',
   uturn: '卒業後に地元/特定地域で就職・居住する人'
@@ -499,6 +500,27 @@ var SCHOLARSHIPS = [
     amount:'制度により異なる(緊急採用・応急採用は貸与型、家計急変採用は給付型)',
     desc:'生計維持者の失職・破産・事故・病気・死亡、火災や風水害などの災害により家計が急変した場合に、年間を通じていつでも申し込める緊急の奨学金制度。通常の予約採用・在学採用とは別枠です。',
     url:'https://www.jasso.go.jp/shogakukin/moshikomi/rinji/index.html'
+  },
+  {
+    name:'大学女性協会 一般奨学金', org:'一般社団法人 大学女性協会(JAUW)', type:'grant',
+    targets:['women'],
+    amount:'20万円(1回限りの給付)。採用は全体で数名程度',
+    desc:'大学院に1年以上在籍する女子学生を対象にした給付型奨学金。所得制限・専攻分野の指定はなく、学業・人物ともに優れた人が対象です。学部生は対象外です。',
+    url:'https://www.jauw.org/scholarship-information/ippansyougakukin/'
+  },
+  {
+    name:'DAISO財団 給付型奨学金', org:'公益財団法人 DAISO財団', type:'grant',
+    targets:['income'],
+    amount:'月額5万円(年額60万円)、最長4年間',
+    desc:'経済的な支援を必要とする学業優秀な大学生を対象にした給付型奨学金。世帯年収による一律の足切りは設けられていません。',
+    url:'https://daiso-zaidan.or.jp/'
+  },
+  {
+    name:'サカタ財団奨学金', org:'公益財団法人 サカタ財団', type:'grant',
+    targets:['all'],
+    amount:'月額7万円(給付型)',
+    desc:'大学2年生、または大学院修士課程・博士課程前期1年生の日本国籍を持つ学生が対象。JASSOや所属校からの奨学金を除き、他の奨学金を受給していないことが条件です。',
+    url:'https://sakatazaidan.or.jp/scholarship/'
   }
 ];
 
@@ -515,7 +537,8 @@ var PRESETS = [
   { label:'📍 卒業後は地元で働く予定', types:[], targets:['uturn'] },
   { label:'♿ 障がいがある(本人)', types:[], targets:['disability_student'] },
   { label:'🔬 理工系を専攻している', types:[], targets:['stem'] },
-  { label:'🆘 急に家計が苦しくなった', types:[], targets:['emergency'] }
+  { label:'🆘 急に家計が苦しくなった', types:[], targets:['emergency'] },
+  { label:'♀️ 女子学生です', types:[], targets:['women'] }
 ];
 
 function applyPreset(preset){
