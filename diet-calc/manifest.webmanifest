@@ -1,0 +1,17 @@
+{
+  "name": "ダイエット・食事管理計算",
+  "short_name": "ダイエット計算",
+  "description": "基礎代謝量(BMR)・消費カロリー(TDEE)・目標体重までの期間・PFCバランス・標準体重や美容体重・1日の水分摂取量・カロリー赤字・1食あたりの配分をその場で計算",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f3f6",
+  "theme_color": "#f7f3f6",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

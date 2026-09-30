@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>ダイエット・食事管理計算</title>
+<meta name="description" content="基礎代謝量(BMR)・消費カロリー(TDEE)・目標体重までの期間・PFCバランス・標準体重や美容体重・1日の水分摂取量・減量に必要なカロリー赤字・1食あたりのカロリー配分をその場で計算。ダイエットのための計算アプリ。">
+<meta name="theme-color" content="#f7f3f6">
+<link rel="canonical" href="https://subaru5678.github.io/-/diet-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="ダイエット・食事管理計算">
+<meta property="og:description" content="基礎代謝量(BMR)・消費カロリー(TDEE)・目標体重までの期間・PFCバランス・標準体重や美容体重・1日の水分摂取量・減量に必要なカロリー赤字・1食あたりのカロリー配分をその場で計算。ダイエットのための計算アプリ。">
+<meta property="og:url" content="https://subaru5678.github.io/-/diet-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ダイエット計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#f7f3f6; --panel:#ffffff; --panel2:#f0e3ea; --line:#e6d3de;
+  --ink:#281c23; --muted:#8a7480; --label:#463340; --accent:#d15a8a; --accent2:#5a9ed1;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#d15a8a;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    radial-gradient(rgba(209,90,138,.1) 1.6px, transparent 1.6px);
+  background-size:auto, 24px 24px;
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600; letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(209,90,138,.08) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700; letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted); margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color); box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden; box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:28px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink)); letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px; font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color)); color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">ダイエット・食事管理計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">DIET CALCULATOR</div>
+        <h2>カロリーも体重も、その場で計算。</h2>
+        <p>基礎代謝量(BMR)・消費カロリー(TDEE)・目標体重までの期間・PFCバランス・標準体重や美容体重・1日の水分摂取量・カロリー赤字・1食あたりの配分まで。<b>ダイエット</b>のための計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'dietcalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); }); }
+  else { toast('この端末では共有できません'); }
+};
+
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? 'ダイエット・食事管理計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 基礎代謝量(BMR)計算 ---------- */
+TOOLS.bmr = {
+  name:'基礎代謝量(BMR)計算', emoji:'🔥', sub:'性別・体重・身長・年齢から、基礎代謝量を算出', color:'#d15a8a',
+  render: function(body){
+    var sex = toggleGroup(body, { label:'性別', value:'male', options:[
+      { value:'male', label:'男性' },
+      { value:'female', label:'女性' }
+    ], onChange: function(){ calc(); } });
+    var weight = field(body, { label:'体重', unit:'kg', value:65 });
+    var height = field(body, { label:'身長', unit:'cm', value:170 });
+    var age = field(body, { label:'年齢', unit:'歳', value:30 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weight.value)||0, h = parseFloat(height.value)||0, a = parseFloat(age.value)||0;
+      var bmr = sex.value === 'male'
+        ? 88.362 + 13.397*w + 4.799*h - 5.677*a
+        : 447.593 + 9.247*w + 3.098*h - 4.330*a;
+      box.innerHTML = '<div class="r-label">基礎代謝量(目安)</div><div class="r-main">約 ' + fmt(bmr,0) + ' kcal</div>' +
+        '<div class="r-sub">ハリス・ベネディクト方程式(改良版)による、何もしなくても消費される1日のカロリーの目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'bmr', TOOLS.bmr.name, function(){
+        return (sex.value==='male'?'男性':'女性')+' '+w+'kg '+h+'cm '+a+'歳 → BMR 約'+fmt(bmr,0)+'kcal';
+      });
+    }
+    [weight, height, age].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. 消費カロリー(TDEE)計算 ---------- */
+var ACTIVITY_LEVELS = {
+  '1.2': { label:'ほとんど運動しない' },
+  '1.375': { label:'軽い運動(週1〜3回)' },
+  '1.55': { label:'中程度の運動(週3〜5回)' },
+  '1.725': { label:'激しい運動(週6〜7回)' }
+};
+TOOLS.tdee = {
+  name:'消費カロリー(TDEE)計算', emoji:'🏃', sub:'基礎代謝量と活動レベルから、1日の消費カロリーを算出', color:'#5a9ed1',
+  render: function(body){
+    var bmr = field(body, { label:'基礎代謝量(BMR)', unit:'kcal', value:1600, hint:'「基礎代謝量(BMR)計算」ツールで算出した数値を入力してください。' });
+    var activity = toggleGroup(body, { label:'活動レベル', value:'1.375', options: Object.keys(ACTIVITY_LEVELS).map(function(k){ return { value:k, label:ACTIVITY_LEVELS[k].label }; }), onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var b = parseFloat(bmr.value)||0, a = parseFloat(activity.value)||1.2;
+      var tdee = b*a;
+      box.innerHTML = '<div class="r-label">1日の消費カロリー(目安)</div><div class="r-main">約 ' + fmt(tdee,0) + ' kcal</div>' +
+        '<div class="r-sub">日常の活動量を含めた、1日に消費するカロリーの目安(TDEE)です。体重を維持したい場合は、この数値に近いカロリーを摂取します。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'tdee', TOOLS.tdee.name, function(){
+        return 'BMR'+b+'kcal × '+a+' → TDEE 約'+fmt(tdee,0)+'kcal';
+      });
+    }
+    bmr.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 3. 目標体重達成までの期間計算 ---------- */
+TOOLS.duration = {
+  name:'目標体重達成までの期間計算', emoji:'📅', sub:'現在と目標の体重差から、達成までの日数を算出', color:'#4d9a7a',
+  render: function(body){
+    var current = field(body, { label:'現在の体重', unit:'kg', value:70, step:'0.1' });
+    var target = field(body, { label:'目標の体重', unit:'kg', value:65, step:'0.1' });
+    var deficit = field(body, { label:'1日のカロリー赤字', unit:'kcal', value:500 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var c = parseFloat(current.value)||0, t = parseFloat(target.value)||0, d = parseFloat(deficit.value)||1;
+      var diff = Math.max(0, c-t);
+      var totalDeficit = diff*7200;
+      var days = totalDeficit/d;
+      box.innerHTML = '<div class="r-label">達成までの目安</div><div class="r-main">約 ' + fmt(days,0) + ' 日</div>' +
+        '<div class="r-row"><span>減らす体重</span><b>' + fmt(diff,1) + ' kg</b></div>' +
+        '<div class="r-sub">体脂肪1kgあたり約7,200kcalのカロリー赤字が必要という一般的な目安による計算です。極端なカロリー制限は健康を損なう恐れがあるため、無理のないペースで行ってください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'duration', TOOLS.duration.name, function(){
+        return c+'kg→'+t+'kg(1日'+d+'kcal赤字) → 約'+fmt(days,0)+'日';
+      });
+    }
+    [current, target, deficit].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 4. PFCバランス計算 ---------- */
+var PFC_PATTERNS = {
+  standard: { label:'標準型', p:15, f:25, c:60 },
+  lowcarb: { label:'低糖質型', p:30, f:40, c:30 },
+  hiprotein: { label:'高タンパク型', p:35, f:25, c:40 }
+};
+TOOLS.pfc = {
+  name:'PFCバランス計算', emoji:'🍱', sub:'総カロリーと配分パターンから、三大栄養素の量を算出', color:'#c9a13f',
+  render: function(body){
+    var total = field(body, { label:'1日の総摂取カロリー', unit:'kcal', value:2000 });
+    var pattern = toggleGroup(body, { label:'配分パターン', value:'standard', options: Object.keys(PFC_PATTERNS).map(function(k){ return { value:k, label:PFC_PATTERNS[k].label }; }), onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var t = parseFloat(total.value)||0;
+      var p = PFC_PATTERNS[pattern.value];
+      var proteinG = t*p.p/100/4, fatG = t*p.f/100/9, carbG = t*p.c/100/4;
+      box.innerHTML = '<div class="r-label">タンパク質(P ' + p.p + '%)</div><div class="r-main">約 ' + fmt(proteinG,0) + ' g</div>' +
+        '<div class="r-row"><span>脂質(F ' + p.f + '%)</span><b>約 ' + fmt(fatG,0) + ' g</b></div>' +
+        '<div class="r-row"><span>炭水化物(C ' + p.c + '%)</span><b>約 ' + fmt(carbG,0) + ' g</b></div>' +
+        '<div class="r-sub">たんぱく質・脂質は1gあたり4kcal・9kcal、炭水化物は1gあたり4kcalとして計算しています。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'pfc', TOOLS.pfc.name, function(){
+        return t+'kcal('+p.label+') → P'+fmt(proteinG,0)+'g / F'+fmt(fatG,0)+'g / C'+fmt(carbG,0)+'g';
+      });
+    }
+    total.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 5. 標準体重・美容体重・モデル体重計算 ---------- */
+TOOLS.idealweight = {
+  name:'標準体重・美容体重・モデル体重計算', emoji:'📏', sub:'身長から、各種の目安体重を算出', color:'#8a5fd1',
+  render: function(body){
+    var height = field(body, { label:'身長', unit:'cm', value:160 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var h = parseFloat(height.value)||0;
+      var m = h/100;
+      var standard = m*m*22, beauty = m*m*20, model = m*m*18;
+      box.innerHTML = '<div class="r-label">標準体重(BMI22)</div><div class="r-main">約 ' + fmt(standard,1) + ' kg</div>' +
+        '<div class="r-row"><span>美容体重(BMI20)</span><b>約 ' + fmt(beauty,1) + ' kg</b></div>' +
+        '<div class="r-row"><span>モデル体重(BMI18)</span><b>約 ' + fmt(model,1) + ' kg</b></div>' +
+        '<div class="r-sub">BMI(体格指数)を基準にした一般的な目安です。モデル体重は健康的な範囲を下回ることがあるため、あくまで参考値としてご覧ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'idealweight', TOOLS.idealweight.name, function(){
+        return h+'cm → 標準'+fmt(standard,1)+'kg / 美容'+fmt(beauty,1)+'kg / モデル'+fmt(model,1)+'kg';
+      });
+    }
+    height.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 6. 1日の水分摂取量の目安計算 ---------- */
+TOOLS.water = {
+  name:'1日の水分摂取量の目安計算', emoji:'💧', sub:'体重から、1日に必要な水分量を算出', color:'#3f9ecf',
+  render: function(body){
+    var weight = field(body, { label:'体重', unit:'kg', value:60 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weight.value)||0;
+      var water = w*35;
+      box.innerHTML = '<div class="r-label">1日の水分摂取量(目安)</div><div class="r-main">約 ' + fmt(water,0) + ' ml</div>' +
+        '<div class="r-sub">体重1kgあたり約35mlという一般的な目安による計算です。食事からの水分も含まれるため、すべてを飲料で摂る必要はありません。汗をかく季節や運動時は多めに補給してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'water', TOOLS.water.name, function(){
+        return w+'kg → 水分摂取量 約'+fmt(water,0)+'ml/日';
+      });
+    }
+    weight.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 7. 減量に必要なカロリー赤字計算 ---------- */
+TOOLS.deficit = {
+  name:'減量に必要なカロリー赤字計算', emoji:'📉', sub:'週に減らしたい体重から、必要なカロリー赤字を算出', color:'#c9483f',
+  render: function(body){
+    var weeklyLoss = field(body, { label:'週に減らしたい体重', unit:'kg', value:0.5, step:'0.1' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(weeklyLoss.value)||0;
+      var weeklyDeficit = w*7200;
+      var dailyDeficit = weeklyDeficit/7;
+      box.innerHTML = '<div class="r-label">1日あたりのカロリー赤字(目安)</div><div class="r-main">約 ' + fmt(dailyDeficit,0) + ' kcal</div>' +
+        '<div class="r-row"><span>週あたりの赤字</span><b>約 ' + fmt(weeklyDeficit,0) + ' kcal</b></div>' +
+        '<div class="r-sub">一般的に、体重の5〜10%を超える急激な減量目標は健康リスクを伴うことがあります。無理のない範囲で計画してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'deficit', TOOLS.deficit.name, function(){
+        return '週'+w+'kg減 → 1日 約'+fmt(dailyDeficit,0)+'kcalの赤字が必要';
+      });
+    }
+    weeklyLoss.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 8. 1食あたりのカロリー配分計算 ---------- */
+TOOLS.meals = {
+  name:'1食あたりのカロリー配分計算', emoji:'🍽️', sub:'総カロリーと食事回数から、1食あたりの配分を算出', color:'#e0a83f',
+  render: function(body){
+    var total = field(body, { label:'1日の総摂取カロリー', unit:'kcal', value:1800 });
+    var count = field(body, { label:'1日の食事回数', unit:'回', value:3 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var t = parseFloat(total.value)||0, c = parseFloat(count.value)||1;
+      var perMeal = t/c;
+      box.innerHTML = '<div class="r-label">1食あたりの目安</div><div class="r-main">約 ' + fmt(perMeal,0) + ' kcal</div>' +
+        '<div class="r-sub">均等に配分した場合の目安です。活動量に合わせて朝・昼を多め、夜を少なめにするなどの調整もおすすめです。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'meals', TOOLS.meals.name, function(){
+        return t+'kcal ÷ '+c+'食 → 1食 約'+fmt(perMeal,0)+'kcal';
+      });
+    }
+    [total, count].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>
