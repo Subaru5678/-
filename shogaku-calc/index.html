@@ -107,6 +107,15 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 .more-box .d{ font-size:12px; color:var(--muted); line-height:1.7; margin-bottom:10px; }
 .more-box .ext-link{ display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:800; color:var(--accent);
   background:var(--panel2); border:1px solid var(--line); padding:8px 12px; border-radius:9px; text-decoration:none; margin:0 6px 6px 0; }
+.more-box .search-row{ display:flex; gap:8px; }
+.more-box .search-row input{ flex:1; background:var(--bg); border:1px solid var(--line); color:var(--ink);
+  border-radius:10px; padding:11px 12px; font-size:13px; font-weight:700; }
+.more-box .search-row input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.more-box .search-row button{ flex:none; padding:0 16px; border-radius:10px; background:var(--accent); color:#fff; font-weight:900; font-size:13px; }
+.more-box .timing-row{ display:flex; gap:10px; margin-top:4px; }
+.more-box .timing-col{ flex:1; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:11px 12px; }
+.more-box .timing-col .tt{ font-size:11.5px; font-weight:900; margin-bottom:5px; color:var(--accent); }
+.more-box .timing-col .td{ font-size:11px; color:var(--muted); line-height:1.6; }
 
 .calc-toggle{ display:flex; align-items:center; justify-content:space-between; background:var(--panel); border:1px solid var(--line);
   border-radius:14px; padding:15px 16px; margin-top:22px; cursor:pointer; }
@@ -210,11 +219,35 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
       <div id="resultList"></div>
 
       <div class="more-box">
+        <div class="t">学校名・お住まいの地域でも探す</div>
+        <div class="d">大学独自の奨学金や市区町村ごとの制度は数が多く、ここには載せきれません。学校名や自治体名を入れて検索すると見つかることがあります。</div>
+        <div class="search-row">
+          <input type="text" id="extSearchInput" placeholder="例: 〇〇大学 / 〇〇市">
+          <button id="extSearchBtn" type="button">検索</button>
+        </div>
+      </div>
+
+      <div class="more-box">
         <div class="t">もっと幅広く探したいときは</div>
-        <div class="d">ここに載っているのは代表的な制度の一部です。地方自治体や進学先の学校独自の奨学金は対象地域・学校ごとに異なるため、以下も合わせて確認するのがおすすめです。</div>
+        <div class="d">ここに載っているのは代表的な制度の一部です。以下のサイトも合わせて確認するのがおすすめです。</div>
         <a class="ext-link" href="https://www.jasso.go.jp/shogakukin/" target="_blank" rel="noopener">JASSO 公式サイト →</a>
         <a class="ext-link" href="https://gaxi.jp/" target="_blank" rel="noopener">民間奨学金検索サイト「ガクシー」→</a>
         <a class="ext-link" href="https://www.jees.or.jp/" target="_blank" rel="noopener">日本国際教育支援協会(留学系奨学金)→</a>
+      </div>
+
+      <div class="more-box">
+        <div class="t">奨学金はいつ申し込む？</div>
+        <div class="d">JASSOの奨学金には、時期が異なる2つの申し込み方式があります。</div>
+        <div class="timing-row">
+          <div class="timing-col">
+            <div class="tt">予約採用</div>
+            <div class="td">進学前、高校3年生の5〜6月頃(1次)・10〜11月頃(2次)に申し込む方式。全国の高校生の中で審査されます。</div>
+          </div>
+          <div class="timing-col">
+            <div class="tt">在学採用</div>
+            <div class="td">進学後に、学校を通じて申し込む方式。予約採用で不採用でも、在学採用で再チャレンジできます。</div>
+          </div>
+        </div>
       </div>
 
       <div class="calc-toggle" id="calcToggle">
@@ -448,6 +481,15 @@ $('#clearFilters').addEventListener('click', function(){
   $$('.chip.active').forEach(function(c){ c.classList.remove('active'); });
   renderResults();
 });
+
+function runExtSearch(){
+  var q = $('#extSearchInput').value.trim();
+  if(!q){ toast('学校名や地域名を入力してください'); return; }
+  var url = 'https://www.google.com/search?q=' + encodeURIComponent(q + ' 奨学金');
+  window.open(url, '_blank', 'noopener');
+}
+$('#extSearchBtn').addEventListener('click', runExtSearch);
+$('#extSearchInput').addEventListener('keydown', function(e){ if(e.key === 'Enter') runExtSearch(); });
 
 /* ---------- お気に入り ---------- */
 var FAV_KEY = 'shogakucalc.favorites.v1';
