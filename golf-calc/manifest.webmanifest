@@ -1,0 +1,17 @@
+{
+  "name": "ゴルフ計算",
+  "short_name": "ゴルフ計算",
+  "description": "ハンディキャップ・ディファレンシャル・ネットスコア・パーオン率・フェアウェイキープ率・平均パット数・目標スコア・割り勘・スタート時刻の逆算をその場で計算",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f7f0",
+  "theme_color": "#f2f7f0",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
