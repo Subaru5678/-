@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>家電・電気代計算</title>
+<meta name="description" content="家電の電気代・待機電力の年間コスト・エアコンの設定温度による節約額・LED交換の節約額・ブレーカー容量の判定・契約アンペアの基本料金差額・家電の比較・電気代の概算をその場で計算。節電のための計算アプリ。">
+<meta name="theme-color" content="#fbf8ee">
+<link rel="canonical" href="https://subaru5678.github.io/-/elec-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="家電・電気代計算">
+<meta property="og:description" content="家電の電気代・待機電力の年間コスト・エアコンの設定温度による節約額・LED交換の節約額・ブレーカー容量の判定・契約アンペアの基本料金差額・家電の比較・電気代の概算をその場で計算。節電のための計算アプリ。">
+<meta property="og:url" content="https://subaru5678.github.io/-/elec-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="電気代計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#fbf8ee; --panel:#ffffff; --panel2:#f3ecd4; --line:#e8dfc0;
+  --ink:#28230f; --muted:#87795f; --label:#463d24; --accent:#e0a83f; --accent2:#4a7fc9;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#e0a83f;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    radial-gradient(rgba(224,168,63,.12) 1.6px, transparent 1.6px);
+  background-size:auto, 24px 24px;
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600; letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(224,168,63,.1) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700; letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted); margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color); box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden; box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:28px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink)); letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px; font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color)); color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">家電・電気代計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">ELECTRICITY CALCULATOR</div>
+        <h2>電気代も節約額も、その場で計算。</h2>
+        <p>家電の電気代・待機電力の年間コスト・エアコンの節約額・LED交換の節約額・ブレーカー容量の判定・契約アンペアの差額・家電の比較・電気代の概算まで。<b>節電</b>のための計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var yen = function(n){ return fmt(n,0) + ' 円'; };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'eleccalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); }); }
+  else { toast('この端末では共有できません'); }
+};
+
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '家電・電気代計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 家電の電気代計算 ---------- */
+TOOLS.basic = {
+  name:'家電の電気代計算', emoji:'🔌', sub:'消費電力と使用時間から、電気代を算出', color:'#e0a83f',
+  render: function(body){
+    var watt = field(body, { label:'消費電力', unit:'W', value:500 });
+    var hours = field(body, { label:'1日あたりの使用時間', unit:'時間', value:3 });
+    var price = field(body, { label:'電気料金単価', unit:'円/kWh', value:31, hint:'目安は31円/kWh前後ですが、契約プランにより異なります。電気料金明細でご確認ください。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(watt.value)||0, h = parseFloat(hours.value)||0, p = parseFloat(price.value)||0;
+      var daily = w/1000*h*p;
+      var monthly = daily*30;
+      box.innerHTML = '<div class="r-label">1日の電気代(目安)</div><div class="r-main">約 ' + yen(daily) + '</div>' +
+        '<div class="r-row"><span>月間換算(30日)</span><b>約 ' + yen(monthly) + '</b></div>' +
+        '<div class="r-sub">消費電力は家電の背面やカタログに記載の「消費電力(W)」を入力してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'basic', TOOLS.basic.name, function(){
+        return w+'W × '+h+'時間/日 → 電気代 約'+yen(daily)+'/日(約'+yen(monthly)+'/月)';
+      });
+    }
+    [watt, hours, price].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. 待機電力の年間コスト計算 ---------- */
+TOOLS.standby = {
+  name:'待機電力の年間コスト計算', emoji:'🔋', sub:'コンセントを挿しっぱなしの家電の、年間コストを算出', color:'#4a7fc9',
+  render: function(body){
+    var watt = field(body, { label:'待機電力', unit:'W', value:3, step:'0.1', hint:'家電製品の年間消費電力量カタログなどに記載されている待機時消費電力の目安です。' });
+    var price = field(body, { label:'電気料金単価', unit:'円/kWh', value:31 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(watt.value)||0, p = parseFloat(price.value)||0;
+      var yearly = w/1000*24*365*p;
+      box.innerHTML = '<div class="r-label">年間の待機電力コスト(目安)</div><div class="r-main">約 ' + yen(yearly) + '</div>' +
+        '<div class="r-sub">1年間つけっぱなし(24時間×365日)にした場合の目安です。使わない家電はコンセントを抜く、または主電源をオフにすることで節約できます。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'standby', TOOLS.standby.name, function(){
+        return w+'W待機 → 年間 約'+yen(yearly);
+      });
+    }
+    [watt, price].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 3. エアコンの設定温度による節約額計算 ---------- */
+TOOLS.aircon = {
+  name:'エアコンの設定温度による節約額計算', emoji:'❄️', sub:'設定温度を変えた場合の、節約額を算出', color:'#3f9ecf',
+  render: function(body){
+    var watt = field(body, { label:'消費電力', unit:'W', value:500 });
+    var hours = field(body, { label:'1日あたりの使用時間', unit:'時間', value:8 });
+    var price = field(body, { label:'電気料金単価', unit:'円/kWh', value:31 });
+    var tempDiff = field(body, { label:'変更する温度差', unit:'℃', value:1, hint:'設定温度を1℃変えると、消費電力が約10%変化するといわれています。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var w = parseFloat(watt.value)||0, h = parseFloat(hours.value)||0, p = parseFloat(price.value)||0, t = parseFloat(tempDiff.value)||0;
+      var dailyCost = w/1000*h*p;
+      var savingsRate = t*0.10;
+      var dailySavings = dailyCost*savingsRate;
+      var monthlySavings = dailySavings*30;
+      box.innerHTML = '<div class="r-label">節約額(目安)</div><div class="r-main">約 ' + yen(monthlySavings) + ' /月</div>' +
+        '<div class="r-row"><span>現在の電気代(目安)</span><b>約 ' + yen(dailyCost) + ' /日</b></div>' +
+        '<div class="r-row"><span>節約率の目安</span><b>約 ' + fmt(savingsRate*100,0) + ' %</b></div>' +
+        '<div class="r-sub">「設定温度1℃あたり消費電力の約10%」という一般的な目安による概算です。実際の節約効果は機種や外気温により異なります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'aircon', TOOLS.aircon.name, function(){
+        return w+'W '+h+'h/日 温度差'+t+'℃ → 節約額 約'+yen(monthlySavings)+'/月';
+      });
+    }
+    [watt, hours, price, tempDiff].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 4. LED交換による節約額計算 ---------- */
+TOOLS.led = {
+  name:'LED交換による節約額計算', emoji:'💡', sub:'電球をLEDに替えた場合の、節約額を算出', color:'#c9a13f',
+  render: function(body){
+    var oldWatt = field(body, { label:'現在の電球の消費電力', unit:'W', value:54, hint:'白熱電球60W相当の場合、消費電力は約54Wです。' });
+    var newWatt = field(body, { label:'LED電球の消費電力', unit:'W', value:7 });
+    var count = field(body, { label:'電球の個数', unit:'個', value:1 });
+    var hours = field(body, { label:'1日あたりの点灯時間', unit:'時間', value:5 });
+    var price = field(body, { label:'電気料金単価', unit:'円/kWh', value:31 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var ow = parseFloat(oldWatt.value)||0, nw = parseFloat(newWatt.value)||0, c = parseFloat(count.value)||0, h = parseFloat(hours.value)||0, p = parseFloat(price.value)||0;
+      var savingsWatt = Math.max(0, ow-nw) * c;
+      var dailySavings = savingsWatt/1000*h*p;
+      var yearlySavings = dailySavings*365;
+      box.innerHTML = '<div class="r-label">年間の節約額(目安)</div><div class="r-main">約 ' + yen(yearlySavings) + '</div>' +
+        '<div class="r-row"><span>1日あたりの節約額</span><b>約 ' + yen(dailySavings) + '</b></div>' +
+        '<div class="r-sub">LEDは電球より寿命も長いため、交換の手間や電球代も含めて長期的にお得になるケースが多いです。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'led', TOOLS.led.name, function(){
+        return ow+'W→'+nw+'W ×'+c+'個 → 年間節約額 約'+yen(yearlySavings);
+      });
+    }
+    [oldWatt, newWatt, count, hours, price].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. ブレーカー容量からの同時使用判定計算 ---------- */
+TOOLS.breaker = {
+  name:'ブレーカー容量からの同時使用判定計算', emoji:'⚡', sub:'契約アンペアと家電の合計消費電力から、余裕を判定', color:'#c9483f',
+  render: function(body){
+    var ampere = field(body, { label:'契約アンペア', unit:'A', value:30 });
+    var totalWatt = field(body, { label:'同時に使いたい家電の消費電力の合計', unit:'W', value:2500 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var a = parseFloat(ampere.value)||0, w = parseFloat(totalWatt.value)||0;
+      var capacity = a*100;
+      var remaining = capacity - w;
+      var judge = remaining >= 0 ? '安全に使用できます' : 'ブレーカーが落ちる可能性があります';
+      box.innerHTML = '<div class="r-label">判定</div><div class="r-main">' + judge + '</div>' +
+        '<div class="r-row"><span>契約容量(目安)</span><b>' + fmt(capacity,0) + ' W</b></div>' +
+        '<div class="r-row"><span>使用可能な残り容量</span><b>' + fmt(remaining,0) + ' W</b></div>' +
+        '<div class="r-sub">100V換算(アンペア×100=W)の概算です。エアコンや電子レンジ、ドライヤーなど消費電力が大きい家電の同時使用にご注意ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'breaker', TOOLS.breaker.name, function(){
+        return a+'A 合計'+w+'W → '+judge+'(残り'+fmt(remaining,0)+'W)';
+      });
+    }
+    [ampere, totalWatt].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 6. 契約アンペア変更の基本料金差額計算 ---------- */
+TOOLS.amperage = {
+  name:'契約アンペア変更の基本料金差額計算', emoji:'📊', sub:'現在と変更後の基本料金から、差額を算出', color:'#5a9e6b',
+  render: function(body){
+    var current = field(body, { label:'現在の基本料金', unit:'円/月', value:858, hint:'ご自身の電気料金プランの基本料金(契約アンペアごとの固定額)を検針票などでご確認ください。' });
+    var next = field(body, { label:'変更後の基本料金', unit:'円/月', value:1144 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var c = parseFloat(current.value)||0, n = parseFloat(next.value)||0;
+      var diff = n-c;
+      var yearly = diff*12;
+      box.innerHTML = '<div class="r-label">月々の差額</div><div class="r-main">' + (diff>=0?'+':'') + yen(diff) + '</div>' +
+        '<div class="r-row"><span>年間の差額</span><b>' + (yearly>=0?'+':'') + yen(yearly) + '</b></div>' +
+        '<div class="r-sub">基本料金のみの比較です。従量料金(使用量に応じた料金)は含まれていません。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'amperage', TOOLS.amperage.name, function(){
+        return yen(c)+' → '+yen(n)+'(差額 '+(diff>=0?'+':'')+yen(diff)+'/月)';
+      });
+    }
+    [current, next].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. 家電の年間ランニングコスト比較計算 ---------- */
+TOOLS.compare = {
+  name:'家電の年間ランニングコスト比較計算', emoji:'⚖️', sub:'2つの家電の消費電力から、年間コストの差を算出', color:'#8a5fd1',
+  render: function(body){
+    var wattA = field(body, { label:'家電A: 消費電力', unit:'W', value:200 });
+    var hoursA = field(body, { label:'家電A: 1日の使用時間', unit:'時間', value:24 });
+    var wattB = field(body, { label:'家電B: 消費電力', unit:'W', value:120 });
+    var hoursB = field(body, { label:'家電B: 1日の使用時間', unit:'時間', value:24 });
+    var price = field(body, { label:'電気料金単価', unit:'円/kWh', value:31 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var wa = parseFloat(wattA.value)||0, ha = parseFloat(hoursA.value)||0;
+      var wb = parseFloat(wattB.value)||0, hb = parseFloat(hoursB.value)||0;
+      var p = parseFloat(price.value)||0;
+      var yearlyA = wa/1000*ha*365*p;
+      var yearlyB = wb/1000*hb*365*p;
+      var diff = yearlyA - yearlyB;
+      box.innerHTML = '<div class="r-label">年間コストの差額</div><div class="r-main">約 ' + yen(Math.abs(diff)) + '</div>' +
+        '<div class="r-row"><span>家電A(年間)</span><b>約 ' + yen(yearlyA) + '</b></div>' +
+        '<div class="r-row"><span>家電B(年間)</span><b>約 ' + yen(yearlyB) + '</b></div>' +
+        '<div class="r-sub">' + (diff>0 ? '家電Bの方が節約になります。' : diff<0 ? '家電Aの方が節約になります。' : '同じコストです。') + '買い替え時の目安としてご活用ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'compare', TOOLS.compare.name, function(){
+        return 'A('+yen(yearlyA)+'/年) vs B('+yen(yearlyB)+'/年) → 差額 約'+yen(Math.abs(diff));
+      });
+    }
+    [wattA, hoursA, wattB, hoursB, price].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. 使用量からの電気代概算計算 ---------- */
+TOOLS.estimate = {
+  name:'使用量からの電気代概算計算', emoji:'🧾', sub:'基本料金と使用量から、検針前の電気代を概算', color:'#d9865a',
+  render: function(body){
+    var basicFee = field(body, { label:'基本料金', unit:'円/月', value:858 });
+    var usage = field(body, { label:'使用電力量', unit:'kWh', value:300, hint:'スマートメーターのアプリや、前回検針票の使用量を目安に入力してください。' });
+    var unitPrice = field(body, { label:'電力量料金単価', unit:'円/kWh', value:31 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var b = parseFloat(basicFee.value)||0, u = parseFloat(usage.value)||0, p = parseFloat(unitPrice.value)||0;
+      var total = b + u*p;
+      box.innerHTML = '<div class="r-label">電気代の概算</div><div class="r-main">約 ' + yen(total) + '</div>' +
+        '<div class="r-row"><span>基本料金</span><b>' + yen(b) + '</b></div>' +
+        '<div class="r-row"><span>電力量料金</span><b>約 ' + yen(u*p) + '</b></div>' +
+        '<div class="r-sub">多くのプランでは使用量に応じて単価が段階的に上がる(3段階料金制)ため、実際の金額とは差が出る場合があります。あくまで概算としてご活用ください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'estimate', TOOLS.estimate.name, function(){
+        return '基本'+yen(b)+'+'+u+'kWh×'+p+'円 → 概算 約'+yen(total);
+      });
+    }
+    [basicFee, usage, unitPrice].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>

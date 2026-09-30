@@ -1,0 +1,17 @@
+{
+  "name": "家電・電気代計算",
+  "short_name": "電気代計算",
+  "description": "家電の電気代・待機電力・エアコンの節約額・LED交換の節約額・ブレーカー容量・契約アンペアの差額・家電比較・電気代の概算をその場で計算",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbf8ee",
+  "theme_color": "#fbf8ee",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

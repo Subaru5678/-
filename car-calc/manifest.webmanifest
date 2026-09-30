@@ -1,0 +1,17 @@
+{
+  "name": "車の維持費計算",
+  "short_name": "車の維持費",
+  "description": "ガソリン代・車検費用の積立・自動車税・減価償却・ローン返済額・月間維持費・タイヤとオイルの交換時期をその場で計算",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f4f7",
+  "theme_color": "#f2f4f7",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

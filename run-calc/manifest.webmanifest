@@ -1,0 +1,17 @@
+{
+  "name": "ランニング計算",
+  "short_name": "ランニング計算",
+  "description": "ペース換算・目標タイムからのペース・消費カロリー・レースタイム予測・VO2max推定・給水ペース・シューズの交換時期・週間走行距離の増加をその場で計算",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbf5f0",
+  "theme_color": "#fbf5f0",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
