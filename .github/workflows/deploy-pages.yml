@@ -20,6 +20,7 @@ on:
       - "car-calc/**"
       - "run-calc/**"
       - "elec-calc/**"
+      - "study-calc/**"
   workflow_dispatch: {}
 
 permissions:
@@ -43,7 +44,7 @@ jobs:
         run: |
           mkdir -p _site
           cp -r diy-calc/. _site/
-          for app in cooking-calc moving-calc gift-calc pet-calc garden-calc craft-calc gym-calc clean-calc camp-calc sleep-calc photo-calc savings-calc car-calc run-calc elec-calc; do
+          for app in cooking-calc moving-calc gift-calc pet-calc garden-calc craft-calc gym-calc clean-calc camp-calc sleep-calc photo-calc savings-calc car-calc run-calc elec-calc study-calc; do
             mkdir -p "_site/$app"
             cp -r "$app/." "_site/$app/"
           done
