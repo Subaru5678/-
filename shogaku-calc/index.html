@@ -362,6 +362,7 @@ var TARGET_META = {
   stem: '理工系分野を専攻',
   emergency: '家計急変・災害などで緊急に必要',
   women: '女子学生限定',
+  arts: '音楽・芸術分野を専攻',
   carexp: '児童養護施設・里親家庭など社会的養護の経験がある',
   ryugakusei: '日本に留学している外国人留学生',
   uturn: '卒業後に地元/特定地域で就職・居住する人'
@@ -521,6 +522,13 @@ var SCHOLARSHIPS = [
     amount:'月額7万円(給付型)',
     desc:'大学2年生、または大学院修士課程・博士課程前期1年生の日本国籍を持つ学生が対象。JASSOや所属校からの奨学金を除き、他の奨学金を受給していないことが条件です。',
     url:'https://sakatazaidan.or.jp/scholarship/'
+  },
+  {
+    name:'青山音楽財団 奨学金', org:'公益財団法人 青山音楽財団', type:'grant',
+    targets:['arts'],
+    amount:'月額5万円(年額60万円)',
+    desc:'音楽大学・音楽学部に在籍する学生を対象にした給付型奨学金。財団が指定する全国11の音楽大学等からの推薦制のため、対象校に在籍していることが前提です。',
+    url:'https://aoyama-music-foundation.or.jp/scholarship/'
   }
 ];
 
@@ -538,7 +546,8 @@ var PRESETS = [
   { label:'♿ 障がいがある(本人)', types:[], targets:['disability_student'] },
   { label:'🔬 理工系を専攻している', types:[], targets:['stem'] },
   { label:'🆘 急に家計が苦しくなった', types:[], targets:['emergency'] },
-  { label:'♀️ 女子学生です', types:[], targets:['women'] }
+  { label:'♀️ 女子学生です', types:[], targets:['women'] },
+  { label:'🎵 音楽・芸術系を専攻', types:[], targets:['arts'] }
 ];
 
 function applyPreset(preset){
