@@ -580,7 +580,7 @@ function scholarshipCard(s, favActive){
   card.innerHTML =
     '<div class="top"><div><div class="type-badge">' + esc(meta.label) + '</div>' +
     '<div class="name">' + esc(s.name) + '</div><div class="org">' + esc(s.org) + '</div></div>' +
-    '<button class="fav' + (favActive ? ' active' : '') + '" aria-label="お気に入り">' + (favActive ? '★' : '☆') + '</button></div>' +
+    '<button class="fav' + (favActive ? ' active' : '') + '" aria-label="' + esc(s.name) + 'をお気に入りに' + (favActive ? '登録済み。解除する' : '登録する') + '">' + (favActive ? '★' : '☆') + '</button></div>' +
     '<div class="meta-row"><div class="k">対象</div><div class="v">' + esc(targetLines) + '</div></div>' +
     '<div class="meta-row"><div class="k">金額目安</div><div class="v">' + esc(s.amount) + '</div></div>' +
     '<div class="meta-row"><div class="k">概要</div><div class="v">' + esc(s.desc) + '</div></div>' +
@@ -590,6 +590,7 @@ function scholarshipCard(s, favActive){
     var active = toggleFav(s.name);
     favBtn.classList.toggle('active', active);
     favBtn.textContent = active ? '★' : '☆';
+    favBtn.setAttribute('aria-label', s.name + 'をお気に入りに' + (active ? '登録済み。解除する' : '登録する'));
   });
   return card;
 }
