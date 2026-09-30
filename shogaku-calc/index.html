@@ -195,6 +195,8 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
       </div>
 
       <div class="filter-sec">
+        <div class="flabel">よくある状況から探す</div>
+        <div class="chip-row" id="presetRow"></div>
         <div class="flabel">返済タイプ</div>
         <div class="chip-row" id="filterType"></div>
         <div class="flabel">対象となる家庭状況</div>
@@ -267,15 +269,18 @@ var TYPE_META = {
   grant: { label:'給付型(返済不要)', color:'var(--grant)' },
   loan0: { label:'貸与型(無利子)', color:'var(--loan0)' },
   loan1: { label:'貸与型(有利子)', color:'var(--loan1)' },
-  mixed: { label:'給付+一部貸与', color:'#8a5fd1' }
+  mixed: { label:'給付+一部貸与', color:'#8a5fd1' },
+  support: { label:'既存の奨学金の返済支援', color:'#3f9ecf' }
 };
 var TARGET_META = {
   all: '誰でも対象になりうる',
   income: '家計基準(世帯収入)あり',
   bereaved: 'ひとり親・遺児家庭',
+  traffic: '保護者が交通事故で死亡・重度後遺障害',
   disability: '保護者に障がいがある家庭',
   carexp: '児童養護施設・里親家庭など社会的養護の経験がある',
-  stem_women: '理工系分野・女子学生'
+  ryugakusei: '日本に留学している外国人留学生',
+  uturn: '卒業後に地元/特定地域で就職・居住する人'
 };
 
 var SCHOLARSHIPS = [
@@ -334,6 +339,27 @@ var SCHOLARSHIPS = [
     amount:'入学金・授業料全額、生活費(月3〜10万円)、転居費用・教材費など',
     desc:'児童養護施設や里親家庭出身など、社会的養護のもとで育った18〜30歳の若者を対象にした給付型奨学金。ソーシャルワーカーによる伴走支援つき。',
     url:'https://dreamscholarship.jp/'
+  },
+  {
+    name:'交通遺児育英会 奨学金', org:'公益財団法人 交通遺児育英会', type:'mixed',
+    targets:['traffic'],
+    amount:'月額5万円・8万円・10万円から選択(大学院の例。いずれも一部給付を含む)',
+    desc:'保護者が道路上の交通事故で死亡、または重度の後遺障害を負った家庭の生徒・学生を対象にした奨学金。学生寮の提供など生活サポートも行っています。',
+    url:'https://www.kotsuiji.com/'
+  },
+  {
+    name:'米山記念奨学金', org:'公益財団法人 ロータリー米山記念奨学会', type:'grant',
+    targets:['ryugakusei'],
+    amount:'制度・区分により異なる(公式サイトで要確認)',
+    desc:'日本に在留する外国人留学生を対象にした、民間では国内最大規模の給付型奨学金。全国のロータリークラブ会員の寄付が財源です。',
+    url:'https://www.rotary-yoneyama.or.jp/'
+  },
+  {
+    name:'奨学金返還支援制度(地方公共団体)', org:'都道府県・市区町村(JASSO経由で紹介)', type:'support',
+    targets:['uturn'],
+    amount:'返還額の一部〜全額を自治体が補助(制度により異なる)',
+    desc:'新たに奨学金を借りる制度ではなく、すでに借りているJASSO等の奨学金について、卒業後にその地域へ就職・居住することを条件に、返還を自治体が肩代わりしてくれる仕組み。2025年6月時点で47都道府県・876市区町村が実施。',
+    url:'https://www.jasso.go.jp/shogakukin/chihoshien/sosei/index.html'
   }
 ];
 
@@ -341,11 +367,50 @@ var SCHOLARSHIPS = [
 var activeTypes = {};
 var activeTargets = {};
 
+var PRESETS = [
+  { label:'💸 とにかく返済したくない', types:['grant'], targets:[] },
+  { label:'👪 ひとり親・遺児家庭', types:[], targets:['bereaved','traffic'] },
+  { label:'🚗 交通事故で保護者を亡くした', types:[], targets:['traffic'] },
+  { label:'🏠 児童養護施設・里親家庭の出身', types:[], targets:['carexp'] },
+  { label:'🌏 留学生です', types:[], targets:['ryugakusei'] },
+  { label:'📍 卒業後は地元で働く予定', types:[], targets:['uturn'] }
+];
+
+function applyPreset(preset){
+  activeTypes = {}; activeTargets = {};
+  preset.types.forEach(function(t){ activeTypes[t] = true; });
+  preset.targets.forEach(function(t){ activeTargets[t] = true; });
+  syncChipStates();
+  renderResults();
+  var head = $('.result-head'); if(head) head.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function syncChipStates(){
+  $$('#filterType .chip').forEach(function(chip){
+    chip.classList.toggle('active', !!activeTypes[chip.dataset.key]);
+  });
+  $$('#filterTarget .chip').forEach(function(chip){
+    chip.classList.toggle('active', !!activeTargets[chip.dataset.key]);
+  });
+}
+
+function renderPresetChips(){
+  var host = $('#presetRow'); host.innerHTML = '';
+  PRESETS.forEach(function(preset){
+    var chip = document.createElement('button'); chip.className = 'chip'; chip.type = 'button';
+    chip.style.setProperty('--chip-color', 'var(--accent2)');
+    chip.textContent = preset.label;
+    chip.addEventListener('click', function(){ applyPreset(preset); });
+    host.appendChild(chip);
+  });
+}
+
 function renderFilterChips(){
   var typeHost = $('#filterType'); typeHost.innerHTML = '';
   Object.keys(TYPE_META).forEach(function(key){
     var meta = TYPE_META[key];
     var chip = document.createElement('button'); chip.className = 'chip'; chip.type = 'button';
+    chip.dataset.key = key;
     chip.style.setProperty('--chip-color', meta.color);
     chip.innerHTML = '<span class="cdot"></span>' + meta.label;
     chip.addEventListener('click', function(){
@@ -358,6 +423,7 @@ function renderFilterChips(){
   var targetHost = $('#filterTarget'); targetHost.innerHTML = '';
   Object.keys(TARGET_META).forEach(function(key){
     var chip = document.createElement('button'); chip.className = 'chip'; chip.type = 'button';
+    chip.dataset.key = key;
     chip.style.setProperty('--chip-color', 'var(--accent)');
     chip.innerHTML = '<span class="cdot"></span>' + TARGET_META[key];
     chip.addEventListener('click', function(){
@@ -537,6 +603,7 @@ $('#calcToggle').addEventListener('click', function(){
   if(opening && !calcBuilt){ buildCalcPanel(panel); calcBuilt = true; }
 });
 
+renderPresetChips();
 renderFilterChips();
 renderResults();
 updateFavCount();
