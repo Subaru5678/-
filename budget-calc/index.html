@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>家計簿・生活費計算</title>
+<meta name="description" content="収入の支出配分(50/30/20ルール)・家賃の適正額・食費の1日予算・固定費と変動費の割合・ボーナスの配分・特別支出の積立・可処分所得・支出の前月比をその場で計算。家計管理のための計算アプリ。">
+<meta name="theme-color" content="#f2f8f4">
+<link rel="canonical" href="https://subaru5678.github.io/-/budget-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="家計簿・生活費計算">
+<meta property="og:description" content="収入の支出配分(50/30/20ルール)・家賃の適正額・食費の1日予算・固定費と変動費の割合・ボーナスの配分・特別支出の積立・可処分所得・支出の前月比をその場で計算。家計管理のための計算アプリ。">
+<meta property="og:url" content="https://subaru5678.github.io/-/budget-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="家計簿計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Google AdSense: 審査に通ったら、下の2行のコメントを外して
+     ca-pub-XXXXXXXXXXXXXXXX をあなたのパブリッシャーIDに置き換えてください。
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+-->
+<style>
+:root{
+  --bg:#f2f8f4; --panel:#ffffff; --panel2:#e4f1e8; --line:#d3e6da;
+  --ink:#182620; --muted:#6c8478; --label:#33453c; --accent:#2f8f6a; --accent2:#d97a3f;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#2f8f6a;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    radial-gradient(rgba(47,143,106,.1) 1.6px, transparent 1.6px);
+  background-size:auto, 24px 24px;
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600; letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(47,143,106,.08) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700; letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted); margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color); box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden; box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:28px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink)); letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px; font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color)); color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">家計簿・生活費計算</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">BUDGET CALCULATOR</div>
+        <h2>支出の配分も予算も、その場で計算。</h2>
+        <p>収入の支出配分(50/30/20ルール)・家賃の適正額・食費の1日予算・固定費と変動費の割合・ボーナスの配分・特別支出の積立・可処分所得・支出の前月比まで。<b>家計管理</b>のための計算ツールです。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div style="text-align:center; margin-top:24px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <ins class="adsbygoogle" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var yen = function(n){ return fmt(n,0) + ' 円'; };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'budgetcalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); }); }
+  else { toast('この端末では共有できません'); }
+};
+
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '家計簿・生活費計算' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* ---------- 1. 収入の支出配分計算(50/30/20ルール) ---------- */
+TOOLS.rule502030 = {
+  name:'支出配分計算(50/30/20ルール)', emoji:'🥧', sub:'手取り収入から、理想的な支出配分を算出', color:'#2f8f6a',
+  render: function(body){
+    var income = field(body, { label:'手取り月収', unit:'円', value:250000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var i = parseFloat(income.value)||0;
+      var essential = i*0.5, wants = i*0.3, savings = i*0.2;
+      box.innerHTML = '<div class="r-label">必要な生活費(50%)</div><div class="r-main">' + yen(essential) + '</div>' +
+        '<div class="r-row"><span>欲しいもの・娯楽(30%)</span><b>' + yen(wants) + '</b></div>' +
+        '<div class="r-row"><span>貯蓄・投資(20%)</span><b>' + yen(savings) + '</b></div>' +
+        '<div class="r-sub">アメリカの家計管理術としてよく知られる「50/30/20ルール」による配分目安です。生活状況に応じて調整してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'rule502030', TOOLS.rule502030.name, function(){
+        return yen(i)+' → 生活費'+yen(essential)+' / 娯楽'+yen(wants)+' / 貯蓄'+yen(savings);
+      });
+    }
+    income.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 2. 家賃の適正額計算 ---------- */
+TOOLS.rent = {
+  name:'家賃の適正額計算', emoji:'🏠', sub:'手取り収入と目安割合から、適正な家賃を算出', color:'#d97a3f',
+  render: function(body){
+    var income = field(body, { label:'手取り月収', unit:'円', value:250000 });
+    var ratio = toggleGroup(body, { label:'目安割合', value:'30', options:[
+      { value:'25', label:'25%(余裕重視)' },
+      { value:'30', label:'30%(標準)' },
+      { value:'35', label:'35%(都市部の目安)' }
+    ], onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var i = parseFloat(income.value)||0, r = parseFloat(ratio.value)||30;
+      var rent = i*r/100;
+      box.innerHTML = '<div class="r-label">適正な家賃(目安)</div><div class="r-main">約 ' + yen(rent) + '</div>' +
+        '<div class="r-sub">手取り収入の' + r + '%を目安にした計算です。管理費・駐車場代を含めて考えるのがおすすめです。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'rent', TOOLS.rent.name, function(){
+        return yen(i)+' × '+r+'% → 適正家賃 約'+yen(rent);
+      });
+    }
+    income.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 3. 食費の1日あたり予算計算 ---------- */
+TOOLS.food = {
+  name:'食費の1日あたり予算計算', emoji:'🍙', sub:'食費の月予算から、1日・1食あたりの予算を算出', color:'#c9a13f',
+  render: function(body){
+    var monthly = field(body, { label:'食費の月予算', unit:'円', value:30000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var m = parseFloat(monthly.value)||0;
+      var perDay = m/30;
+      var perMeal = perDay/3;
+      box.innerHTML = '<div class="r-label">1日あたりの予算</div><div class="r-main">約 ' + yen(perDay) + '</div>' +
+        '<div class="r-row"><span>1食あたり(3食換算)</span><b>約 ' + yen(perMeal) + '</b></div>' +
+        '<div class="r-sub">1ヶ月30日、1日3食として均等に割った目安です。外食が多い日は他の日で調整しましょう。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'food', TOOLS.food.name, function(){
+        return '月'+yen(m)+' → 1日 約'+yen(perDay)+'(1食 約'+yen(perMeal)+')';
+      });
+    }
+    monthly.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 4. 固定費と変動費の割合計算 ---------- */
+TOOLS.ratio = {
+  name:'固定費と変動費の割合計算', emoji:'⚖️', sub:'固定費と変動費の金額から、割合と目安を算出', color:'#4a7fc9',
+  render: function(body){
+    var fixed = field(body, { label:'固定費の合計(家賃・保険・通信費など)', unit:'円', value:100000 });
+    var variable = field(body, { label:'変動費の合計(食費・娯楽・日用品など)', unit:'円', value:80000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var f = parseFloat(fixed.value)||0, v = parseFloat(variable.value)||0;
+      var total = f+v;
+      var fixedRate = total>0 ? f/total*100 : 0;
+      var judge = fixedRate <= 60 ? '一般的な範囲内です' : '固定費の割合がやや高めです';
+      box.innerHTML = '<div class="r-label">固定費の割合</div><div class="r-main">' + fmt(fixedRate,1) + ' %</div>' +
+        '<div class="r-row"><span>支出合計</span><b>' + yen(total) + '</b></div>' +
+        '<div class="r-row"><span>判定</span><b>' + judge + '</b></div>' +
+        '<div class="r-sub">一般的に固定費は支出全体の50〜60%程度に収めると、家計の柔軟性を保ちやすいといわれています。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'ratio', TOOLS.ratio.name, function(){
+        return '固定'+yen(f)+' 変動'+yen(v)+' → 固定費割合 '+fmt(fixedRate,1)+'%';
+      });
+    }
+    [fixed, variable].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. ボーナスの使い道配分計算 ---------- */
+var BONUS_PATTERNS = {
+  steady: { label:'堅実型', savings:60, spend:20, invest:20 },
+  balance: { label:'バランス型', savings:40, spend:30, invest:30 }
+};
+TOOLS.bonus = {
+  name:'ボーナスの使い道配分計算', emoji:'🎁', sub:'ボーナス額と配分パターンから、使い道の内訳を算出', color:'#8a5fd1',
+  render: function(body){
+    var amount = field(body, { label:'ボーナスの額', unit:'円', value:300000 });
+    var pattern = toggleGroup(body, { label:'配分パターン', value:'steady', options: Object.keys(BONUS_PATTERNS).map(function(k){ return { value:k, label:BONUS_PATTERNS[k].label }; }), onChange: function(){ calc(); } });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var a = parseFloat(amount.value)||0;
+      var p = BONUS_PATTERNS[pattern.value];
+      var savings = a*p.savings/100, spend = a*p.spend/100, invest = a*p.invest/100;
+      box.innerHTML = '<div class="r-label">貯蓄(' + p.savings + '%)</div><div class="r-main">' + yen(savings) + '</div>' +
+        '<div class="r-row"><span>自由に使うお金(' + p.spend + '%)</span><b>' + yen(spend) + '</b></div>' +
+        '<div class="r-row"><span>投資(' + p.invest + '%)</span><b>' + yen(invest) + '</b></div>' +
+        '<div class="r-sub">一例としての配分目安です。投資は元本割れのリスクがあるため、余裕資金の範囲で検討してください。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'bonus', TOOLS.bonus.name, function(){
+        return yen(a)+'('+p.label+') → 貯蓄'+yen(savings)+' / 自由'+yen(spend)+' / 投資'+yen(invest);
+      });
+    }
+    amount.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 6. 年間特別支出の積立計算 ---------- */
+TOOLS.special = {
+  name:'年間特別支出の積立計算', emoji:'📦', sub:'年間の特別支出の合計から、毎月の積立額を算出', color:'#c9483f',
+  render: function(body){
+    var yearly = field(body, { label:'年間の特別支出合計', unit:'円', value:240000, hint:'旅行・家電の買い替え・冠婚葬祭など、毎月ではなく不定期にかかる支出の年間合計です。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var y = parseFloat(yearly.value)||0;
+      var monthly = y/12;
+      box.innerHTML = '<div class="r-label">毎月の積立額(目安)</div><div class="r-main">約 ' + yen(monthly) + '</div>' +
+        '<div class="r-sub">あらかじめ毎月積み立てておくことで、急な出費で家計が圧迫されるのを防げます。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'special', TOOLS.special.name, function(){
+        return '年間'+yen(y)+' → 毎月 約'+yen(monthly)+'の積立';
+      });
+    }
+    yearly.addEventListener('input', calc);
+    calc();
+  }
+};
+
+/* ---------- 7. 可処分所得(自由に使えるお金)の計算 ---------- */
+TOOLS.disposable = {
+  name:'可処分所得の計算', emoji:'💸', sub:'手取り収入と固定費から、自由に使えるお金を算出', color:'#5a9e6b',
+  render: function(body){
+    var income = field(body, { label:'手取り月収', unit:'円', value:250000 });
+    var fixed = field(body, { label:'固定費の合計', unit:'円', value:150000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var i = parseFloat(income.value)||0, f = parseFloat(fixed.value)||0;
+      var free = i-f;
+      box.innerHTML = '<div class="r-label">自由に使えるお金(目安)</div><div class="r-main">約 ' + yen(free) + '</div>' +
+        '<div class="r-sub">固定費(家賃・保険・通信費・サブスクなど)を差し引いた、変動費や貯蓄に回せる金額の目安です。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'disposable', TOOLS.disposable.name, function(){
+        return yen(i)+' - 固定費'+yen(f)+' → 自由に使えるお金 約'+yen(free);
+      });
+    }
+    [income, fixed].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 8. 支出の前月比計算 ---------- */
+TOOLS.compare = {
+  name:'支出の前月比計算', emoji:'📉', sub:'前月と今月の支出から、増減率を算出', color:'#3f9ecf',
+  render: function(body){
+    var last = field(body, { label:'前月の支出', unit:'円', value:200000 });
+    var current = field(body, { label:'今月の支出', unit:'円', value:180000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var l = parseFloat(last.value)||0, c = parseFloat(current.value)||0;
+      var rate = l>0 ? (c-l)/l*100 : 0;
+      var diff = c-l;
+      box.innerHTML = '<div class="r-label">前月比</div><div class="r-main">' + (rate>=0?'+':'') + fmt(rate,1) + ' %</div>' +
+        '<div class="r-row"><span>差額</span><b>' + (diff>=0?'+':'') + yen(diff) + '</b></div>' +
+        '<div class="r-sub">' + (rate<0 ? '前月より支出が減っています。' : rate>0 ? '前月より支出が増えています。' : '前月と同じ支出です。') + '</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'compare', TOOLS.compare.name, function(){
+        return '前月'+yen(l)+' → 今月'+yen(c)+'('+(rate>=0?'+':'')+fmt(rate,1)+'%)';
+      });
+    }
+    [last, current].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "家計簿・生活費計算",
+  "short_name": "家計簿計算",
+  "description": "収入の支出配分(50/30/20)・家賃の適正額・食費の1日予算・固定費変動費の割合・ボーナス配分・特別支出の積立・可処分所得・支出の前月比をその場で計算",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f2f8f4",
+  "theme_color": "#f2f8f4",
+  "lang": "ja",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
