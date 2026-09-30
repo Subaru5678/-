@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>奨学金計算・まとめ</title>
+<meta name="description" content="奨学金の返済シミュレーション・総借入額・第一種(無利子)と第二種(有利子)の比較・返済負担率チェック・給付型の実質価値・学費の不足額計算に加えて、奨学金の種類まとめと出願前チェックリストをその場で確認できる無料ツール。">
+<meta name="theme-color" content="#eef3fa">
+<link rel="canonical" href="https://subaru5678.github.io/-/shogaku-calc/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:title" content="奨学金計算・まとめ">
+<meta property="og:description" content="奨学金の返済シミュレーション・総借入額・第一種(無利子)と第二種(有利子)の比較・返済負担率チェック・給付型の実質価値・学費の不足額計算に加えて、奨学金の種類まとめと出願前チェックリストをその場で確認できる無料ツール。">
+<meta property="og:url" content="https://subaru5678.github.io/-/shogaku-calc/">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="奨学金計算">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8464656892971770" crossorigin="anonymous"></script>
+<style>
+:root{
+  --bg:#eef3fa; --panel:#ffffff; --panel2:#dfe9f7; --line:#c9d8ec;
+  --ink:#16202e; --muted:#62748c; --label:#2c3a4e; --accent:#2f5f9e; --accent2:#d9973f;
+  --ok:#4d9a53; --warn:#b3821f; --bad:#c9483f;
+  --tool-color:#2f5f9e;
+  --font-display:'Oswald','Zen Kaku Gothic New',sans-serif;
+  color-scheme:light;
+}
+*{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+body{
+  background-image:
+    linear-gradient(var(--bg), var(--bg)),
+    radial-gradient(rgba(47,95,158,.1) 1.6px, transparent 1.6px);
+  background-size:auto, 24px 24px;
+}
+button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
+input,select{ font-family:inherit; }
+#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+
+#topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
+#topbar h1{ font-family:var(--font-display); font-size:19px; margin:0; flex:1; font-weight:600; letter-spacing:.03em; }
+#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:17px; flex:none;
+  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
+#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
+#topbar #backBtn{ display:none; }
+#topbar #backBtn.show{ display:flex; }
+
+main{ flex:1; padding:4px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+.hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
+  border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:20px; }
+.hero::before{ content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:repeating-linear-gradient(45deg, rgba(47,95,158,.08) 0 2px, transparent 2px 14px); }
+.hero .kicker{ display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:800; letter-spacing:.08em;
+  color:var(--accent); margin-bottom:8px; }
+.hero .kicker::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+.hero h2{ font-family:var(--font-display); font-size:22px; line-height:1.3; margin:0 0 8px; font-weight:700; letter-spacing:.01em; position:relative; }
+.hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
+.hero b{ color:var(--ink); font-weight:800; }
+
+.grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:16px 13px 14px; text-align:left; display:flex; flex-direction:column; gap:8px; min-height:104px;
+  overflow:hidden; transition:transform .12s, border-color .12s, background .12s; }
+.card::before{ content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--card-color,var(--accent)); }
+.card:active{ transform:translateY(2px) scale(.99); background:var(--panel2); }
+.card .icon-badge{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; background:color-mix(in srgb, var(--card-color,var(--accent)) 18%, transparent);
+  color:var(--card-color,var(--accent)); border:1px solid color-mix(in srgb, var(--card-color,var(--accent)) 40%, transparent); }
+.card .name{ font-weight:900; font-size:14px; line-height:1.3; }
+.card .desc{ font-size:11px; color:var(--muted); line-height:1.4; }
+
+.section-title{ display:flex; align-items:center; gap:8px; font-size:12px; font-weight:900; color:var(--muted); margin:22px 0 10px; letter-spacing:.08em; }
+.section-title::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+.tool-head{ display:flex; align-items:center; gap:12px; margin:6px 0 18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+.tool-head .icon-badge{ width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:24px; flex:none; background:color-mix(in srgb, var(--tool-color) 18%, transparent);
+  color:var(--tool-color); border:1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+  box-shadow:0 0 20px -4px color-mix(in srgb, var(--tool-color) 50%, transparent); }
+.tool-head h2{ font-family:var(--font-display); font-size:17px; margin:0; font-weight:600; letter-spacing:.02em; }
+.tool-head .sub{ font-size:12px; color:var(--muted); margin-top:3px; }
+
+.field{ margin-bottom:14px; }
+.field label{ display:block; font-size:13px; color:var(--label); font-weight:800; margin-bottom:6px; }
+.field .row{ display:flex; gap:8px; align-items:center; }
+.field input[type=number], .field input[type=text], .field select{ width:100%; background:var(--panel); border:1px solid var(--line);
+  color:var(--ink); border-radius:10px; padding:12px; font-size:15px; font-weight:700;
+  font-variant-numeric:tabular-nums; transition:border-color .12s, box-shadow .12s; color-scheme:light; }
+.field input:focus, .field select:focus{ outline:none; border-color:var(--tool-color); box-shadow:0 0 0 3px color-mix(in srgb, var(--tool-color) 22%, transparent); }
+.unit{ font-size:12px; color:var(--label); font-weight:800; white-space:nowrap; }
+.hint{ font-size:11px; color:var(--muted); margin-top:6px; line-height:1.6; }
+
+.toggle-row{ display:flex; gap:8px; flex-wrap:wrap; }
+.toggle{ padding:9px 13px; border-radius:10px; background:var(--panel); border:1px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--label); transition:transform .1s; }
+.toggle.active{ background:var(--tool-color); color:#fff; border-color:var(--tool-color); }
+.toggle:active{ transform:scale(.97); }
+
+.result-box{ position:relative; background:linear-gradient(155deg, var(--panel2), var(--panel));
+  border:1px solid color-mix(in srgb, var(--tool-color) 45%, var(--line)); border-radius:16px;
+  padding:18px; margin-top:8px; overflow:hidden; box-shadow:0 12px 28px -16px color-mix(in srgb, var(--tool-color) 55%, transparent); }
+.result-box::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--tool-color); }
+.result-box .r-main{ font-family:var(--font-display); font-size:28px; font-weight:600;
+  color:color-mix(in srgb, var(--tool-color) 55%, var(--ink)); letter-spacing:.01em; font-variant-numeric:tabular-nums; }
+.result-box .r-label{ font-size:11px; color:var(--muted); font-weight:800; margin-bottom:3px; letter-spacing:.04em; }
+.result-box .r-sub{ font-size:12px; color:var(--muted); margin-top:10px; line-height:1.7; }
+.result-box .r-row{ display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+.result-box .r-row:first-of-type{ border-top:none; }
+.result-box .r-row b{ font-variant-numeric:tabular-nums; }
+
+.btn{ display:flex; align-items:center; justify-content:center; gap:6px; padding:13px; border-radius:12px; font-weight:900; font-size:13px; transition:transform .1s, box-shadow .1s; }
+.btn-primary{ background:linear-gradient(155deg, color-mix(in srgb, var(--tool-color) 85%, white), var(--tool-color)); color:#fff; box-shadow:0 8px 18px -8px color-mix(in srgb, var(--tool-color) 70%, transparent); }
+.btn-ghost{ background:var(--panel); border:1px solid var(--line); color:var(--ink); }
+.btn:active{ transform:translateY(1px) scale(.98); }
+.btn-row{ display:flex; gap:8px; margin-top:14px; }
+.btn-row .btn{ flex:1; }
+
+.saved-item{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:12px;
+  padding:13px 13px 13px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; overflow:hidden; }
+.saved-item::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--item-color,var(--accent)); }
+.saved-item .meta{ font-size:11px; color:var(--muted); margin-top:4px; font-variant-numeric:tabular-nums; }
+.saved-item .del{ width:32px; height:32px; border-radius:9px; background:var(--panel2); border:1px solid var(--line); flex:none; }
+.empty{ text-align:center; color:var(--muted); font-size:13px; padding:48px 20px; line-height:1.8; }
+
+.info-card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:15px; margin-bottom:10px; position:relative; overflow:hidden; }
+.info-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--card-color,var(--accent)); }
+.info-card .t{ font-weight:900; font-size:14px; margin-bottom:4px; }
+.info-card .d{ font-size:12px; color:var(--muted); line-height:1.7; }
+.info-card .badge{ display:inline-block; font-size:10px; font-weight:800; padding:3px 8px; border-radius:6px;
+  background:color-mix(in srgb, var(--card-color,var(--accent)) 16%, transparent); color:var(--card-color,var(--accent)); margin-bottom:6px; }
+.link-btn{ display:inline-block; margin-top:8px; font-size:11px; font-weight:800; color:var(--accent2); }
+
+.check-item{ display:flex; align-items:flex-start; gap:12px; background:var(--panel); border:1px solid var(--line);
+  border-radius:12px; padding:13px 14px; margin-bottom:8px; transition:background .12s, border-color .12s; }
+.check-item.done{ background:var(--panel2); border-color:color-mix(in srgb, var(--tool-color) 40%, var(--line)); }
+.check-item .cbox{ width:22px; height:22px; border-radius:7px; border:2px solid var(--line); flex:none; margin-top:1px;
+  display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff; transition:background .12s, border-color .12s; }
+.check-item.done .cbox{ background:var(--tool-color); border-color:var(--tool-color); }
+.check-item .txt{ flex:1; }
+.check-item .txt .n{ font-size:13px; font-weight:800; }
+.check-item .txt .d{ font-size:11px; color:var(--muted); margin-top:3px; line-height:1.6; }
+.progress-wrap{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:15px; margin-bottom:14px; }
+.progress-bar{ height:8px; border-radius:5px; background:var(--panel2); overflow:hidden; margin-top:8px; }
+.progress-bar .fill{ height:100%; background:var(--tool-color); border-radius:5px; transition:width .2s; }
+
+.disclaimer{ font-size:11px; color:var(--muted); line-height:1.7; background:var(--panel2); border:1px solid var(--line);
+  border-radius:10px; padding:11px 13px; margin-top:14px; }
+
+#adSlot{ flex:none; padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px)); }
+#adSlot .ad-box{ background:var(--panel); border:1px dashed var(--line); border-radius:10px; height:50px;
+  display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700; }
+#adSlot ins.adsbygoogle{ display:none; }
+
+#toast{ position:fixed; left:50%; bottom:80px; transform:translate(-50%,10px); background:rgba(20,24,32,.95);
+  color:#fff; backdrop-filter:blur(6px); border:1px solid var(--line); padding:11px 18px; border-radius:12px; font-weight:800;
+  font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
+#toast.show{ opacity:1; transform:translate(-50%,0); }
+
+.view{ display:none; }
+.view.active{ display:block; animation:viewIn .22s ease both; }
+@keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "奨学金計算・まとめ",
+  "url": "https://subaru5678.github.io/-/shogaku-calc/",
+  "description": "奨学金の返済シミュレーション・総借入額・第一種(無利子)と第二種(有利子)の比較・返済負担率チェック・給付型の実質価値・学費の不足額計算に加えて、奨学金の種類まとめと出願前チェックリストをその場で確認できる無料ツール。",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript. Requires HTML5.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY"
+  },
+  "inLanguage": "ja"
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
+    <h1 id="pageTitle">奨学金計算・まとめ</h1>
+    <button id="savedBtn" class="ic-btn" aria-label="保存した計算">📋</button>
+  </div>
+
+  <main id="main">
+    <div id="view-home" class="view active">
+      <div class="hero">
+        <div class="kicker">SCHOLARSHIP CALCULATOR</div>
+        <h2>奨学金のお金の疑問、その場で計算。</h2>
+        <p>毎月の返済額・総借入額・第一種と第二種の比較・返済負担率・給付型の実質価値・学費の不足額まで。奨学金の<b>種類まとめ</b>と<b>出願前チェックリスト</b>も収録。</p>
+      </div>
+      <div class="section-title">ツールを選ぶ</div>
+      <div class="grid" id="toolGrid"></div>
+      <div class="disclaimer">
+        本アプリの計算結果・制度説明は一般的な目安です。正式な金利・貸与額・審査基準・締切は、必ず
+        <a href="https://www.jasso.go.jp/" target="_blank" rel="noopener" style="color:var(--accent2);font-weight:800;">日本学生支援機構(JASSO)公式サイト</a>
+        や在学校の奨学金窓口でご確認ください。
+      </div>
+      <div style="text-align:center; margin-top:16px;">
+        <a href="privacy.html" style="font-size:11px; color:var(--muted);">プライバシーポリシー</a>
+      </div>
+    </div>
+
+    <div id="view-tool" class="view"></div>
+
+    <div id="view-saved" class="view">
+      <div class="section-title">保存した計算</div>
+      <div id="savedList"></div>
+    </div>
+  </main>
+
+  <div id="adSlot">
+    <div class="ad-box" id="adPlaceholder">広告スペース</div>
+    <ins class="adsbygoogle" data-ad-client="ca-pub-8464656892971770"
+      data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+var $ = function(sel, ctx){ return (ctx||document).querySelector(sel); };
+var $$ = function(sel, ctx){ return Array.prototype.slice.call((ctx||document).querySelectorAll(sel)); };
+var ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+var esc = function(s){ return String(s).replace(/[&<>"']/g, function(c){ return ESC_MAP[c]; }); };
+var fmt = function(n, d){ d = d==null?2:d; if(!isFinite(n)) return "-";
+  var v = Math.round(n * Math.pow(10,d)) / Math.pow(10,d);
+  return v.toLocaleString('ja-JP', {maximumFractionDigits:d}); };
+var yen = function(n){ return fmt(n,0) + ' 円'; };
+var toast = function(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._h); toast._h = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+};
+var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+
+var STORE_KEY = 'shogakucalc.saved.v1';
+var loadSaved = function(){ try{ return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }catch(e){ return []; } };
+var writeSaved = function(list){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }catch(e){} };
+var saveResult = function(toolId, toolName, summary){
+  var list = loadSaved();
+  list.unshift({ id: uid(), toolId: toolId, toolName: toolName, summary: summary, ts: Date.now() });
+  if(list.length > 100) list = list.slice(0,100);
+  writeSaved(list);
+  toast('保存しました');
+};
+var shareText = function(text){
+  if(navigator.share){ navigator.share({ text: text }).catch(function(){}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ toast('コピーしました'); }).catch(function(){ toast('コピーに失敗しました'); }); }
+  else { toast('この端末では共有できません'); }
+};
+
+var state = { view:'home', toolId:null };
+var showView = function(name){
+  $$('.view').forEach(function(v){ v.classList.remove('active'); });
+  $('#view-' + name).classList.add('active');
+  $('#backBtn').classList.toggle('show', name !== 'home');
+  $('#pageTitle').textContent = name === 'home' ? '奨学金計算・まとめ' : (name === 'saved' ? '保存した計算' : (TOOLS[state.toolId] ? TOOLS[state.toolId].name : ''));
+  window.scrollTo(0,0);
+  $('#main').scrollTop = 0;
+};
+$('#backBtn').addEventListener('click', function(){ showView('home'); });
+$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+
+var TOOLS = {};
+
+function openTool(id){
+  state.toolId = id;
+  var tool = TOOLS[id];
+  document.documentElement.style.setProperty('--tool-color', tool.color);
+  var host = $('#view-tool');
+  host.innerHTML = '';
+  var head = document.createElement('div');
+  head.className = 'tool-head';
+  head.innerHTML = '<div class="icon-badge">' + tool.emoji + '</div><div><h2>' + tool.name + '</h2><div class="sub">' + tool.sub + '</div></div>';
+  host.appendChild(head);
+  var body = document.createElement('div');
+  host.appendChild(body);
+  tool.render(body);
+  showView('tool');
+}
+
+function field(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label);
+  var row = document.createElement('div'); row.className = 'row';
+  var input = document.createElement('input');
+  input.type = opts.type || 'number';
+  if(input.type === 'number') input.inputMode = 'decimal';
+  input.placeholder = opts.placeholder || '';
+  if(opts.value != null) input.value = opts.value;
+  if(opts.step) input.step = opts.step;
+  if(input.type === 'number' && !opts.allowNegative) input.min = '0';
+  row.appendChild(input);
+  if(opts.unit){ var u = document.createElement('span'); u.className='unit'; u.textContent = opts.unit; row.appendChild(u); }
+  wrap.appendChild(row);
+  if(opts.hint){ var h = document.createElement('div'); h.className='hint'; h.textContent = opts.hint; wrap.appendChild(h); }
+  container.appendChild(wrap);
+  return input;
+}
+
+function toggleGroup(container, opts){
+  var wrap = document.createElement('div'); wrap.className = 'field';
+  if(opts.label){ var label = document.createElement('label'); label.textContent = opts.label; wrap.appendChild(label); }
+  var row = document.createElement('div'); row.className = 'toggle-row';
+  var current = { value: opts.value != null ? opts.value : opts.options[0].value };
+  var btns = opts.options.map(function(o){
+    var b = document.createElement('button'); b.type='button'; b.className='toggle'; b.textContent = o.label;
+    if(o.value === current.value) b.classList.add('active');
+    b.addEventListener('click', function(){
+      current.value = o.value;
+      btns.forEach(function(bb){ bb.classList.remove('active'); });
+      b.classList.add('active');
+      if(opts.onChange) opts.onChange(current.value);
+    });
+    row.appendChild(b);
+    return b;
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+  return current;
+}
+
+function resultBox(container){
+  var box = document.createElement('div'); box.className = 'result-box';
+  container.appendChild(box);
+  return box;
+}
+
+function actionsRow(container, toolId, toolName, getSummary){
+  var row = document.createElement('div'); row.className = 'btn-row';
+  var saveBtn = document.createElement('button'); saveBtn.className='btn btn-primary'; saveBtn.textContent='この結果を保存';
+  saveBtn.addEventListener('click', function(){ saveResult(toolId, toolName, getSummary()); });
+  var shareBtn = document.createElement('button'); shareBtn.className='btn btn-ghost'; shareBtn.textContent='共有 / コピー';
+  shareBtn.addEventListener('click', function(){ shareText(toolName + '\n' + getSummary()); });
+  row.appendChild(saveBtn); row.appendChild(shareBtn);
+  container.appendChild(row);
+}
+
+/* 元利均等返済: 毎月の返済額を計算 */
+function amortizedMonthly(principal, annualRatePct, months){
+  if(months <= 0) return 0;
+  var r = (annualRatePct/100)/12;
+  if(r === 0) return principal / months;
+  var factor = Math.pow(1+r, months);
+  return principal * r * factor / (factor - 1);
+}
+
+/* ---------- 1. 奨学金返済シミュレーター ---------- */
+TOOLS.repay = {
+  name:'奨学金返済シミュレーター', emoji:'💴', sub:'借入総額・金利・返済期間から、毎月の返済額を算出', color:'#2f5f9e',
+  render: function(body){
+    var principal = field(body, { label:'借入総額(貸与総額)', unit:'円', value:2400000 });
+    var rate = field(body, { label:'年利', unit:'%', value:0.5, step:'0.01', hint:'第一種(無利子)の場合は0を入力してください。第二種(有利子)の利率は在学中に決まります。' });
+    var years = field(body, { label:'返済期間', unit:'年', value:15 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var p = parseFloat(principal.value)||0, r = parseFloat(rate.value)||0, y = parseFloat(years.value)||0;
+      var months = y*12;
+      var monthly = amortizedMonthly(p, r, months);
+      var total = monthly*months;
+      var interest = total - p;
+      box.innerHTML = '<div class="r-label">毎月の返済額(目安)</div><div class="r-main">約 ' + yen(monthly) + '</div>' +
+        '<div class="r-row"><span>返済総額</span><b>約 ' + yen(total) + '</b></div>' +
+        '<div class="r-row"><span>うち利息分</span><b>約 ' + yen(Math.max(0,interest)) + '</b></div>' +
+        '<div class="r-sub">元利均等返済(毎月同額を返済する方式)で試算しています。実際の返済額はJASSOなど貸与元の規定によります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'repay', TOOLS.repay.name, function(){
+        return '借入'+yen(p)+' 年利'+fmt(r,2)+'% '+y+'年 → 毎月 約'+yen(monthly)+'(総額 約'+yen(total)+')';
+      });
+    }
+    [principal, rate, years].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 2. 総借入額計算 ---------- */
+TOOLS.total = {
+  name:'総借入額計算', emoji:'📐', sub:'毎月の貸与額と貸与期間から、卒業時点の総借入額を算出', color:'#4a7fc9',
+  render: function(body){
+    var monthly = field(body, { label:'毎月の貸与額', unit:'円', value:64000 });
+    var months = field(body, { label:'貸与期間', unit:'ヶ月', value:48, hint:'大学4年間なら48ヶ月が目安です(休学等を除く)。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var m = parseFloat(monthly.value)||0, n = parseFloat(months.value)||0;
+      var total = m*n;
+      box.innerHTML = '<div class="r-label">卒業時点の総借入額(目安)</div><div class="r-main">約 ' + yen(total) + '</div>' +
+        '<div class="r-sub">この金額に、選んだ返済方式や利率に応じた利息が上乗せされる場合があります(第二種の場合)。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'total', TOOLS.total.name, function(){
+        return '月'+yen(m)+' × '+n+'ヶ月 → 総借入額 約'+yen(total);
+      });
+    }
+    [monthly, months].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 3. 第一種(無利子)/第二種(有利子)比較 ---------- */
+TOOLS.compare = {
+  name:'第一種・第二種の比較計算', emoji:'⚖️', sub:'同じ借入額での無利子と有利子の返済総額を比較', color:'#8a5fd1',
+  render: function(body){
+    var principal = field(body, { label:'借入総額', unit:'円', value:2400000 });
+    var rate = field(body, { label:'第二種(有利子)の想定年利', unit:'%', value:1.0, step:'0.01' });
+    var years = field(body, { label:'返済期間', unit:'年', value:15 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var p = parseFloat(principal.value)||0, r = parseFloat(rate.value)||0, y = parseFloat(years.value)||0;
+      var months = y*12;
+      var m1 = amortizedMonthly(p, 0, months), t1 = m1*months;
+      var m2 = amortizedMonthly(p, r, months), t2 = m2*months;
+      var diff = t2 - t1;
+      box.innerHTML = '<div class="r-label">第一種(無利子)の返済総額</div><div class="r-main">' + yen(t1) + '</div>' +
+        '<div class="r-row"><span>第二種(有利子 年'+fmt(r,2)+'%)の返済総額</span><b>約 ' + yen(t2) + '</b></div>' +
+        '<div class="r-row"><span>差額(利息負担分)</span><b>約 ' + yen(diff) + '</b></div>' +
+        '<div class="r-sub">借入額が同じでも、有利子か無利子かでこれだけ返済総額が変わります。第一種は家計基準・成績基準が第二種より厳しい傾向があります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'compare', TOOLS.compare.name, function(){
+        return '借入'+yen(p)+' → 無利子 約'+yen(t1)+' / 有利子(年'+fmt(r,2)+'%) 約'+yen(t2)+'(差 約'+yen(diff)+')';
+      });
+    }
+    [principal, rate, years].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 4. 返済負担率チェック ---------- */
+TOOLS.burden = {
+  name:'返済負担率チェック', emoji:'📊', sub:'卒業後の想定月収から、返済額の負担度合いを算出', color:'#c9483f',
+  render: function(body){
+    var income = field(body, { label:'卒業後の想定手取り月収', unit:'円', value:200000 });
+    var monthly = field(body, { label:'毎月の返済額', unit:'円', value:15000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var i = parseFloat(income.value)||0, m = parseFloat(monthly.value)||0;
+      var rate = i>0 ? m/i*100 : 0;
+      var judge = rate <= 10 ? '負担は軽めです' : (rate <= 15 ? '一般的とされる範囲内です' : '負担がやや重めです');
+      box.innerHTML = '<div class="r-label">手取り月収に対する返済負担率</div><div class="r-main">' + fmt(rate,1) + ' %</div>' +
+        '<div class="r-row"><span>判定(目安)</span><b>' + judge + '</b></div>' +
+        '<div class="r-sub">一般的に、手取り収入の10〜15%程度までに返済額を収めると無理のない範囲といわれています。あくまで一般的な目安であり、他の支出状況によって変わります。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'burden', TOOLS.burden.name, function(){
+        return '月収'+yen(i)+' 返済'+yen(m)+' → 負担率 '+fmt(rate,1)+'%('+judge+')';
+      });
+    }
+    [income, monthly].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 5. 給付型奨学金の実質価値計算 ---------- */
+TOOLS.grant = {
+  name:'給付型の実質価値計算', emoji:'🎁', sub:'給付型奨学金の総受給額と、貸与型で借りた場合の返済総額を比較', color:'#3f9ecf',
+  render: function(body){
+    var monthly = field(body, { label:'給付型奨学金の月額', unit:'円', value:40000 });
+    var months = field(body, { label:'受給期間', unit:'ヶ月', value:48 });
+    var rate = field(body, { label:'比較する貸与型の想定年利', unit:'%', value:1.0, step:'0.01', hint:'同じ金額を有利子の貸与型で借りていたら、という比較用の利率です。' });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var m = parseFloat(monthly.value)||0, n = parseFloat(months.value)||0, r = parseFloat(rate.value)||0;
+      var totalGrant = m*n;
+      var repayMonths = 15*12;
+      var loanMonthly = amortizedMonthly(totalGrant, r, repayMonths);
+      var loanTotal = loanMonthly*repayMonths;
+      var saved = loanTotal - totalGrant;
+      box.innerHTML = '<div class="r-label">給付型の総受給額(返済不要)</div><div class="r-main">' + yen(totalGrant) + '</div>' +
+        '<div class="r-row"><span>同額を有利子で借りた場合の返済総額</span><b>約 ' + yen(loanTotal) + '</b></div>' +
+        '<div class="r-row"><span>実質的に得している金額</span><b>約 ' + yen(saved) + '</b></div>' +
+        '<div class="r-sub">給付型は返済不要のため、同じ金額を有利子で借りるのと比べてこれだけの差になります(返済15年・年利'+fmt(r,2)+'%で試算)。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'grant', TOOLS.grant.name, function(){
+        return '給付型 月'+yen(m)+'×'+n+'ヶ月 = '+yen(totalGrant)+' → 有利子換算より約'+yen(saved)+'お得';
+      });
+    }
+    [monthly, months, rate].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 6. 学費・生活費の不足額計算 ---------- */
+TOOLS.gap = {
+  name:'学費・生活費の不足額計算', emoji:'🧮', sub:'年間の学費・生活費から、奨学金でカバーすべき不足額を算出', color:'#c9a13f',
+  render: function(body){
+    var tuition = field(body, { label:'年間の学費(授業料など)', unit:'円', value:800000 });
+    var living = field(body, { label:'年間の生活費', unit:'円', value:600000 });
+    var support = field(body, { label:'家庭からの援助(年間)', unit:'円', value:300000 });
+    var job = field(body, { label:'アルバイト収入(年間)', unit:'円', value:400000 });
+    var box = resultBox(body);
+    var actions = document.createElement('div'); body.appendChild(actions);
+
+    function calc(){
+      var t = parseFloat(tuition.value)||0, l = parseFloat(living.value)||0,
+          s = parseFloat(support.value)||0, j = parseFloat(job.value)||0;
+      var need = t+l;
+      var covered = s+j;
+      var gap = need - covered;
+      box.innerHTML = '<div class="r-label">年間の不足額(奨学金でカバーすべき目安)</div><div class="r-main">' + (gap>0? '約 '+yen(gap) : '不足なし') + '</div>' +
+        '<div class="r-row"><span>年間の総必要額</span><b>' + yen(need) + '</b></div>' +
+        '<div class="r-row"><span>家庭援助+バイト収入</span><b>' + yen(covered) + '</b></div>' +
+        '<div class="r-row"><span>月あたり換算</span><b>' + (gap>0 ? '約 '+yen(gap/12) : '0 円') + '</b></div>' +
+        '<div class="r-sub">この不足額を目安に、必要な奨学金の月額・種類を検討できます。</div>';
+      actions.innerHTML = '';
+      actionsRow(actions, 'gap', TOOLS.gap.name, function(){
+        return '必要'+yen(need)+' - 収入'+yen(covered)+' → 年間不足額 約'+yen(gap)+'(月換算 約'+yen(gap/12)+')';
+      });
+    }
+    [tuition, living, support, job].forEach(function(i){ i.addEventListener('input', calc); });
+    calc();
+  }
+};
+
+/* ---------- 7. 奨学金の種類まとめ ---------- */
+var SCHOLARSHIP_TYPES = [
+  { badge:'給付型', color:'#4d9a53', name:'給付型奨学金', desc:'返済不要の奨学金。JASSOの給付型のほか、大学独自・地方自治体・民間財団が実施するものがあります。家計基準・成績基準は貸与型より厳しめの傾向です。' },
+  { badge:'貸与型 第一種', color:'#2f5f9e', name:'JASSO 第一種奨学金(無利子)', desc:'日本学生支援機構による無利子の貸与型。家計基準・学力基準がある一方、利息負担がないため返済総額を抑えられます。' },
+  { badge:'貸与型 第二種', color:'#4a7fc9', name:'JASSO 第二種奨学金(有利子)', desc:'日本学生支援機構による有利子の貸与型。第一種より基準が緩やかで、在学中は利息がつかず、貸与月額も選択の幅が広いのが特徴です。' },
+  { badge:'地方自治体', color:'#8a5fd1', name:'都道府県・市区町村の奨学金', desc:'居住地の自治体が独自に実施する奨学金・給付金。地域限定のため情報が見つかりにくく、自治体の公式サイトで直接確認する必要があります。' },
+  { badge:'大学独自', color:'#c9a13f', name:'大学・専門学校独自の奨学金', desc:'進学先の学校が独自に用意している授業料減免・給付制度。入学前予約採用や特待生制度など、出願方法が学校ごとに異なります。' },
+  { badge:'民間財団', color:'#d97a3f', name:'民間企業・財団の奨学金', desc:'企業や公益財団法人が実施する給付型が中心。募集人数が少なく倍率が高い傾向がありますが、返済不要な点が魅力です。' }
+];
+TOOLS.types = {
+  name:'奨学金の種類まとめ', emoji:'📚', sub:'給付型・貸与型・地方自治体・大学独自・民間財団の違いを整理', color:'#5a9e6b',
+  render: function(body){
+    SCHOLARSHIP_TYPES.forEach(function(t){
+      var card = document.createElement('div'); card.className = 'info-card';
+      card.style.setProperty('--card-color', t.color);
+      card.innerHTML = '<div class="badge">' + esc(t.badge) + '</div><div class="t">' + esc(t.name) + '</div><div class="d">' + esc(t.desc) + '</div>';
+      body.appendChild(card);
+    });
+    var link = document.createElement('a');
+    link.href = 'https://www.jasso.go.jp/'; link.target = '_blank'; link.rel = 'noopener';
+    link.className = 'btn btn-primary'; link.style.marginTop = '10px'; link.style.textDecoration = 'none';
+    link.textContent = 'JASSO公式サイトで詳しく見る';
+    body.appendChild(link);
+    var disc = document.createElement('div'); disc.className = 'disclaimer';
+    disc.textContent = '各制度の名称・基準は変更される場合があります。地方自治体・大学独自・民間財団の奨学金は、居住地の自治体サイトや進学先の学校窓口で個別に確認してください。';
+    body.appendChild(disc);
+  }
+};
+
+/* ---------- 8. 出願前チェックリスト ---------- */
+var CHECKLIST_ITEMS = [
+  { id:'income', n:'家計基準を確認した', d:'世帯の収入・所得の基準を、志望する奨学金の募集要項で確認しましたか。' },
+  { id:'grade', n:'成績基準を確認した', d:'評定平均や学力基準が定められている場合、対象になるか確認しましたか。' },
+  { id:'docs', n:'必要書類を確認した', d:'所得証明書・住民票・マイナンバー関連書類など、提出書類を確認しましたか。' },
+  { id:'transcript', n:'成績証明書を準備した', d:'学校から発行してもらう成績証明書・調査書の準備状況です。' },
+  { id:'guarantor', n:'保証制度(人的保証/機関保証)を検討した', d:'貸与型の場合、連帯保証人・保証人を立てるか、保証機関を利用するか選ぶ必要があります。' },
+  { id:'account', n:'振込口座を用意した', d:'奨学金の振込に使う、本人名義の口座を確認・用意しましたか。' },
+  { id:'deadline', n:'締切日を確認した', d:'予約採用・在学採用など、応募時期によって締切が異なります。' },
+  { id:'multiple', n:'複数の制度を比較検討した', d:'JASSO以外にも、大学独自・自治体・民間の制度を比較しましたか。' }
+];
+var CHECK_KEY = 'shogakucalc.checklist.v1';
+TOOLS.checklist = {
+  name:'出願前チェックリスト', emoji:'✅', sub:'奨学金の申し込み前に確認しておきたい項目を整理', color:'#d9973f',
+  render: function(body){
+    var loadChecked = function(){ try{ return JSON.parse(localStorage.getItem(CHECK_KEY)) || {}; }catch(e){ return {}; } };
+    var writeChecked = function(obj){ try{ localStorage.setItem(CHECK_KEY, JSON.stringify(obj)); }catch(e){} };
+    var checked = loadChecked();
+
+    var progWrap = document.createElement('div'); progWrap.className = 'progress-wrap';
+    var progLabel = document.createElement('div');
+    progLabel.style.cssText = 'display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--label);';
+    var progBar = document.createElement('div'); progBar.className = 'progress-bar';
+    var progFill = document.createElement('div'); progFill.className = 'fill';
+    progBar.appendChild(progFill);
+    progWrap.appendChild(progLabel); progWrap.appendChild(progBar);
+    body.appendChild(progWrap);
+
+    var list = document.createElement('div');
+    body.appendChild(list);
+
+    function updateProgress(){
+      var done = CHECKLIST_ITEMS.filter(function(it){ return checked[it.id]; }).length;
+      var pct = Math.round(done / CHECKLIST_ITEMS.length * 100);
+      progLabel.innerHTML = '<span>準備の進み具合</span><span>' + done + ' / ' + CHECKLIST_ITEMS.length + '</span>';
+      progFill.style.width = pct + '%';
+    }
+
+    CHECKLIST_ITEMS.forEach(function(it){
+      var el = document.createElement('div'); el.className = 'check-item' + (checked[it.id] ? ' done' : '');
+      var box = document.createElement('div'); box.className = 'cbox'; box.textContent = checked[it.id] ? '✓' : '';
+      var txt = document.createElement('div'); txt.className = 'txt';
+      txt.innerHTML = '<div class="n">' + esc(it.n) + '</div><div class="d">' + esc(it.d) + '</div>';
+      el.appendChild(box); el.appendChild(txt);
+      el.addEventListener('click', function(){
+        checked[it.id] = !checked[it.id];
+        writeChecked(checked);
+        el.classList.toggle('done', !!checked[it.id]);
+        box.textContent = checked[it.id] ? '✓' : '';
+        updateProgress();
+      });
+      list.appendChild(el);
+    });
+    updateProgress();
+
+    var disc = document.createElement('div'); disc.className = 'disclaimer';
+    disc.textContent = 'このチェックリストは一般的な準備項目の目安です。実際に必要な書類・条件は、応募する奨学金の募集要項で必ず確認してください。';
+    body.appendChild(disc);
+  }
+};
+
+(function renderGrid(){
+  var grid = $('#toolGrid');
+  Object.keys(TOOLS).forEach(function(id){
+    var t = TOOLS[id];
+    var card = document.createElement('button'); card.className = 'card';
+    card.style.setProperty('--card-color', t.color);
+    card.innerHTML = '<div class="icon-badge">' + t.emoji + '</div><div class="name">' + t.name + '</div><div class="desc">' + t.sub + '</div>';
+    card.addEventListener('click', function(){ openTool(id); });
+    grid.appendChild(card);
+  });
+})();
+
+function renderSaved(){
+  var host = $('#savedList');
+  var list = loadSaved();
+  host.innerHTML = '';
+  if(!list.length){
+    host.innerHTML = '<div class="empty">まだ保存した計算はありません。<br>各ツールの「この結果を保存」から追加できます。</div>';
+    return;
+  }
+  list.forEach(function(item){
+    var el = document.createElement('div'); el.className='saved-item';
+    var toolColor = TOOLS[item.toolId] ? TOOLS[item.toolId].color : null;
+    if(toolColor) el.style.setProperty('--item-color', toolColor);
+    var date = new Date(item.ts);
+    var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate() + ' ' +
+      String(date.getHours()).padStart(2,'0') + ':' + String(date.getMinutes()).padStart(2,'0');
+    el.innerHTML = '<div><div style="font-weight:900;font-size:13px">' + esc(item.toolName) + '</div>' +
+      '<div style="font-size:12px;margin-top:3px">' + esc(item.summary) + '</div>' +
+      '<div class="meta">' + dateStr + '</div></div>';
+    var del = document.createElement('button'); del.className='del'; del.textContent='🗑'; del.setAttribute('aria-label','この保存を削除');
+    del.addEventListener('click', function(){
+      writeSaved(loadSaved().filter(function(x){ return x.id !== item.id; }));
+      renderSaved();
+    });
+    el.appendChild(del);
+    host.appendChild(el);
+  });
+}
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+
+(function initWebAds(){
+  if(!window.adsbygoogle) return;
+  var ins = document.querySelector('#adSlot ins.adsbygoogle');
+  if(!ins || ins.dataset.adClient.indexOf('XXXX') !== -1) return;
+  var placeholder = $('#adPlaceholder');
+  ins.hidden = false;
+  ins.style.display = 'block';
+  if(placeholder) placeholder.style.display = 'none';
+  try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){ console.warn('AdSense push failed', e); }
+})();
+})();
+</script>
+</body>
+</html>
