@@ -410,6 +410,7 @@ var TARGET_META = {
   medical: '医学・薬学・医療分野を専攻',
   teacher: '教職を目指している',
   welfare: '福祉系資格(保育士・社会福祉士等)の取得を目指す',
+  sports: 'トップレベルで競技スポーツに取り組んでいる',
   carexp: '児童養護施設・里親家庭など社会的養護の経験がある',
   ryugakusei: '日本に留学している外国人留学生',
   uturn: '卒業後に地元/特定地域で就職・居住する人'
@@ -807,6 +808,55 @@ var SCHOLARSHIPS = [
     amount:'月額5万円(2年間で合計120万円、12名程度)',
     desc:'理系学部・学科に所属する大学3年生・大学院修士1年生の女性を対象にした給付型奨学金。通信教育課程・夜間学部は対象外です。',
     url:'https://www.megachips.co.jp/sustainability/social/contribution/scholarship/'
+  },
+  {
+    name:'奨学生募集', org:'公益財団法人 みずほ農場教育財団', type:'grant',
+    targets:['income'],
+    amount:'月額3万円(総額144万円)',
+    desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。',
+    url:'https://www.mizuho-ef.or.jp/information/'
+  },
+  {
+    name:'ASJ財団 給付型奨学金', org:'公益財団法人 ASJ財団', type:'grant',
+    targets:['income'],
+    amount:'月額3万円',
+    desc:'東京都の指定大学に所属する学部2〜4年生・修士1〜2年生・博士1〜3年生が対象の給付型奨学金。学部の制限がなく、他の奨学金との併給制限もありません。',
+    url:'https://www.asjf.or.jp/'
+  },
+  {
+    name:'給付型奨学金', org:'公益財団法人 石井育英会', type:'grant',
+    targets:['income'],
+    amount:'月額5万円(年額60万円)',
+    desc:'福岡県内の大学に在学し、経済的理由により修学が困難(世帯年収600万円以下目安、兄弟姉妹が本人含め3人以上の場合700万円以下)な学業優秀な学生を対象にした給付型奨学金。福岡県内の大学限定です。',
+    url:'https://www.ishii-zaidan.or.jp/university/scholarship.html'
+  },
+  {
+    name:'スポーツ活動奨学事業', org:'公益財団法人 和佐見丸和財団', type:'grant',
+    targets:['sports'],
+    amount:'30万円(一括、30名程度)',
+    desc:'大学公認の運動部に在籍し、国内大会で入賞以上の成績を収めた学部1〜3年生を対象にした給付型奨学金。指導者の推薦が必要です。',
+    url:'https://maruwa-foundation.or.jp/sports/'
+  },
+  {
+    name:'スポーツ選手支援事業', org:'公益財団法人 上月財団', type:'grant',
+    targets:['sports'],
+    amount:'年額120万円(月額10万円)',
+    desc:'オリンピック競技大会や世界選手権大会等への出場を目指すアマチュアスポーツ選手を対象にした給付型の支援事業。',
+    url:'https://www.kozuki-foundation.or.jp/'
+  },
+  {
+    name:'奨学事業', org:'公益財団法人 ヨネックススポーツ振興財団', type:'grant',
+    targets:['sports'],
+    amount:'区分・年齢により異なる(詳細は公式サイトで要確認)',
+    desc:'スポーツ振興を目指すジュニアアスリートや将来の指導者を目指す人(10歳以上30歳未満、海外からの留学生を含む)を対象にした給付型の奨学事業。',
+    url:'https://www.yonexsports-f.or.jp/scholarship/'
+  },
+  {
+    name:'アイザワ記念育英財団 奨学金', org:'公益財団法人 アイザワ記念育英財団', type:'grant',
+    targets:['income','ryugakusei'],
+    amount:'月額3.5万円(学部)・5万円(大学院)',
+    desc:'学業優秀・品行方正でありながら経済的理由により修学が困難な、大学・大学院に学ぶ日本人学生および外国人留学生を対象にした給付型奨学金。',
+    url:'http://aizawa-ikuei.org/'
   }
 ];
 
@@ -825,7 +875,10 @@ var PRESETS = [
   { label:'🔬 理工系を専攻している', types:[], targets:['stem'] },
   { label:'🆘 急に家計が苦しくなった', types:[], targets:['emergency'] },
   { label:'♀️ 女子学生です', types:[], targets:['women'] },
-  { label:'🎵 音楽・芸術系を専攻', types:[], targets:['arts'] }
+  { label:'🎵 音楽・芸術系を専攻', types:[], targets:['arts'] },
+  { label:'🏅 競技スポーツに取り組んでいる', types:[], targets:['sports'] },
+  { label:'👩‍🏫 教職を目指している', types:[], targets:['teacher'] },
+  { label:'🧸 福祉系資格を目指している', types:[], targets:['welfare'] }
 ];
 
 function applyPreset(preset){
