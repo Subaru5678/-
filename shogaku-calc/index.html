@@ -329,8 +329,6 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
           <p>当てはまるものをタップしてください。複数選んでから、まとめて検索できます。</p>
         </div>
         <div class="filter-sec">
-          <div class="flabel">よくある状況から探す</div>
-          <div class="chip-row" id="presetRow"></div>
           <div class="flabel">返済タイプ</div>
           <div class="chip-row" id="filterType"></div>
           <div class="flabel">対象となる家庭状況</div>
@@ -1530,40 +1528,6 @@ function regionsInUse(){
   return PREF_ORDER.filter(function(p){ return set[p]; });
 }
 
-var PRESETS = [
-  { label:'💸 とにかく返済したくない', types:['grant'], targets:[] },
-  { label:'👪 ひとり親・遺児家庭', types:[], targets:['bereaved','traffic'] },
-  { label:'🚗 交通事故で保護者を亡くした', types:[], targets:['traffic'] },
-  { label:'🏠 児童養護施設・里親家庭の出身', types:[], targets:['carexp'] },
-  { label:'🌏 留学生です', types:[], targets:['ryugakusei'] },
-  { label:'📍 卒業後は地元で働く予定', types:[], targets:['uturn'] },
-  { label:'♿ 障がいがある(本人)', types:[], targets:['disability_student'] },
-  { label:'🔬 理工系を専攻している', types:[], targets:['stem'] },
-  { label:'🆘 急に家計が苦しくなった', types:[], targets:['emergency'] },
-  { label:'♀️ 女子学生です', types:[], targets:['women'] },
-  { label:'🎵 音楽・芸術系を専攻', types:[], targets:['arts'] },
-  { label:'🏅 競技スポーツに取り組んでいる', types:[], targets:['sports'] },
-  { label:'👩‍🏫 教職を目指している', types:[], targets:['teacher'] },
-  { label:'🧸 福祉系資格を目指している', types:[], targets:['welfare'] }
-];
-
-function applyPreset(preset){
-  activeTypes = {}; activeTargets = {};
-  preset.types.forEach(function(t){ activeTypes[t] = true; });
-  preset.targets.forEach(function(t){ activeTargets[t] = true; });
-  syncChipStates();
-}
-
-function syncChipStates(){
-  $$('#filterType .chip').forEach(function(chip){
-    chip.classList.toggle('active', !!activeTypes[chip.dataset.key]);
-  });
-  $$('#filterTarget .chip').forEach(function(chip){
-    chip.classList.toggle('active', !!activeTargets[chip.dataset.key]);
-  });
-  updateLiveCount();
-}
-
 function getMatched(){
   var typeKeys = Object.keys(activeTypes).filter(function(k){ return activeTypes[k]; });
   var targetKeys = Object.keys(activeTargets).filter(function(k){ return activeTargets[k]; });
@@ -1581,17 +1545,6 @@ function getMatched(){
 function updateLiveCount(){
   var n = getMatched().length;
   $('#liveCount').textContent = n + ' 件';
-}
-
-function renderPresetChips(){
-  var host = $('#presetRow'); host.innerHTML = '';
-  PRESETS.forEach(function(preset){
-    var chip = document.createElement('button'); chip.className = 'chip'; chip.type = 'button';
-    chip.style.setProperty('--chip-color', 'var(--accent2)');
-    chip.textContent = preset.label;
-    chip.addEventListener('click', function(){ applyPreset(preset); });
-    host.appendChild(chip);
-  });
 }
 
 function renderFilterChips(){
@@ -1839,7 +1792,6 @@ $('#calcToggle').addEventListener('click', function(){
   if(opening && !calcBuilt){ buildCalcPanel(panel); calcBuilt = true; }
 });
 
-renderPresetChips();
 renderFilterChips();
 updateLiveCount();
 updateFavCount();
