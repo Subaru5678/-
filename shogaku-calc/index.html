@@ -106,6 +106,11 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 .btn-go:active{ transform:translateY(1px) scale(.99); }
 .btn-go .cnt-badge{ background:rgba(255,255,255,.25); padding:2px 9px; border-radius:20px; font-size:12px; }
 
+.btn-more{ width:100%; display:block; text-align:center; padding:13px; margin-top:4px;
+  border-radius:12px; background:var(--panel); border:1px solid var(--line); color:var(--accent);
+  font-weight:800; font-size:13.5px; transition:transform .1s; }
+.btn-more:active{ transform:translateY(1px) scale(.99); }
+
 .s-card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:16px;
   padding:16px; margin-bottom:10px; overflow:hidden; }
 .s-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--type-color,var(--accent)); }
@@ -3465,9 +3470,10 @@ function scholarshipCard(s, favActive){
   return card;
 }
 
+var RESULTS_PAGE_SIZE = 30;
+
 function renderResults(){
   var host = $('#resultList');
-  var favs = loadFavs();
   var matched = getMatched();
   $('#resultCount').textContent = matched.length + ' 件 / 全' + SCHOLARSHIPS.length + '件';
   host.innerHTML = '';
@@ -3475,9 +3481,26 @@ function renderResults(){
     host.innerHTML = '<div class="empty">条件に合う奨学金が見つかりませんでした。<br>条件を減らして試してみてください。</div>';
     return;
   }
-  matched.forEach(function(s){
+  renderResultsPage(matched, 0);
+}
+
+function renderResultsPage(matched, shown){
+  var host = $('#resultList');
+  var favs = loadFavs();
+  var moreBtn = $('#resultsMoreBtn');
+  if(moreBtn) moreBtn.remove();
+  var nextChunk = matched.slice(shown, shown + RESULTS_PAGE_SIZE);
+  nextChunk.forEach(function(s){
     host.appendChild(scholarshipCard(s, favs.indexOf(s.name) !== -1));
   });
+  var shownNow = shown + nextChunk.length;
+  if(shownNow < matched.length){
+    var btn = document.createElement('button');
+    btn.id = 'resultsMoreBtn'; btn.type = 'button'; btn.className = 'btn-more';
+    btn.textContent = 'もっと見る(あと ' + (matched.length - shownNow) + ' 件)';
+    btn.addEventListener('click', function(){ renderResultsPage(matched, shownNow); });
+    host.appendChild(btn);
+  }
 }
 
 function renderSaved(){
