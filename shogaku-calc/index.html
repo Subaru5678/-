@@ -409,6 +409,7 @@ var TARGET_META = {
   arts: '音楽・芸術分野を専攻',
   medical: '医学・薬学・医療分野を専攻',
   teacher: '教職を目指している',
+  welfare: '福祉系資格(保育士・社会福祉士等)の取得を目指す',
   carexp: '児童養護施設・里親家庭など社会的養護の経験がある',
   ryugakusei: '日本に留学している外国人留学生',
   uturn: '卒業後に地元/特定地域で就職・居住する人'
@@ -764,6 +765,48 @@ var SCHOLARSHIPS = [
     amount:'月額5万円(大学)・6万円(大学院)',
     desc:'学業成績優秀で健康な学生のうち、保護者の年収が目安1,000万円以下で経済的援助を必要とする学生を対象にした無利子の貸与型奨学金。貸与終了後6ヶ月を経過してから20年以内に返済します。',
     url:'https://www.disclo-koeki.org/02b/00476/'
+  },
+  {
+    name:'イオン スカラシップ', org:'公益財団法人 イオン1%クラブ', type:'grant',
+    targets:['ryugakusei'],
+    amount:'授業料上限150万円/年+生活費月額10万円',
+    desc:'日本の大学等で学ぶアジア各国・地域からの私費留学生を対象にした給付型奨学金。奨学生同士の交流会や宿泊研修なども提供されます。',
+    url:'https://aeon1p.or.jp/1p/international/scholarship/'
+  },
+  {
+    name:'安田奨学財団 奨学金(日本人学生一般枠)', org:'公益財団法人 安田奨学財団', type:'grant',
+    targets:['income'],
+    amount:'月額10万円(年額120万円)',
+    desc:'法学・経済学・経営学・商学系の学部に在籍する大学生を対象にした給付型奨学金。',
+    url:'https://www.yasuda-zaidan.or.jp/'
+  },
+  {
+    name:'HIOKI奨学・緑化基金', org:'公益財団法人 HIOKI奨学・緑化基金', type:'grant',
+    targets:['stem'],
+    amount:'月額8万円(年額96万円、20〜30名)',
+    desc:'長野県内の高校を卒業し、理工系の4年制大学に進学した学生を対象にした給付型奨学金。4年間給付され、大学院進学者はさらに修士課程2年間も給付対象です。長野県出身者限定です。',
+    url:'https://zaidan.hioki.co.jp/scholarship/'
+  },
+  {
+    name:'篠原欣子記念財団 一般奨学金', org:'一般財団法人 篠原欣子記念財団', type:'grant',
+    targets:['welfare'],
+    amount:'月額4.5万円(2年間、継続審査で最大修業年限まで延長可)',
+    desc:'保育士・社会福祉士・精神保健福祉士・介護福祉士などの社会福祉系国家資格や幼稚園教諭免許状の取得を目指す、関東地方および山梨・長野・静岡の学校に在籍する学生を対象にした給付型奨学金。',
+    url:'https://ysmf.or.jp/'
+  },
+  {
+    name:'STEM(理系)女子奨学助成金', org:'公益財団法人 山田進太郎D&I財団', type:'grant',
+    targets:['women','stem'],
+    amount:'10万円(一括給付、500名程度)',
+    desc:'理系分野への進学を目指す女子学生を対象にした一括給付型の奨学助成金。所得制限なし、成績書類の提出も不要です。',
+    url:'https://shinfdn.org/scholarship2026'
+  },
+  {
+    name:'理系女子学生就学支援奨学金', org:'株式会社メガチップス', type:'grant',
+    targets:['women','stem'],
+    amount:'月額5万円(2年間で合計120万円、12名程度)',
+    desc:'理系学部・学科に所属する大学3年生・大学院修士1年生の女性を対象にした給付型奨学金。通信教育課程・夜間学部は対象外です。',
+    url:'https://www.megachips.co.jp/sustainability/social/contribution/scholarship/'
   }
 ];
 
