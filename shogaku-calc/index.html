@@ -331,6 +331,8 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
         <div class="filter-sec">
           <div class="flabel">返済タイプ</div>
           <div class="chip-row" id="filterType"></div>
+          <div class="flabel">申し込める学校種別</div>
+          <div class="chip-row" id="filterLevel"></div>
           <div class="flabel">対象となる家庭状況</div>
           <div class="chip-row" id="filterTarget"></div>
           <div class="flabel">お住まい・在学予定の地域(任意・地域限定の制度を絞り込めます)</div>
@@ -423,11 +425,19 @@ var TARGET_META = {
   ryugakusei: '日本に留学している外国人留学生',
   uturn: '卒業後に地元/特定地域で就職・居住する人'
 };
+var LEVEL_META = {
+  highschool: '高校生(高専1〜3年・中等教育後期課程等を含む)',
+  university: '大学生・短大生',
+  vocational: '専門学校生(専修学校・養成施設等)',
+  graduate: '大学院生',
+  other: 'その他(社会人・既卒者・研修医など)'
+};
 
 var SCHOLARSHIPS = [
   {
     name:'第一種奨学金(無利子)', org:'日本学生支援機構(JASSO)', type:'loan0',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額2万円〜6.4万円程度(学校種別・自宅通学か等で選択)',
     desc:'国が運営する最大手の奨学金制度。利息がつかない貸与型で、世帯の家計基準・学力基準を満たす必要があります。',
     url:'https://www.jasso.go.jp/shogakukin/about/taiyo/index.html'
@@ -435,6 +445,7 @@ var SCHOLARSHIPS = [
   {
     name:'第二種奨学金(有利子)', org:'日本学生支援機構(JASSO)', type:'loan1',
     targets:['all'],
+    levels:['university','vocational'],
     amount:'月額2万円〜12万円の中から選択(在学中は無利子)',
     desc:'第一種より基準が緩やかで、貸与月額の選択肢も広い有利子の貸与型。在学中は利息がつかず、卒業後に返済が始まります。',
     url:'https://www.jasso.go.jp/shogakukin/about/taiyo/taiyo_2shu/index.html'
@@ -442,6 +453,7 @@ var SCHOLARSHIPS = [
   {
     name:'高等教育の修学支援新制度(給付型奨学金+授業料等減免)', org:'文部科学省 / JASSO', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'授業料・入学金の減免に加え、給付型奨学金を支給(世帯収入の区分により金額が変動)',
     desc:'住民税非課税世帯およびそれに準ずる世帯の学生が対象。授業料等の減免と給付型奨学金がセットになった制度です。',
     url:'https://www.jasso.go.jp/shogakukin/about/kyufu/index.html'
@@ -449,6 +461,7 @@ var SCHOLARSHIPS = [
   {
     name:'あしなが育英会 奨学金', org:'あしなが育英会', type:'mixed',
     targets:['bereaved','disability'],
+    levels:['university','vocational'],
     amount:'月額最大7万円程度(給付4万円+無利子貸与3万円が目安。内訳は制度により異なる)',
     desc:'保護者が病気・災害・自死(自殺)で亡くなった家庭、または保護者が障がいにより就労が困難な家庭の子どもを対象とした民間奨学金。',
     url:'https://www.ashinaga.org/scholarship/'
@@ -456,6 +469,7 @@ var SCHOLARSHIPS = [
   {
     name:'給付型奨学金', org:'公益財団法人キーエンス財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'月額12万円を4年間給付(返済不要)',
     desc:'新入生を対象にした返済不要の給付型奨学金。文系・理系を問わず募集しています。',
     url:'https://www.keyence-foundation.or.jp/scholarship01/'
@@ -463,6 +477,7 @@ var SCHOLARSHIPS = [
   {
     name:'応援給付金', org:'公益財団法人キーエンス財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'一括30万円を給付(返済不要)',
     desc:'国内の4年制大学の在学生を対象にした一括給付型の支援金。文系・理系を問いません。',
     url:'https://www.keyence-foundation.or.jp/scholarship02/'
@@ -470,6 +485,7 @@ var SCHOLARSHIPS = [
   {
     name:'似鳥国際奨学財団 奨学金', org:'公益財団法人 似鳥国際奨学財団', type:'grant',
     targets:['income'],
+    levels:['university','highschool'],
     amount:'制度・区分により異なる(公式サイトで要確認)',
     desc:'経済的理由により就学が困難な中学生・高校生・大学生・留学生を対象にした給付型奨学金です。',
     url:'https://www.nitori-shougakuzaidan.com/'
@@ -477,6 +493,7 @@ var SCHOLARSHIPS = [
   {
     name:'夢の奨学金', org:'日本財団', type:'grant',
     targets:['carexp'],
+    levels:['university','vocational'],
     amount:'入学金・授業料全額、生活費(月3〜10万円)、転居費用・教材費など',
     desc:'児童養護施設や里親家庭出身など、社会的養護のもとで育った18〜30歳の若者を対象にした給付型奨学金。ソーシャルワーカーによる伴走支援つき。',
     url:'https://dreamscholarship.jp/'
@@ -484,6 +501,7 @@ var SCHOLARSHIPS = [
   {
     name:'交通遺児育英会 奨学金', org:'公益財団法人 交通遺児育英会', type:'mixed',
     targets:['traffic'],
+    levels:['graduate'],
     amount:'月額5万円・8万円・10万円から選択(大学院の例。いずれも一部給付を含む)',
     desc:'保護者が道路上の交通事故で死亡、または重度の後遺障害を負った家庭の生徒・学生を対象にした奨学金。学生寮の提供など生活サポートも行っています。',
     url:'https://www.kotsuiji.com/'
@@ -491,6 +509,7 @@ var SCHOLARSHIPS = [
   {
     name:'米山記念奨学金', org:'公益財団法人 ロータリー米山記念奨学会', type:'grant',
     targets:['ryugakusei'],
+    levels:['university','vocational'],
     amount:'制度・区分により異なる(公式サイトで要確認)',
     desc:'日本に在留する外国人留学生を対象にした、民間では国内最大規模の給付型奨学金。全国のロータリークラブ会員の寄付が財源です。',
     url:'https://www.rotary-yoneyama.or.jp/'
@@ -498,6 +517,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金返還支援制度(地方公共団体)', org:'都道府県・市区町村(JASSO経由で紹介)', type:'support',
     targets:['uturn'],
+    levels:['other'],
     amount:'返還額の一部〜全額を自治体が補助(制度により異なる)',
     desc:'新たに奨学金を借りる制度ではなく、すでに借りているJASSO等の奨学金について、卒業後にその地域へ就職・居住することを条件に、返還を自治体が肩代わりしてくれる仕組み。2025年6月時点で47都道府県・876市区町村が実施。',
     url:'https://www.jasso.go.jp/shogakukin/chihoshien/sosei/index.html'
@@ -505,6 +525,7 @@ var SCHOLARSHIPS = [
   {
     name:'電通育英会 奨学金', org:'公益財団法人 電通育英会', type:'grant',
     targets:['income'],
+    levels:['graduate','university','highschool'],
     amount:'入学一時金30万円+月額8万円(大学在学中、最長4年間)。大学院は月額10万円',
     desc:'国公立高校3年生で、学業・人物ともに優秀(評定平均4.0以上目安)、かつ住民税課税所得が一定額未満の家庭の生徒を対象にした予約採用型の給付型奨学金。財団の指定校への進学が条件です。',
     url:'https://www.dentsu-ikueikai.or.jp/scholarship/'
@@ -512,6 +533,7 @@ var SCHOLARSHIPS = [
   {
     name:'夢を応援基金(ひとり親家庭支援奨学金制度)', org:'一般財団法人 全国母子寡婦福祉団体協議会', type:'grant',
     targets:['bereaved'],
+    levels:['university','vocational'],
     amount:'月額3万円(1年間給付、継続申請も可能。他の奨学金との併用可)',
     desc:'ひとり親世帯(母子・父子家庭など)で就学が経済的に困難な生徒を対象にした返済不要の給付型奨学金。ローソングループの協力のもと、全国で約400名を支援しています。',
     url:'https://www.zenbo.org/'
@@ -519,6 +541,7 @@ var SCHOLARSHIPS = [
   {
     name:'障がいのある大学生への奨学金', org:'公益財団法人 ヤマト福祉財団', type:'grant',
     targets:['disability_student'],
+    levels:['graduate','university'],
     amount:'月額5万円(4年間で最大240万円、返済不要)',
     desc:'障害者手帳を保有し、国内4年制・6年制大学に在学(または入学内定)している学生を対象にした給付型奨学金。大学院・通信制大学は対象外で、学校からの推薦が必要です。',
     url:'https://www.yamato-fukushi.jp/works/scholarship.html'
@@ -526,6 +549,7 @@ var SCHOLARSHIPS = [
   {
     name:'戸部眞紀財団 奨学金', org:'公益財団法人 戸部眞紀財団', type:'grant',
     targets:['income'],
+    levels:['graduate'],
     amount:'月額6万円(学部)・7万円(大学院)。最長4年間',
     desc:'学業優秀で品行方正な、学部3年生以上・大学院生(30歳以下)を対象にした給付型奨学金。JSPS特別研究員等の採用者は半額になります。',
     url:'https://tobe-maki.or.jp/'
@@ -533,6 +557,7 @@ var SCHOLARSHIPS = [
   {
     name:'日本通運交通遺児等支援奨学金', org:'公益財団法人 日本通運育英会', type:'grant',
     targets:['traffic'],
+    levels:['university'],
     amount:'月額3万円(返済不要、正規の最短修学期間)',
     desc:'交通事故により保護者を亡くした、保護者が重度の心身障害を負った、または学生本人が交通事故により障害・傷病を負った4年制・6年制大学の学部生を対象にした給付型奨学金。',
     url:'http://www.nittsu-ikueikai.or.jp/'
@@ -540,6 +565,7 @@ var SCHOLARSHIPS = [
   {
     name:'パナソニック エナジー MIRAI奨学金', org:'パナソニックエナジー株式会社', type:'grant',
     targets:['stem'],
+    levels:['graduate','university'],
     amount:'年額50万円(返済不要、最長2年間)',
     desc:'電池業界の発展への貢献を志す理系の大学3年生・大学院修士1年生を対象にした給付型奨学金。技術社員との交流プログラムへの参加が条件です。',
     url:'https://energy-sp.panasonic.com/jp/recruit/scholarship/mirai01'
@@ -547,6 +573,7 @@ var SCHOLARSHIPS = [
   {
     name:'三菱UFJ信託奨学財団 奨学金', org:'公益財団法人 三菱UFJ信託奨学財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'月数万円(2026年4月より増額。指定大学経由での募集)',
     desc:'財団の指定する大学の指定学部に在籍する4年制大学2年生以上(23歳以下目安)で、家計基準(父母の年収合計800万円未満が目安)を満たす学生が対象。応募は所属大学の奨学金窓口を通じてのみ行えます。',
     url:'https://www.scholarship.or.jp/'
@@ -554,6 +581,7 @@ var SCHOLARSHIPS = [
   {
     name:'家計急変・緊急採用(被災・家計急変時の奨学金)', org:'日本学生支援機構(JASSO)', type:'mixed',
     targets:['emergency'],
+    levels:['university','vocational'],
     amount:'制度により異なる(緊急採用・応急採用は貸与型、家計急変採用は給付型)',
     desc:'生計維持者の失職・破産・事故・病気・死亡、火災や風水害などの災害により家計が急変した場合に、年間を通じていつでも申し込める緊急の奨学金制度。通常の予約採用・在学採用とは別枠です。',
     url:'https://www.jasso.go.jp/shogakukin/moshikomi/rinji/index.html'
@@ -561,6 +589,7 @@ var SCHOLARSHIPS = [
   {
     name:'大学女性協会 一般奨学金', org:'一般社団法人 大学女性協会(JAUW)', type:'grant',
     targets:['women'],
+    levels:['graduate','university'],
     amount:'20万円(1回限りの給付)。採用は全体で数名程度',
     desc:'大学院に1年以上在籍する女子学生を対象にした給付型奨学金。所得制限・専攻分野の指定はなく、学業・人物ともに優れた人が対象です。学部生は対象外です。',
     url:'https://www.jauw.org/scholarship-information/ippansyougakukin/'
@@ -568,6 +597,7 @@ var SCHOLARSHIPS = [
   {
     name:'DAISO財団 給付型奨学金', org:'公益財団法人 DAISO財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'月額5万円(年額60万円)、最長4年間',
     desc:'経済的な支援を必要とする学業優秀な大学生を対象にした給付型奨学金。世帯年収による一律の足切りは設けられていません。',
     url:'https://daiso-zaidan.or.jp/'
@@ -575,6 +605,7 @@ var SCHOLARSHIPS = [
   {
     name:'サカタ財団奨学金', org:'公益財団法人 サカタ財団', type:'grant',
     targets:['all'],
+    levels:['graduate','university'],
     amount:'月額7万円(給付型)',
     desc:'大学2年生、または大学院修士課程・博士課程前期1年生の日本国籍を持つ学生が対象。JASSOや所属校からの奨学金を除き、他の奨学金を受給していないことが条件です。',
     url:'https://sakatazaidan.or.jp/scholarship/'
@@ -582,6 +613,7 @@ var SCHOLARSHIPS = [
   {
     name:'青山音楽財団 奨学金', org:'公益財団法人 青山音楽財団', type:'grant',
     targets:['arts'],
+    levels:['university'],
     amount:'月額5万円(年額60万円)',
     desc:'音楽大学・音楽学部に在籍する学生を対象にした給付型奨学金。財団が指定する全国11の音楽大学等からの推薦制のため、対象校に在籍していることが前提です。',
     url:'https://aoyama-music-foundation.or.jp/scholarship/'
@@ -589,6 +621,7 @@ var SCHOLARSHIPS = [
   {
     name:'コカ・コーラ奨学生(新大学1年生対象)', org:'公益財団法人 コカ・コーラ教育・環境財団', type:'grant',
     targets:['income'],
+    levels:['university','highschool'],
     amount:'月額2万円(20名程度)',
     desc:'経済的理由により修学が困難な、新大学1年生を対象にした給付型奨学金。高校在学中に予約採用の形で応募します。',
     url:'https://www.cocacola-zaidan.jp/edu-support/scholarship01.html'
@@ -596,6 +629,7 @@ var SCHOLARSHIPS = [
   {
     name:'木下記念事業団 奨学資金(学部奨学生)', org:'公益財団法人 木下記念事業団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'年額60万円(総額240万円)',
     desc:'経済的理由により修学が困難な、学業優秀な学部生を対象にした給付型奨学金。',
     url:'https://www.k-zaidan.or.jp/plan.html'
@@ -603,6 +637,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金助成', org:'公益財団法人 G-7奨学財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'上限120万円(単年度。標準修業年限の範囲で継続申請可)',
     desc:'経済的理由により修学が困難な学生を対象にした給付型奨学金。継続申請により複数年にわたり支援を受けられる場合があります。',
     url:'https://g-7foundation.or.jp/syougaku.html'
@@ -610,6 +645,7 @@ var SCHOLARSHIPS = [
   {
     name:'育英奨学金', org:'一般財団法人 守谷育英会', type:'grant',
     targets:['income'],
+    levels:['graduate','university','highschool'],
     region:['東京都'],
     amount:'月額14万円(大学)・17万円(大学院)・4万円(高校)',
     desc:'東京都内の学校に在学、または東京都内在住で学校に在学する、学業優秀で経済的理由により修学が困難な生徒・学生を対象にした給付型奨学金。',
@@ -618,6 +654,7 @@ var SCHOLARSHIPS = [
   {
     name:'クリエイター奨学金', org:'公益財団法人 クマ財団', type:'grant',
     targets:['arts'],
+    levels:['university','vocational'],
     amount:'年額120万円(最大50名程度)',
     desc:'アート・デザイン・音楽・テクノロジーなどジャンルを問わず、新しい価値の創造を志す25歳以下の学生クリエイターを対象にした給付型奨学金。資金だけでなく合宿や成果発表の機会も提供されます。',
     url:'https://kuma-foundation.org/scholarship/guideline/'
@@ -625,6 +662,7 @@ var SCHOLARSHIPS = [
   {
     name:'栗林育英学術財団 奨学金', org:'公益財団法人 栗林育英学術財団', type:'grant',
     targets:['income'],
+    levels:['graduate'],
     amount:'月額3万円(学部)・3.5万円(大学院修士)',
     desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。',
     url:'https://kuribayashi.org/'
@@ -632,6 +670,7 @@ var SCHOLARSHIPS = [
   {
     name:'服部奨学金', org:'公益財団法人 服部国際奨学財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額12万円(2年間)',
     desc:'経済的理由により修学が困難な学生を対象にした給付型奨学金。2025年4月から給付月額が増額されました。',
     url:'https://hattori-zaidan.or.jp/scholarship/'
@@ -639,6 +678,7 @@ var SCHOLARSHIPS = [
   {
     name:'杉山奨学財団 奨学金', org:'公益財団法人 杉山奨学財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'年額48万円(学部3・4年次の2年間)',
     desc:'国内の大学の経済系学部に在籍する学部3年生(25歳以下)で、経済的理由により学費の支弁が困難な学生を対象にした給付型奨学金。経済系学部限定です。',
     url:'https://www.sugiyama-zaidan.org/shogakukin/'
@@ -646,6 +686,7 @@ var SCHOLARSHIPS = [
   {
     name:'ダイオーズ記念財団 奨学金', org:'公益財団法人 ダイオーズ記念財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'月額3万円(約100名)',
     desc:'東京都および近隣1県の大学2年生以上・大学院生で、GPA3.0以上かつ経済的理由により修学が困難な学生を対象にした給付型奨学金。他の奨学金との併用も可能です。',
     url:'http://www.daiohs-zaidan.or.jp/?lang=en'
@@ -653,6 +694,7 @@ var SCHOLARSHIPS = [
   {
     name:'クロサワ育成財団 奨学金', org:'公益財団法人 クロサワ育成財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     region:['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県'],
     amount:'年額36万円(総額144万円、10名程度)',
     desc:'北海道・東北地方(青森・岩手・宮城・秋田・山形・福島)の大学・大学院・短大に在学し、経済的理由により修学が困難な、学業優秀で品行方正な学生を対象にした給付型奨学金。対象地域の学校に在学していることが条件です。',
@@ -661,6 +703,7 @@ var SCHOLARSHIPS = [
   {
     name:'江間忠木材振興財団 奨学金', org:'公益財団法人 江間忠木材振興財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university','highschool'],
     amount:'月額2万円程度(財団指定校)',
     desc:'財団が指定する高校・大学・大学院で林業・木材分野を専攻し、財団の学力・家計基準を満たす学生を対象にした給付型奨学金。分野・指定校が限定されています。',
     url:'http://www.emachu-foundation.or.jp/scholarship'
@@ -668,6 +711,7 @@ var SCHOLARSHIPS = [
   {
     name:'蔵人記念財団 奨学金', org:'公益財団法人 蔵人記念財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'月額4万円(大学在学中、年ごと更新)',
     desc:'農学部・畜産学部・水産学部など(獣医学を除く)に在籍する大学1年生で、世帯年収が目安400万円以下の学生を対象にした給付型奨学金。「食」を学ぶ分野限定です。',
     url:'https://www.kurodo-foundation.or.jp/'
@@ -675,6 +719,7 @@ var SCHOLARSHIPS = [
   {
     name:'古河記念基金 奨学金', org:'公益財団法人 古河記念基金', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'月額3.5万円(自宅通学)・4万円(自宅外通学)',
     desc:'理工科系専攻(金属・資源関係を優先)の学部2年生以上・大学院生で、経済的理由により修学が困難な学生を対象にした給付型奨学金。大学推薦枠が中心で、応募は所属大学を通じて行います。',
     url:'https://www.disclo-koeki.org/08a/00991/index.html'
@@ -682,6 +727,7 @@ var SCHOLARSHIPS = [
   {
     name:'ファスキア奨学財団 奨学金', org:'公益財団法人 ファスキア奨学財団', type:'grant',
     targets:['medical'],
+    levels:['university','vocational'],
     amount:'年額24万円〜48万円(分野・課程により異なる)',
     desc:'医学・薬学・医療分野(医師・薬剤師養成課程、医療・福祉分野など)を専攻する学生を対象にした給付型奨学金。',
     url:'https://fascia-sf.or.jp/'
@@ -689,6 +735,7 @@ var SCHOLARSHIPS = [
   {
     name:'中董奨学会 奨学金', org:'公益財団法人 中董奨学会', type:'grant',
     targets:['income'],
+    levels:['graduate'],
     amount:'月額5万円(最長2年間、総額120万円)',
     desc:'経済的理由により修学が困難な、学部3年生・大学院1年生程度を対象にした給付型奨学金。一般公募と指定校推薦を合わせて約50名を採用します。',
     url:'https://www.nakashima-foundation.org/scholarship/'
@@ -696,6 +743,7 @@ var SCHOLARSHIPS = [
   {
     name:'大塚敏美育英奨学財団 奨学金', org:'公益財団法人 大塚敏美育英奨学財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'年額100万〜200万円(他の奨学金と併給の場合は年額50万円)',
     desc:'経済的理由により修学が困難な学生を対象にした給付型奨学金。他の奨学金との合計額に上限があるため、併用時は減額されます。',
     url:'https://www.otsukafoundation.org/guide/'
@@ -703,6 +751,7 @@ var SCHOLARSHIPS = [
   {
     name:'留学支援事業', org:'公益財団法人 業務スーパージャパンドリーム財団', type:'grant',
     targets:['all'],
+    levels:['university','vocational'],
     amount:'月額15万円または20万円+留学一時金15万円または25万円(留学先地域により異なる)',
     desc:'海外留学を目指す学生を対象にした給付型の留学支援奨学金。業務スーパーを展開する神戸物産グループの財団が運営しています。',
     url:'https://www.kobebussan.or.jp/overseas.php'
@@ -710,6 +759,7 @@ var SCHOLARSHIPS = [
   {
     name:'学奨財団 奨学金', org:'一般財団法人 大学生奨学財団(学奨財団)', type:'grant',
     targets:['all'],
+    levels:['university'],
     amount:'年額15万円×3年間(合計45万円)',
     desc:'経済支援を必要とする将来有望な大学2年生以上を対象にした給付型奨学金。使途は不問で、他の奨学金との併用も可能です。',
     url:'https://gakusho.or.jp/'
@@ -717,6 +767,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金支給', org:'公益財団法人 住友電工グループ社会貢献基金', type:'grant',
     targets:['stem'],
+    levels:['graduate'],
     amount:'月額6万円(2026年度)',
     desc:'理工系(電気・機械・情報・材料・化学・物理・数学系等)を専攻する大学院修士1年生で、経済的理由により援助が必要な学生を対象にした給付型奨学金。他財団の奨学金との併給は月額合計10万円までという制限があります。',
     url:'https://www.sei-group-csr.or.jp/business/bursary/'
@@ -724,6 +775,7 @@ var SCHOLARSHIPS = [
   {
     name:'教職育成奨学金', org:'公益財団法人 博報堂教育財団', type:'grant',
     targets:['teacher'],
+    levels:['graduate','highschool'],
     amount:'年額60万円(国立大)・120万円(私立大)・60万円(大学院)。自宅外生は+60万円',
     desc:'小学校・特別支援学校教員、中学校・高校の国語科教員を目指す学部2年生以上・大学院生を対象にした給付型奨学金。他の給付型奨学金との併給はできません。',
     url:'https://www.hakuhodofoundation.or.jp/scholarship/'
@@ -731,6 +783,7 @@ var SCHOLARSHIPS = [
   {
     name:'野村芳光財団 奨学金', org:'公益財団法人 野村芳光財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'年額48万円(学部3・4年次の2年間)',
     desc:'国内の経済系学部に在籍する学部3年生(25歳以下)で、経済的理由により学費の支弁が困難な学生を対象にした給付型奨学金。経済系学部限定です。',
     url:'https://www.nomurayoshimitsu-zaidan.org/flow/'
@@ -738,6 +791,7 @@ var SCHOLARSHIPS = [
   {
     name:'岩國奨学金', org:'公益財団法人 岩國育英財団', type:'grant',
     targets:['all'],
+    levels:['university'],
     amount:'年額40万円(総額160万円、14名程度)',
     desc:'既存の枠組みに従うのではなく、自ら新しい枠組みを創造しようとする意欲のある大学1年生を対象にした給付型奨学金。成績・所得による制限はなく、国籍も問いません。',
     url:'https://www.iwakuni.or.jp/'
@@ -745,6 +799,7 @@ var SCHOLARSHIPS = [
   {
     name:'TCS奨学金', org:'一般財団法人 TCS奨学会', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額5万円(年額60万円)',
     desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。',
     url:'https://tcs-foundation.or.jp/'
@@ -752,6 +807,7 @@ var SCHOLARSHIPS = [
   {
     name:'荒井芳男記念財団 奨学金', org:'一般財団法人 荒井芳男記念財団', type:'grant',
     targets:['stem'],
+    levels:['university','vocational'],
     amount:'20万円(一回限り、35名程度)',
     desc:'科学技術分野の振興を目的とした財団による給付型奨学金。理系学部に在籍し、経済的理由により修学が困難な学生が対象です。',
     url:'https://www.ayzaidan.com/'
@@ -759,6 +815,7 @@ var SCHOLARSHIPS = [
   {
     name:'岩佐教育文化財団 奨学金', org:'公益財団法人 岩佐教育文化財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'年額120万円',
     desc:'経済的理由により修学が困難な学業優秀な大学生を対象にした給付型奨学金。',
     url:'https://www.iwasazaidan.or.jp/scholarship/'
@@ -766,6 +823,7 @@ var SCHOLARSHIPS = [
   {
     name:'伊藤青少年育成奨学会 奨学金', org:'公益財団法人 伊藤青少年育成奨学会', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     region:['岐阜県'],
     amount:'月額3万円(年額36万円)',
     desc:'岐阜県出身で、学業優秀・向学心に富み、経済的理由により修学が困難な学生を対象にした給付型奨学金。進学前に申し込む予約型の制度です。岐阜県出身者限定です。',
@@ -774,6 +832,7 @@ var SCHOLARSHIPS = [
   {
     name:'みずほ育英会 奨学金', org:'公益財団法人 みずほ育英会', type:'loan0',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'月額5万円(大学)・6万円(大学院)',
     desc:'学業成績優秀で健康な学生のうち、保護者の年収が目安1,000万円以下で経済的援助を必要とする学生を対象にした無利子の貸与型奨学金。貸与終了後6ヶ月を経過してから20年以内に返済します。',
     url:'https://www.disclo-koeki.org/02b/00476/'
@@ -781,6 +840,7 @@ var SCHOLARSHIPS = [
   {
     name:'イオン スカラシップ', org:'公益財団法人 イオン1%クラブ', type:'grant',
     targets:['ryugakusei'],
+    levels:['university'],
     amount:'授業料上限150万円/年+生活費月額10万円',
     desc:'日本の大学等で学ぶアジア各国・地域からの私費留学生を対象にした給付型奨学金。奨学生同士の交流会や宿泊研修なども提供されます。',
     url:'https://aeon1p.or.jp/1p/international/scholarship/'
@@ -788,6 +848,7 @@ var SCHOLARSHIPS = [
   {
     name:'安田奨学財団 奨学金(日本人学生一般枠)', org:'公益財団法人 安田奨学財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'月額10万円(年額120万円)',
     desc:'法学・経済学・経営学・商学系の学部に在籍する大学生を対象にした給付型奨学金。',
     url:'https://www.yasuda-zaidan.or.jp/'
@@ -795,6 +856,7 @@ var SCHOLARSHIPS = [
   {
     name:'HIOKI奨学・緑化基金', org:'公益財団法人 HIOKI奨学・緑化基金', type:'grant',
     targets:['stem'],
+    levels:['graduate','university','highschool'],
     region:['長野県'],
     amount:'月額8万円(年額96万円、20〜30名)',
     desc:'長野県内の高校を卒業し、理工系の4年制大学に進学した学生を対象にした給付型奨学金。4年間給付され、大学院進学者はさらに修士課程2年間も給付対象です。長野県出身者限定です。',
@@ -803,6 +865,7 @@ var SCHOLARSHIPS = [
   {
     name:'篠原欣子記念財団 一般奨学金', org:'一般財団法人 篠原欣子記念財団', type:'grant',
     targets:['welfare'],
+    levels:['university','vocational'],
     amount:'月額4.5万円(2年間、継続審査で最大修業年限まで延長可)',
     desc:'保育士・社会福祉士・精神保健福祉士・介護福祉士などの社会福祉系国家資格や幼稚園教諭免許状の取得を目指す、関東地方および山梨・長野・静岡の学校に在籍する学生を対象にした給付型奨学金。',
     url:'https://ysmf.or.jp/'
@@ -810,6 +873,7 @@ var SCHOLARSHIPS = [
   {
     name:'STEM(理系)女子奨学助成金', org:'公益財団法人 山田進太郎D&I財団', type:'grant',
     targets:['women','stem'],
+    levels:['university','vocational'],
     amount:'10万円(一括給付、500名程度)',
     desc:'理系分野への進学を目指す女子学生を対象にした一括給付型の奨学助成金。所得制限なし、成績書類の提出も不要です。',
     url:'https://shinfdn.org/scholarship2026'
@@ -817,6 +881,7 @@ var SCHOLARSHIPS = [
   {
     name:'理系女子学生就学支援奨学金', org:'株式会社メガチップス', type:'grant',
     targets:['women','stem'],
+    levels:['graduate','university'],
     amount:'月額5万円(2年間で合計120万円、12名程度)',
     desc:'理系学部・学科に所属する大学3年生・大学院修士1年生の女性を対象にした給付型奨学金。通信教育課程・夜間学部は対象外です。',
     url:'https://www.megachips.co.jp/sustainability/social/contribution/scholarship/'
@@ -824,6 +889,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学生募集', org:'公益財団法人 みずほ農場教育財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額3万円(総額144万円)',
     desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。',
     url:'https://www.mizuho-ef.or.jp/information/'
@@ -831,6 +897,7 @@ var SCHOLARSHIPS = [
   {
     name:'ASJ財団 給付型奨学金', org:'公益財団法人 ASJ財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'月額3万円',
     desc:'東京都の指定大学に所属する学部2〜4年生・修士1〜2年生・博士1〜3年生が対象の給付型奨学金。学部の制限がなく、他の奨学金との併給制限もありません。',
     url:'https://www.asjf.or.jp/'
@@ -838,6 +905,7 @@ var SCHOLARSHIPS = [
   {
     name:'給付型奨学金', org:'公益財団法人 石井育英会', type:'grant',
     targets:['income'],
+    levels:['university'],
     region:['福岡県'],
     amount:'月額5万円(年額60万円)',
     desc:'福岡県内の大学に在学し、経済的理由により修学が困難(世帯年収600万円以下目安、兄弟姉妹が本人含め3人以上の場合700万円以下)な学業優秀な学生を対象にした給付型奨学金。福岡県内の大学限定です。',
@@ -846,6 +914,7 @@ var SCHOLARSHIPS = [
   {
     name:'スポーツ活動奨学事業', org:'公益財団法人 和佐見丸和財団', type:'grant',
     targets:['sports'],
+    levels:['university'],
     amount:'30万円(一括、30名程度)',
     desc:'大学公認の運動部に在籍し、国内大会で入賞以上の成績を収めた学部1〜3年生を対象にした給付型奨学金。指導者の推薦が必要です。',
     url:'https://maruwa-foundation.or.jp/sports/'
@@ -853,6 +922,7 @@ var SCHOLARSHIPS = [
   {
     name:'スポーツ選手支援事業', org:'公益財団法人 上月財団', type:'grant',
     targets:['sports'],
+    levels:['university','vocational'],
     amount:'年額120万円(月額10万円)',
     desc:'オリンピック競技大会や世界選手権大会等への出場を目指すアマチュアスポーツ選手を対象にした給付型の支援事業。',
     url:'https://www.kozuki-foundation.or.jp/'
@@ -860,6 +930,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学事業', org:'公益財団法人 ヨネックススポーツ振興財団', type:'grant',
     targets:['sports'],
+    levels:['university','vocational'],
     amount:'区分・年齢により異なる(詳細は公式サイトで要確認)',
     desc:'スポーツ振興を目指すジュニアアスリートや将来の指導者を目指す人(10歳以上30歳未満、海外からの留学生を含む)を対象にした給付型の奨学事業。',
     url:'https://www.yonexsports-f.or.jp/scholarship/'
@@ -867,6 +938,7 @@ var SCHOLARSHIPS = [
   {
     name:'アイザワ記念育英財団 奨学金', org:'公益財団法人 アイザワ記念育英財団', type:'grant',
     targets:['income','ryugakusei'],
+    levels:['graduate','university'],
     amount:'月額3.5万円(学部)・5万円(大学院)',
     desc:'学業優秀・品行方正でありながら経済的理由により修学が困難な、大学・大学院に学ぶ日本人学生および外国人留学生を対象にした給付型奨学金。',
     url:'http://aizawa-ikuei.org/'
@@ -874,6 +946,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金事業', org:'公益財団法人 シマノ財団', type:'grant',
     targets:['stem'],
+    levels:['university','highschool','vocational'],
     amount:'月額3万円(2年間継続給付)',
     desc:'理学部・工学部・基礎工学部に在籍する大学2〜3年生・高専4年生(30歳以下)を対象にした給付型奨学金。指定校からの推薦で、約30名を採用します。年1回の交流会への出席が条件です。',
     url:'https://www.shimanozaidan.jp/scholarship.html'
@@ -881,6 +954,7 @@ var SCHOLARSHIPS = [
   {
     name:'中村積善会 給付奨学金', org:'公益財団法人 中村積善会', type:'grant',
     targets:['income','ryugakusei'],
+    levels:['graduate'],
     amount:'月額5万円',
     desc:'経済的理由により修学が困難な、学部・大学院(博士・修士・専門職)に在学する日本人学生および留学生(在留資格「留学」)を対象にした給付型奨学金。年間約700名が受給しています。',
     url:'http://www.nakamurasekizenkai.org'
@@ -888,6 +962,7 @@ var SCHOLARSHIPS = [
   {
     name:'育英奨学金', org:'公益財団法人 杜の邦育英会', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     region:['宮城県'],
     amount:'月額10万円(10名程度)',
     desc:'宮城県内の大学・大学院に在学、または宮城県内に居住する学業優秀で経済的理由により修学が困難な学生を対象にした給付型奨学金。宮城県関連限定です。',
@@ -896,6 +971,7 @@ var SCHOLARSHIPS = [
   {
     name:'USJ奨学金', org:'公益財団法人 大阪府育英会', type:'grant',
     targets:['income'],
+    levels:['highschool'],
     region:['大阪府'],
     amount:'最高100万円(2・3年次に各20万円+進路確定時60万円)',
     desc:'大阪府内の高校2年生で、評定平均4.3以上、保護者が大阪府内在住かつ世帯年収350万円未満目安の生徒を対象にした、進学前に申し込む予約型の給付型奨学金。学校長の推薦が必要です。',
@@ -904,6 +980,7 @@ var SCHOLARSHIPS = [
   {
     name:'フジシール財団 奨学金', org:'公益財団法人 フジシール財団', type:'grant',
     targets:['income'],
+    levels:['graduate'],
     amount:'月額10万円(学部3年)・12万円(大学院1年)',
     desc:'経済的理由により修学が困難な学業優秀な学部3年生・大学院1年生を対象にした給付型奨学金。52名程度を採用予定です。',
     url:'https://www.fujiseal.or.jp/business/index.html'
@@ -911,6 +988,7 @@ var SCHOLARSHIPS = [
   {
     name:'村山龍平記念 香雪美術館奨学金', org:'公益財団法人 香雪美術館', type:'grant',
     targets:['arts'],
+    levels:['university','vocational'],
     amount:'月額5万円(自宅通学)・7万円(下宿)',
     desc:'美術に関する分野を学ぶ優秀な学生を対象にした給付型奨学金。卒業までの正規の最短修学期間、返還義務はありません。',
     url:'https://www.kosetsu-museum.or.jp/mikage/scholarship/'
@@ -918,6 +996,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金支給事業', org:'公益財団法人 ロッテ財団', type:'grant',
     targets:['ryugakusei'],
+    levels:['graduate'],
     amount:'年額216万円(学部)・240万円(大学院)、原則2年間',
     desc:'主にアジア諸国からの私費留学生で、学力優秀でありながら経済的理由により学業の継続が困難な学生を対象にした給付型奨学金。',
     url:'https://www.lottefoundation.jp/scholarship/'
@@ -925,6 +1004,7 @@ var SCHOLARSHIPS = [
   {
     name:'大学奨学生', org:'公益財団法人 スズキ教育文化財団', type:'grant',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['静岡県'],
     amount:'年額72万円(最長4年間)',
     desc:'静岡県内の高校・高専に在籍し、4年制以上の大学に進学予定で、経済的理由により修学に専念できない学生を対象にした給付型奨学金。静岡県関連限定です。',
@@ -933,6 +1013,7 @@ var SCHOLARSHIPS = [
   {
     name:'給付型奨学金', org:'公益財団法人 戸田育英財団', type:'grant',
     targets:['income'],
+    levels:['graduate'],
     amount:'月額3.8万円(学部)・4.5万円(大学院)',
     desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。',
     url:'http://www.toda-ikuei.or.jp/'
@@ -940,6 +1021,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金事業', org:'一般財団法人 鷹野学術振興財団', type:'grant',
     targets:['stem'],
+    levels:['graduate','university'],
     amount:'年額60万円',
     desc:'科学技術系を専攻し、卒業後に製造業への就職を希望する短大・学部・大学院生を対象にした給付型奨学金。',
     url:'https://www.takano-zaidan.com/'
@@ -947,6 +1029,7 @@ var SCHOLARSHIPS = [
   {
     name:'給付型奨学金', org:'公益財団法人 リンナイ奨学財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額10万円(学部)・12万円(修士)・20万円(博士)',
     desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。学部は4年間(総額480万円)、修士は2年間(288万円)、博士は3年間(720万円)給付されます。',
     url:'https://www.rinnaischolarship.or.jp/grants/'
@@ -954,6 +1037,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金給付事業', org:'公益財団法人 エイブル文化振興財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'年額40万円〜60万円(年度により変動)',
     desc:'グローバルに活躍する夢を持ち、学業優秀・品行方正な学生を対象にした給付型奨学金。',
     url:'https://www.ablefoundation.or.jp/'
@@ -961,6 +1045,7 @@ var SCHOLARSHIPS = [
   {
     name:'JPC奨学財団 奨学金', org:'公益財団法人 JPC奨学財団', type:'grant',
     targets:['income'],
+    levels:['graduate'],
     amount:'月額4万円(学部は最長4年間、大学院は最長2年間)',
     desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。学部で総額192万円、大学院で総額96万円が目安です。',
     url:'https://www.netjpc.com/company/scholarship/'
@@ -968,6 +1053,7 @@ var SCHOLARSHIPS = [
   {
     name:'給付型奨学金', org:'公益財団法人 クリハラント記念財団', type:'grant',
     targets:['stem'],
+    levels:['university'],
     amount:'月額6万円(10名程度)',
     desc:'人物・学業ともに優秀な理工系学部生を対象にした給付型奨学金。',
     url:'https://www.kurihalant-zaidan.or.jp/scholarship/'
@@ -975,6 +1061,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学生募集', org:'公益財団法人 ハローズ財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'月額3万円(45名程度、1年間)',
     desc:'学術優秀・健康・品行方正で、経済的理由により学費の支弁が困難な短大・大学の学部生を対象にした給付型奨学金。',
     url:'https://halowszaidan.or.jp/scholar/'
@@ -982,6 +1069,7 @@ var SCHOLARSHIPS = [
   {
     name:'エンケイ財団 奨学金', org:'公益財団法人 エンケイ財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university','highschool','vocational'],
     region:['静岡県'],
     amount:'月額2万円(年額24万円、30名程度)',
     desc:'静岡県関連の優秀な大学生・大学院生・短期大学生・高専生を対象にした給付型奨学金。静岡県関連限定です。',
@@ -990,6 +1078,7 @@ var SCHOLARSHIPS = [
   {
     name:'村上奨学財団 奨学金', org:'公益財団法人 村上奨学財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     region:['静岡県'],
     amount:'月額3万円(年額36万円、1年間)',
     desc:'静岡県出身または静岡県内の4年制大学に在学する、経済的支援を必要とする成績優秀な大学2年生を対象にした給付型奨学金。静岡県関連限定です。',
@@ -998,6 +1087,7 @@ var SCHOLARSHIPS = [
   {
     name:'Sky大浦ICT奨学財団 奨学金', org:'公益財団法人 Sky大浦ICT奨学財団', type:'grant',
     targets:['stem'],
+    levels:['graduate','university'],
     amount:'年額200万円',
     desc:'ICT技術分野に就業することを志す大学・大学院生(30歳以下)で、家族全員の所得合計が800万円以下、経済的理由により修学が困難な学生を対象にした給付型奨学金。他の奨学金との併給も可能です。',
     url:'https://www.sky-foundation.or.jp/scholarship/'
@@ -1005,6 +1095,7 @@ var SCHOLARSHIPS = [
   {
     name:'牛久保・天田育英財団 奨学金', org:'公益財団法人 牛久保・天田育英財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university','highschool','vocational'],
     amount:'年額30万円',
     desc:'向学心と能力のある大学・大学院・短期大学・高専の学生を対象にした給付型奨学金。',
     url:'http://www.ua-ikuei.or.jp/'
@@ -1012,6 +1103,7 @@ var SCHOLARSHIPS = [
   {
     name:'Funai Overseas Scholarship(学部留学支援)', org:'公益財団法人 船井情報科学振興財団', type:'grant',
     targets:['all'],
+    levels:['university','highschool'],
     amount:'年間3万ドル(原則4年間)',
     desc:'海外の大学に学部留学し、将来科学・技術系分野を専攻することを目指す日本国籍(または永住許可)の高校卒業者を対象にした留学支援の給付型奨学金。',
     url:'https://funaifoundation.jp/scholarship/scholarship_summary.html'
@@ -1019,6 +1111,7 @@ var SCHOLARSHIPS = [
   {
     name:'岡部亨和奨学財団 奨学金', org:'一般財団法人 岡部亨和奨学財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'月額3万円',
     desc:'経済的理由により修学が困難な学業優秀な大学生・大学院修士課程生を対象にした給付型奨学金。',
     url:'https://www.okabe-kyowa.or.jp/scholarship.html'
@@ -1026,6 +1119,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金の無償給付', org:'公益財団法人 ナガワひまわり財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額3万円(年額36万円)',
     desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。',
     url:'http://www.nagawa-himawari.or.jp/guidance/'
@@ -1033,6 +1127,7 @@ var SCHOLARSHIPS = [
   {
     name:'日本文化藝術奨学金', org:'公益財団法人 日本文化藝術財団', type:'grant',
     targets:['arts'],
+    levels:['graduate','university'],
     amount:'50万円(1年間)',
     desc:'国内の芸術系大学の大学院に在籍する(次年度在籍予定を含む)学生を対象にした給付型奨学金。芸術系大学院限定です。',
     url:'https://jp-artsfdn.org/scholarship/'
@@ -1040,6 +1135,7 @@ var SCHOLARSHIPS = [
   {
     name:'いやさか奨学金', org:'公益財団法人 いやさか財団', type:'grant',
     targets:['stem'],
+    levels:['graduate'],
     amount:'年額48万円(修士1・2年次の2年間)',
     desc:'学業優秀でありながら経済的理由により学費の支弁が困難な理工系の大学院修士課程生を対象にした給付型奨学金。',
     url:'https://www.iyasaka-zaidan.org/'
@@ -1047,6 +1143,7 @@ var SCHOLARSHIPS = [
   {
     name:'給付型奨学金', org:'公益財団法人 日本未来財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額2.5万円(1年間)',
     desc:'人材の育成支援を目的とした、経済的理由により修学が困難な学生を対象にした給付型奨学金。',
     url:'https://nihonmiraizaidan.or.jp/'
@@ -1054,6 +1151,7 @@ var SCHOLARSHIPS = [
   {
     name:'大黒天財団 奨学金', org:'一般財団法人 大黒天財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額5万円(年額60万円、継続申請で最長4年)',
     desc:'向学心に富み学業優秀・品行方正でありながら、経済的理由により学資の支弁が困難な学生(大学・短大・専門学校等)を対象にした給付型奨学金。約10名を採用します。',
     url:'https://www.daikokuten.foundation/'
@@ -1061,6 +1159,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金給付事業', org:'公益財団法人 新日本奨学会', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'月額5万円(学部)・6.5万円(大学院修士)',
     desc:'財団の指定する大学・大学院に在学し、学業成績・人物ともに優秀で健康でありながら、経済的理由により学資の支弁が困難な学部3・4年生、修士1・2年生を対象にした給付型奨学金。',
     url:'https://shinnihon-shougakukai.or.jp/'
@@ -1068,6 +1167,7 @@ var SCHOLARSHIPS = [
   {
     name:'給付奨学金', org:'日鉄鉱業奨学会', type:'grant',
     targets:['stem'],
+    levels:['university','highschool','vocational'],
     amount:'月額12万円(2年間)',
     desc:'指定大学16校の学部3年生・修士1年生、指定高専19校の4年生で、鉱物資源開発・地質・鉱床・物理探査・地熱開発・機械・電気・土木・化学系の学部学科を履修する、経済的理由により修学が困難な学生を対象にした給付型奨学金。',
     url:'https://www.nittetsukou-shougakukai.jp/'
@@ -1075,6 +1175,7 @@ var SCHOLARSHIPS = [
   {
     name:'森記念奨学金', org:'一般財団法人 東洋水産財団', type:'grant',
     targets:['income'],
+    levels:['graduate'],
     amount:'月額7万円(1年間、180名程度)',
     desc:'食品科学に関する分野を専攻・研究する大学院生で、経済的に学業の継続が困難な学業優秀な学生を対象にした給付型奨学金。食品科学分野限定です。',
     url:'https://toyosuisanzaidan.or.jp/'
@@ -1082,6 +1183,7 @@ var SCHOLARSHIPS = [
   {
     name:'東京海上日動あんしん生命奨学金', org:'公益社団法人 日本フィランソロピー協会', type:'grant',
     targets:['bereaved'],
+    levels:['university','vocational'],
     amount:'年額30万円(60名程度)',
     desc:'疾病により保護者を失った遺児で、経済的理由により進学が困難な学生を対象にした給付型奨学金。',
     url:'https://www.philanthropy.or.jp/project/anshin/'
@@ -1089,6 +1191,7 @@ var SCHOLARSHIPS = [
   {
     name:'三井金型振興財団 奨学金', org:'公益財団法人 三井金型振興財団', type:'grant',
     targets:['stem'],
+    levels:['university','vocational'],
     region:['福岡県'],
     amount:'月額8万円(最短修業年限、9名程度)',
     desc:'福岡県内の学校で機械工学・電子工学・情報工学等を専攻・研究する学部2年生・修士1年生を対象にした給付型奨学金。福岡県内限定、世帯年収951万円未満(給与所得者)が目安です。',
@@ -1097,6 +1200,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金給付', org:'公益財団法人 川野小児医学奨学財団', type:'grant',
     targets:['medical'],
+    levels:['university','vocational'],
     amount:'月額7万円以内',
     desc:'経済的理由により修学が困難な医学系の学生を対象にした給付型奨学金。',
     url:'https://kawanozaidan.or.jp/scholarship/'
@@ -1104,6 +1208,7 @@ var SCHOLARSHIPS = [
   {
     name:'奨学金給付', org:'公益財団法人 東電記念財団', type:'grant',
     targets:['stem'],
+    levels:['graduate'],
     amount:'月額5万円(5名程度)',
     desc:'電気・エネルギー分野の発展に資する意欲を持った大学院博士後期課程の学生を対象にした給付型奨学金。',
     url:'https://www.tmf-zaidan.or.jp/'
@@ -1111,6 +1216,7 @@ var SCHOLARSHIPS = [
   {
     name:'育英奨学金', org:'公益財団法人 清川秋夫育英奨学財団', type:'grant',
     targets:['income'],
+    levels:['highschool'],
     region:['鹿児島県'],
     amount:'年額15万円(1年間)',
     desc:'鹿児島県内の高校を卒業し、農業・水産業・畜産業・林業など第一次産業に貢献する志を持つ学生を対象にした給付型奨学金。鹿児島県関連・第一次産業志望限定です。',
@@ -1119,6 +1225,7 @@ var SCHOLARSHIPS = [
   {
     name:'大学等入学時奨学金(地方創生枠)', org:'公益財団法人 鹿児島県育英財団', type:'grant',
     targets:['uturn'],
+    levels:['university','highschool'],
     region:['鹿児島県'],
     amount:'上限56万円(225名程度)',
     desc:'高校在学中の学業優秀者(評定平均4.5以上目安)で、大学等卒業後に鹿児島県内に居住・就業し地域振興に貢献することが期待される生徒を対象にした、進学前に申し込む予約型の奨学金。卒業後に県内で一定期間就業すれば返還が全額免除されます。',
@@ -1127,6 +1234,7 @@ var SCHOLARSHIPS = [
   {
     name:'沖縄県県外進学大学生奨学金', org:'沖縄県', type:'grant',
     targets:['income'],
+    levels:['university','highschool'],
     region:['沖縄県'],
     amount:'入学支度金30万円以内+月額7万円',
     desc:'沖縄県内の高校等の在学者・卒業者(卒業後2年以内)で、県外の大学へ進学する学生を対象にした給付型奨学金。沖縄県関連限定です。',
@@ -1135,6 +1243,7 @@ var SCHOLARSHIPS = [
   {
     name:'北海道地域みらい留学奨学金', org:'北洋銀行 / 一般財団法人 地域・教育魅力化プラットフォーム', type:'grant',
     targets:['all'],
+    levels:['university','highschool'],
     region:['北海道'],
     amount:'月額2万円(3年間で最大72万円、25名程度)',
     desc:'道外から北海道の「地域みらい留学」校(地方の高校)に進学する生徒を対象にした給付型奨学金。大学進学前の高校進学段階の制度で、2027年度から開始予定です。',
@@ -1143,6 +1252,7 @@ var SCHOLARSHIPS = [
   {
     name:'味の素奨学会 奨学金', org:'公益財団法人 味の素奨学会', type:'loan0',
     targets:['stem'],
+    levels:['graduate'],
     amount:'月額4万円〜5.5万円(学部/大学院、自宅/自宅外により異なる)',
     desc:'化学をはじめとする理系全般を専攻する学部3・4年生・大学院生で、経済的援助を必要とする学業優秀な学生を対象にした無利子の貸与型奨学金。',
     url:'https://ajischolarship.com/'
@@ -1150,6 +1260,7 @@ var SCHOLARSHIPS = [
   {
     name:'花王 crescent award(花王女性研究者育成奨学金)', org:'公益財団法人 花王芸術・科学財団', type:'grant',
     targets:['women','stem'],
+    levels:['graduate'],
     amount:'100万円',
     desc:'「表面の科学」(化学・物理学分野)を研究する大学院博士課程1年次(30歳以下)の女子学生を対象にした給付型奨学金。分野・対象が限定的です。',
     url:'https://www.kao-foundation.or.jp/scholarship/crescent-award/'
@@ -1157,6 +1268,7 @@ var SCHOLARSHIPS = [
   {
     name:'日本証券奨学財団 奨学金', org:'公益財団法人 日本証券奨学財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'月額9万円(自宅)・11万円(自宅外、40名程度)',
     desc:'経済的理由により修学が困難な学業優秀な大学生・大学院生を対象にした給付型奨学金。',
     url:'https://jssf.or.jp/'
@@ -1164,6 +1276,7 @@ var SCHOLARSHIPS = [
   {
     name:'上田記念財団 奨学金', org:'一般財団法人 上田記念財団', type:'grant',
     targets:['stem'],
+    levels:['graduate','university'],
     amount:'月額6万円(2年間)',
     desc:'社会インフラ・土木工学関連分野に関心のある学部生・大学院修士課程生を対象にした給付型奨学金。',
     url:'https://www.uedazaidan.or.jp/'
@@ -1171,6 +1284,7 @@ var SCHOLARSHIPS = [
   {
     name:'T.O環境財団 奨学金', org:'公益財団法人 T.O環境財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'月額5万円(年額60万円、30名程度)',
     desc:'学ぶ意欲の強い、経済的理由により修学が困難な学生を対象にした給付型奨学金。初年度は1年間の給付で、以降は審査により最短修業年限まで延長される場合があります。',
     url:'https://to-zaidan.org/'
@@ -1178,6 +1292,7 @@ var SCHOLARSHIPS = [
   {
     name:'資生堂子ども財団 奨学金', org:'公益財団法人 資生堂子ども財団', type:'grant',
     targets:['carexp'],
+    levels:['university','vocational'],
     amount:'財団全体で年間総額5,000万円規模(個別の給付額は公式サイトで要確認)',
     desc:'児童養護施設など社会的養護のもとで育った子どもの高等教育進学を対象にした給付型奨学金。返済不要です。',
     url:'https://www.shiseido-zaidan.or.jp/for-children/scholarship.html'
@@ -1185,6 +1300,7 @@ var SCHOLARSHIPS = [
   {
     name:'桃谷政次郎記念財団 奨学金', org:'公益財団法人 桃谷政次郎記念財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'月額3万円(総額36万円を一括給付、30名程度)',
     desc:'経済的理由により修学が困難な学業優秀な大学生・大学院生を対象にした給付型奨学金。他の奨学金との併給も可能です。',
     url:'https://www.momotani-zaidan.or.jp/'
@@ -1192,6 +1308,7 @@ var SCHOLARSHIPS = [
   {
     name:'地域育成財団 奨学金', org:'公益財団法人 地域育成財団', type:'grant',
     targets:['income','ryugakusei'],
+    levels:['university','vocational'],
     amount:'月額5万円(最長6年間、50名程度)',
     desc:'経済的理由により修学が困難な日本人学生・外国人留学生を対象にした給付型奨学金。',
     url:'https://chiiki-ikusei.com/'
@@ -1199,6 +1316,7 @@ var SCHOLARSHIPS = [
   {
     name:'新聞奨学金制度(朝日奨学会)', org:'朝日奨学会', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'入学金・授業料等の学校納付金実費(4年制でAコース520万円・Bコース440万円・Cコース360万円が上限)',
     desc:'新聞配達などの仕事をしながら首都圏の大学・専門学校等に通う学生を対象にした、学費実費を支給する奨学金制度。仕事と学業の両立が条件です。',
     url:'https://asahishogakukai.or.jp/scholarship/'
@@ -1206,6 +1324,7 @@ var SCHOLARSHIPS = [
   {
     name:'育英奨学金制度', org:'毎日育英会', type:'mixed',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'4年制でAコース520万円・B/Cコース440万円・朝刊コース240万円(学費分、別途月給も支給)',
     desc:'新聞配達などの仕事をしながら大学・専門学校・予備校に通う学生を対象にした奨学金制度。学費相当額に加えて毎月の給与(東京地区目安 月12万〜16万円程度)も支給されます。仕事と学業の両立が条件です。',
     url:'https://www.mainichi-ikueikai.com/'
@@ -1213,6 +1332,7 @@ var SCHOLARSHIPS = [
   {
     name:'コープみらい奨学生', org:'一般財団法人 コープみらい社会活動財団', type:'grant',
     targets:['bereaved'],
+    levels:['highschool'],
     region:['千葉県','埼玉県','東京都'],
     amount:'年額12万円(高校卒業まで、最長3年間)',
     desc:'千葉・埼玉・東京都内在住の、ひとり親(または両親がいない)家庭の高校生を対象にした給付型奨学金。保護者がコープみらいの組合員で、前年税込年収400万円以下が目安。組合員同士の支え合いで運営されています。対象地域・年収基準が限定的です。',
@@ -1221,6 +1341,7 @@ var SCHOLARSHIPS = [
   {
     name:'海外留学奨学金', org:'公益財団法人 重田教育財団', type:'grant',
     targets:['all'],
+    levels:['university','vocational'],
     amount:'財団公式サイトで要確認',
     desc:'海外留学を目指す学生を対象にした給付型の留学支援奨学金。',
     url:'https://s-ef.or.jp/scholarship/'
@@ -1228,6 +1349,7 @@ var SCHOLARSHIPS = [
   {
     name:'首藤奨学財団 奨学金', org:'公益財団法人 首藤奨学財団', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'年額70万円(90名程度)',
     desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。',
     url:'https://www.shuto-zaidan.or.jp/'
@@ -1235,6 +1357,7 @@ var SCHOLARSHIPS = [
   {
     name:'富山文化財団 奨学金', org:'公益財団法人 富山文化財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university','vocational','highschool'],
     region:['茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県'],
     amount:'年額36万円',
     desc:'関東地方(茨城・栃木・群馬・埼玉・千葉・東京・神奈川)の大学院・大学・短大・専門学校・高専に在籍し、経済的理由により修学が困難な学生を対象にした給付型奨学金。関東地方限定です。',
@@ -1243,6 +1366,7 @@ var SCHOLARSHIPS = [
   {
     name:'さいたま市大学等進学「夢」支援', org:'さいたま市', type:'grant',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['埼玉県'],
     amount:'受験料等支援+入学一時金(給付型)',
     desc:'さいたま市在住で大学・短大・専門学校等への進学を目指す高校3年生等のうち、世帯の支給額算定基準額が51,300円未満かつ学力評定3.0以上などの要件を満たす人に、受験料などの受験関連費用と入学時の一時金を支援する制度。さいたま市在住者限定です。',
@@ -1251,6 +1375,7 @@ var SCHOLARSHIPS = [
   {
     name:'ゴールドマン・サックス大学受験給付型奨学金', org:'ゴールドマン・サックス(認定NPO法人キッズドア運営)', type:'grant',
     targets:['income'],
+    levels:['university','highschool'],
     amount:'受験応援金5万円+入学準備金10万円(計15万円・給付型)',
     desc:'2003年4月2日〜2005年4月1日生まれで、新高校3年生または1浪生として大学・短大への進学を目指す人が対象。ひとり親世帯や住民税非課税世帯など収入要件があり、学力は不問。全国から500名程度を募集する給付型奨学金です。',
     url:'https://www.gs-scholarship.com'
@@ -1258,6 +1383,7 @@ var SCHOLARSHIPS = [
   {
     name:'国際医学教育財団 奨学金', org:'公益財団法人国際医学教育財団', type:'grant',
     targets:['medical'],
+    levels:['graduate','university','vocational'],
     amount:'年額30万円',
     desc:'国内外の医学・薬学・看護・介護等の大学・大学院・専門学校等に在籍する学生を対象にした給付型奨学金。返済不要です。',
     url:'https://imef.or.jp/'
@@ -1265,6 +1391,7 @@ var SCHOLARSHIPS = [
   {
     name:'介護福祉士養成給付型奨学金制度', org:'一般社団法人 生命保険協会', type:'grant',
     targets:['welfare'],
+    levels:['university','vocational'],
     amount:'年額24万円(月額2万円・1年間)',
     desc:'生命保険協会が指定する専門学校・短期大学等の介護福祉士養成施設に在籍する学科最終学年の学生を対象にした給付型奨学金。指定校の学校長推薦が必要です。同協会の保育士養成給付型奨学金は2025年度をもって終了しています。',
     url:'https://www.seiho.or.jp/activity/social/care/'
@@ -1272,6 +1399,7 @@ var SCHOLARSHIPS = [
   {
     name:'介護福祉士養成奨学金制度', org:'公益財団法人 SOMPO福祉財団', type:'grant',
     targets:['welfare'],
+    levels:['vocational'],
     amount:'月額3万円(2年間、返還不要)',
     desc:'介護福祉士養成課程を置く専修学校(2年課程)に在学し、介護福祉士を目指して学ぶ経済的に修学が困難な学生を対象にした給付型奨学金。1年生15名程度を募集。',
     url:'https://www.sompo-wf.org/jyosei/kaigofukushi_voca.html'
@@ -1279,6 +1407,7 @@ var SCHOLARSHIPS = [
   {
     name:'JCB東日本大震災に負けない子どもたちの未来を応援する奨学基金', org:'公益信託(三菱UFJ信託銀行取扱)', type:'grant',
     targets:['bereaved'],
+    levels:['university','vocational'],
     amount:'年額48万円(大学・専門学校等)、入学時は別途祝金',
     desc:'東日本大震災で両親(またはそのいずれか)を亡くした、小学生から大学・短大・専門学校等に在学する子どもを対象にした給付型奨学金。返還不要で、他の奨学金との併給も可能。毎年度、募集期間が設けられています。',
     url:'https://www.global.jcb/ja/about-us/responsibility/social-environmental-activities/ouenkikin/index.html'
@@ -1286,6 +1415,7 @@ var SCHOLARSHIPS = [
   {
     name:'中谷財団 大学院生奨学金', org:'公益財団法人 中谷財団', type:'grant',
     targets:['stem'],
+    levels:['graduate'],
     amount:'博士前期課程 月額12万円/博士後期課程 月額20万円',
     desc:'生命科学と理工学の融合領域(BME)で博士号取得を目指す大学院生(博士前期・後期課程、一貫制博士課程)を対象にした給付型奨学金。給付開始から博士号取得までの最短修業年限、最長5〜6年間給付。留学生は対象外。',
     url:'https://www.nakatani-foundation.jp/business/scholarship/'
@@ -1293,6 +1423,7 @@ var SCHOLARSHIPS = [
   {
     name:'岩谷日本人大学院生奨学助成', org:'公益財団法人 岩谷直治記念財団', type:'grant',
     targets:['stem'],
+    levels:['graduate'],
     amount:'月額15万円(最長2年間)',
     desc:'自然科学系および関連する学際分野を専攻する、大学院修士・博士課程に在籍(または入学決定)する日本国籍の大学院生を対象にした給付型奨学金。博士課程の場合は35歳未満が目安。20名程度を募集。',
     url:'https://www.iwatani-foundation.or.jp/scholarship/'
@@ -1300,6 +1431,7 @@ var SCHOLARSHIPS = [
   {
     name:'ハヤブサ財団 トップアスリート向け奨学金', org:'ハヤブサ財団', type:'grant',
     targets:['sports','income'],
+    levels:['university'],
     amount:'月額10万円(年額120万円、最大4年間更新可)',
     desc:'大学進学予定または在学中で、国内外において学生日本代表クラスの実績があるトップアスリートを対象にした給付型奨学金。保護者の収入基準あり。1年ごとの更新審査があります。',
     url:'https://hayabusa.foundation/athlete.html'
@@ -1307,6 +1439,7 @@ var SCHOLARSHIPS = [
   {
     name:'谷スポーツ振興財団 奨学金', org:'公益財団法人 谷スポーツ振興財団', type:'grant',
     targets:['sports','income'],
+    levels:['university'],
     amount:'年額48万円',
     desc:'国内の大学の体育・スポーツ系学部に在籍する学部3年生(25歳以下)で、経済的理由により学費の支弁が困難な学生を対象にした給付型奨学金。日本国籍が条件です。',
     url:'https://tani-sport-foundation.org/scholarship/'
@@ -1314,6 +1447,7 @@ var SCHOLARSHIPS = [
   {
     name:'柳井正財団 海外奨学金プログラム', org:'公益財団法人 柳井正財団', type:'grant',
     targets:['all'],
+    levels:['university','highschool'],
     amount:'米国は年間最大11.5万ドル、英国は年間最大7万ポンド(授業料・寮費等実費)',
     desc:'米国・英国のトップレベルの大学進学を目指す日本人の高校生等を対象にした給付型奨学金。学校推薦が必要で、世帯所得2700万円以下などの条件あり。原則4年間(英国は3年間)、授業料・寮費・保険料等を実費で支給します。',
     url:'https://www.yanaitadashi-foundation.or.jp/'
@@ -1321,6 +1455,7 @@ var SCHOLARSHIPS = [
   {
     name:'リクルートスカラシップ', org:'公益財団法人 江副記念リクルート財団', type:'grant',
     targets:['all'],
+    levels:['graduate','university'],
     amount:'学術部門は年間上限950万円程度、アート部門は月額30万円、スポーツ部門は月額30万円(いずれも海外留学費用)',
     desc:'理系研究・美術制作・スポーツのいずれかの分野で、海外の大学・大学院への進学を目指す25歳前後までの若者を対象にした給付型奨学金。学術/アート/スポーツの3部門があり、部門ごとに対象・金額が異なります。',
     url:'https://www.recruit-foundation.org/'
@@ -1328,6 +1463,7 @@ var SCHOLARSHIPS = [
   {
     name:'孫正義育英財団 財団生支援', org:'公益財団法人 孫正義育英財団', type:'grant',
     targets:['all'],
+    levels:['university','vocational'],
     amount:'1人あたり数百万円〜3,000万円程度(用途に応じて個別算定)',
     desc:'国際大会での優秀な成績、卓越した学業・研究成果、起業実績など5つの応募資格のいずれかを満たす25歳以下の若者を対象にした支援制度。学費・生活費・研究費・事業資金などを合理的に必要な範囲で支給します。',
     url:'https://masason-foundation.org/'
@@ -1335,6 +1471,7 @@ var SCHOLARSHIPS = [
   {
     name:'清水育英会 奨学金', org:'一般財団法人 清水育英会', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'月額5万円(成績優秀者は3万円加算の場合あり)',
     desc:'建築・土木または都市計画等を専攻する大学生(23歳以下)・大学院生(33歳以下)を対象にした給付型奨学金。世帯収入700万円未満(自営業等は350万円未満)、GPA3.00以上が目安。正規の最短修業期間給付、他奨学金との併給も可能です。',
     url:'https://www.shimz.co.jp/ikueikai/index.html'
@@ -1342,6 +1479,7 @@ var SCHOLARSHIPS = [
   {
     name:'鹿島育英会 一般奨学生', org:'公益財団法人 鹿島育英会', type:'grant',
     targets:['stem'],
+    levels:['graduate','university'],
     amount:'月額8万円(2年間)',
     desc:'東京大学・東京工業大学・東北大学・京都大学・大阪大学・早稲田大学・東京理科大学・東京都市大学の8大学で、土木工学系・建築工学系・理工系を専攻する大学院修士課程の学生(26歳未満)を対象にした給付型奨学金。指定大学からの推薦制です。',
     url:'https://www.kajima.co.jp/csr/culture/ikuei/'
@@ -1349,6 +1487,7 @@ var SCHOLARSHIPS = [
   {
     name:'いであ環境・文化財団 奨学金', org:'公益財団法人 いであ環境・文化財団', type:'grant',
     targets:['income'],
+    levels:['graduate','university'],
     amount:'年額20万円(一括支給)',
     desc:'日本国内の大学の学部2年生以上(大学院博士課程まで含む)で、環境保全分野への社会貢献または芸術分野での創作活動を行っている学生を対象にした給付型奨学金。所属大学からの推薦が必要で、30名程度を募集。他奨学金との併給も可能です。',
     url:'https://ieaf.or.jp/'
@@ -1356,6 +1495,7 @@ var SCHOLARSHIPS = [
   {
     name:'Cygamesゲームクリエイター奨学金', org:'株式会社Cygames', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'月額10万円(年額120万円、1年間)',
     desc:'日本の大学1〜2年生で、経済的な支援を必要とし、卒業後にゲームクリエイターやエンターテインメント業界を志す学生を対象にした給付型奨学金。半年に1度程度、同社の開発現場見学やインターンシップ等の育成プログラムも実施されます。',
     url:'https://cygames-scholarship.jp/'
@@ -1363,6 +1503,7 @@ var SCHOLARSHIPS = [
   {
     name:'トヨタ女性技術者育成基金', org:'一般財団法人 トヨタ女性技術者育成基金', type:'loan0',
     targets:['women','stem'],
+    levels:['graduate','university'],
     amount:'年額60万円(無利子貸与、最長6年間・総額360万円)',
     desc:'理工学系を専攻する大学1・3年生または大学院1年生の女性を対象にした無利子貸与の奨学金。基金の支援企業(製造業)に入社した場合は実質的に返済が全額免除される仕組みです。',
     url:'https://www.toyota-rikeijosei.or.jp/'
@@ -1370,6 +1511,7 @@ var SCHOLARSHIPS = [
   {
     name:'林レオロジー記念財団 奨学金', org:'公益財団法人 林レオロジー記念財団', type:'grant',
     targets:['stem'],
+    levels:['graduate','university','vocational'],
     amount:'大学院生 月額7万円/大学生・専門学校生 月額4万円',
     desc:'食品産業に関する理学・工学・農水産学・経営・情報分野等を学ぶ大学3〜4年生・大学院1〜2年生、または菓子・パン製法技術を学ぶ専門学校生(2年以上の課程)を対象にした給付型奨学金。地域の制限はありません。',
     url:'https://www.hayashi-rheology.or.jp/'
@@ -1377,6 +1519,7 @@ var SCHOLARSHIPS = [
   {
     name:'沖縄県国際交流・人材育成財団 留学奨学金', org:'公益財団法人 沖縄県国際交流・人材育成財団', type:'loan0',
     targets:['income'],
+    levels:['graduate','university'],
     region:['沖縄県'],
     amount:'月額4万円(アジア)/6万円(アジア以外)',
     desc:'沖縄県内に住所を有する家庭の子弟で、海外留学を目指す大学生・大学院生を対象にした貸与型奨学金。学業・人物優秀だが経済的理由で修学が困難な人が対象。給付型奨学金との併給も可能です。',
@@ -1385,6 +1528,7 @@ var SCHOLARSHIPS = [
   {
     name:'琉球スフィア奨学金', org:'弁護士法人 琉球スフィア', type:'grant',
     targets:['bereaved'],
+    levels:['university'],
     region:['沖縄県'],
     amount:'年額18万円(4年間)',
     desc:'沖縄県内のひとり親世帯の大学生を対象にした給付型奨学金。2025年春に創設され、成績による打ち切りがなく4年間継続して支給されます。沖縄県在住のひとり親家庭限定です。',
@@ -1393,6 +1537,7 @@ var SCHOLARSHIPS = [
   {
     name:'ファッション大学院奨学金プログラム', org:'一般財団法人 ファーストリテイリング財団', type:'grant',
     targets:['arts'],
+    levels:['graduate'],
     amount:'英国は上限6.6万ポンド/米国は上限13.2万ドル(授業料・保険料等)',
     desc:'英国(RCA、セントラル・セント・マーチンズ、LCF)や米国(パーソンズ、RISD、FIT)など世界トップクラスのファッション大学院修士課程への進学を目指す学生を対象にした給付型奨学金。最大10名程度を募集。',
     url:'https://www.uniqlo.com/jp/ja/contents/sustainability/youth/fashion_scholarship/index.html'
@@ -1400,6 +1545,7 @@ var SCHOLARSHIPS = [
   {
     name:'JEES・三菱商事科学技術学生奨学金', org:'公益財団法人 日本国際教育支援協会', type:'grant',
     targets:['stem'],
+    levels:['university'],
     amount:'130万円(月額10万円+一時金10万円)',
     desc:'日本国内の大学の博士後期課程に在籍する理系分野専攻の学生(日本国籍または永住者)を対象にした給付型奨学金。成績・所得制限はなし。他の奨学金との併給条件に上限あり(年額60万円まで)。',
     url:'https://www.jees.or.jp/'
@@ -1407,6 +1553,7 @@ var SCHOLARSHIPS = [
   {
     name:'はばたけ！ゴールドリボン奨学金', org:'認定特定非営利活動法人 ゴールドリボン・ネットワーク', type:'grant',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     amount:'月額4万円(年額48万円、在学中継続支給)',
     desc:'18歳未満で小児がんと診断され治療を受けた(または治療中の)経験者で、大学・短大・専修学校等への進学を目指す高校生等を対象にした予約採用型の給付型奨学金。世帯の収入・所得基準あり。25名程度を募集し、他の奨学金との併用も可能です。',
     url:'https://www.goldribbon.jp/'
@@ -1414,6 +1561,7 @@ var SCHOLARSHIPS = [
   {
     name:'加瀬不動産活用振興財団 奨学金', org:'一般財団法人 加瀬不動産活用振興財団', type:'grant',
     targets:['income'],
+    levels:['university'],
     amount:'年額48万円(学部3〜4年次の2年間)',
     desc:'国内の大学の経済系学部に在籍する学部3年生(25歳以下)で、経済的理由により学費の支弁が困難な学生を対象にした給付型奨学金。GPA3.0以上が目安で、毎年度10名を採用。日本国籍が条件です。',
     url:'https://www.kasezaidan.org/shogakukin/'
@@ -1421,6 +1569,7 @@ var SCHOLARSHIPS = [
   {
     name:'SONY STEAM GIRLS EXPERIENCE(ソニーグループ奨学金)', org:'ソニーグループ株式会社', type:'grant',
     targets:['women','stem'],
+    levels:['university','highschool','vocational'],
     amount:'年間最大120万円(学部4年間または修士6年間)',
     desc:'日本国内の大学の理工系学部・学科の1年次(高専からの編入は3年次)に在籍する女性を対象にした給付型奨学金。過去に他の奨学金を受給していないことが条件。約10名を募集する返済不要の制度です。',
     url:'https://www.sony.com/ja/SonyInfo/diversity/steam-ex/'
@@ -1428,6 +1577,7 @@ var SCHOLARSHIPS = [
   {
     name:'JEES・MHIみらい奨学金', org:'公益財団法人 日本国際教育支援協会', type:'grant',
     targets:['women','stem'],
+    levels:['graduate'],
     amount:'月額12万円(2年間、総額288万円)',
     desc:'国内の大学院修士(博士前期)課程1年次に進学予定の女子学生(私費外国人留学生を含む)を対象にした給付型奨学金。化学・電気電子・機械・原子力・情報・金属材料のいずれかを専攻し、理工系エンジニアを志す人が対象。3名程度を募集。',
     url:'https://www.jees.or.jp/'
@@ -1435,6 +1585,7 @@ var SCHOLARSHIPS = [
   {
     name:'JEES・住友金属鉱山地域貢献奨学金', org:'公益財団法人 日本国際教育支援協会', type:'grant',
     targets:['uturn'],
+    levels:['university','highschool','vocational'],
     region:['東京都','兵庫県','愛媛県','鹿児島県'],
     amount:'月額10万円(学士課程修了まで)',
     desc:'東京都多摩地域・兵庫県・愛媛県・鹿児島県いずれかの持続的発展への貢献意欲がある、大学学部1〜2年生(高専本科4年生含む)を対象にした給付型奨学金。日本国籍または永住者が対象です。',
@@ -1443,6 +1594,7 @@ var SCHOLARSHIPS = [
   {
     name:'JEES・田辺三菱製薬医学・薬学奨学金', org:'公益財団法人 日本国際教育支援協会', type:'grant',
     targets:['medical'],
+    levels:['university'],
     amount:'月額15万円(年額180万円、学部卒業まで)',
     desc:'国内の大学の医学部・薬学部に在籍する学部生(日本国籍・永住者・私費留学生)を対象にした給付型奨学金。他奨学金との併給は年額60万円まで。学長推薦が必要です。',
     url:'https://www.jees.or.jp/sc-scholarship/jees_mtpc.htm'
@@ -1450,6 +1602,7 @@ var SCHOLARSHIPS = [
   {
     name:'JEES・神内国際理解奨学金', org:'公益財団法人 日本国際教育支援協会', type:'grant',
     targets:['ryugakusei'],
+    levels:['graduate','university'],
     amount:'月額5万円(12か月、総額60万円)',
     desc:'日本国内の大学・大学院に在籍する私費外国人留学生を対象にした給付型奨学金。子どもたちへの国際理解教育の授業やボランティア活動に取り組む意欲がある人が対象。6名程度を募集。',
     url:'https://www.jees.or.jp/'
@@ -1457,6 +1610,7 @@ var SCHOLARSHIPS = [
   {
     name:'JEES・馬場財団国際理解教育人材養成奨学金', org:'公益財団法人 日本国際教育支援協会', type:'grant',
     targets:['teacher'],
+    levels:['graduate','university'],
     amount:'月額10万円+留学準備金(アジア15万円/その他25万円)',
     desc:'卒業後に初等中等教育の教員を目指す大学学部2年生以上または教職大学院生で、海外の大学に3〜12か月留学する人を対象にした給付型奨学金。日本国籍または永住者が対象。7名程度を募集。',
     url:'https://www.jees.or.jp/'
@@ -1464,6 +1618,7 @@ var SCHOLARSHIPS = [
   {
     name:'JEES留学生奨学金(修学)', org:'公益財団法人 日本国際教育支援協会', type:'grant',
     targets:['ryugakusei'],
+    levels:['graduate','university'],
     amount:'月額5万円(最長2年間、総額120万円)',
     desc:'国内の大学学部2年生以上・大学院生の私費外国人留学生を対象にした給付型奨学金。GPA2.60以上が目安で、ボランティアや国際交流活動への取り組み意欲も考慮されます。約100名と比較的大規模な募集枠があります。',
     url:'http://jees.or.jp/foundation/'
@@ -1471,6 +1626,7 @@ var SCHOLARSHIPS = [
   {
     name:'新見市看護学生奨学支援金', org:'岡山県新見市', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['岡山県'],
     amount:'月額6.5万円(卒業まで)',
     desc:'看護師・准看護師の受験資格が取得できる大学・養成施設に在学する学生を対象にした修学支援金。卒業後、受給期間と同じ期間、新見市内の医療機関等に勤務することが条件です。新見市の制度を使った奨学金を他に受けていないことが必要。',
@@ -1479,6 +1635,7 @@ var SCHOLARSHIPS = [
   {
     name:'東京都保育士修学資金貸付等事業', org:'東京都 / 東京都社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['東京都'],
     amount:'月額5万円以内(総額120万円以内)+入学準備金・就職準備金・生活費加算',
     desc:'指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後5年間(過疎地域は3年間)、都内の保育所等で保育士として働くと返還が全額免除されます。申込みは養成施設経由です。',
@@ -1487,6 +1644,7 @@ var SCHOLARSHIPS = [
   {
     name:'福島県理学療法士等修学資金', org:'福島県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['福島県'],
     amount:'月額5万円(入学金加算あり)',
     desc:'理学療法士・作業療法士・診療放射線技師・歯科衛生士・臨床検査技師の養成校に在学し、卒業後に福島県内で当該職に従事する意思がある学生を対象にした無利息の修学資金。県外の養成施設在学者も対象。県内従事期間が貸与期間の1.5倍になると返還が免除されます。',
@@ -1495,6 +1653,7 @@ var SCHOLARSHIPS = [
   {
     name:'千葉県保育士修学資金等貸付制度', org:'千葉県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'月額5万円以内(総額120万円以内)+入学準備金・就職準備金各20万円以内',
     desc:'指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後1年以内に保育士登録し、県内の保育所等で5年間従事すると全額返還免除(過疎地域や45歳以上での入学は3年間)。',
@@ -1503,6 +1662,7 @@ var SCHOLARSHIPS = [
   {
     name:'福井県介護福祉士・社会福祉士修学資金貸付', org:'社会福祉法人 福井県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['福井県'],
     amount:'月額5万円以内+入学準備金・就職準備金各20万円以内',
     desc:'介護福祉士・社会福祉士の養成施設に在学する学生を対象にした無利子の修学資金貸付制度。卒業後1年以内に福井県内の施設で5年間(過疎地域・中高年離職者は3年間)従事すると、貸付金の返還が全額免除されます。',
@@ -1511,6 +1671,7 @@ var SCHOLARSHIPS = [
   {
     name:'愛知県保育士修学資金貸付事業', org:'社会福祉法人 愛知県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['愛知県'],
     amount:'月額5万円以内(2年間)+入学準備金・就職準備金各20万円以内',
     desc:'愛知県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。修業年限が3〜4年の場合も貸付対象は2年間。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1519,6 +1680,7 @@ var SCHOLARSHIPS = [
   {
     name:'梶山高志・ビケンテクノ奨学財団 奨学金', org:'公益財団法人 梶山高志・ビケンテクノ奨学財団', type:'grant',
     targets:['medical'],
+    levels:['university','vocational'],
     amount:'月額3万円(年額36万円)',
     desc:'財団が指定する専門学校・大学で臨床検査技師の資格取得を目指す学生を対象にした給付型奨学金。学力基準・家計基準あり。30名程度を募集。返済不要です。',
     url:'http://kajiyama-bkt-zaidan.org/'
@@ -1526,6 +1688,7 @@ var SCHOLARSHIPS = [
   {
     name:'兵庫県保育士修学資金貸付事業', org:'兵庫県 / 兵庫県保育協会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['兵庫県'],
     amount:'月額5万円+入学準備金20万円+就職準備金20万円',
     desc:'兵庫県内の指定保育士養成施設に在学し保育士資格の取得を目指す、経済的に支援が必要な学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で5年間従事すると返還が全額免除されます。',
@@ -1534,6 +1697,7 @@ var SCHOLARSHIPS = [
   {
     name:'広島県介護福祉士・社会福祉士修学資金貸付事業', org:'広島県 / 社会福祉法人 広島県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['広島県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内+国家試験受験対策費4万円以内',
     desc:'広島県内の介護福祉士・社会福祉士養成施設に在学する学生を対象にした無利子の修学資金貸付制度。原則として広島県に住民登録があることが条件。卒業後、県内で5年間継続して従事すると返還が全額免除されます。',
@@ -1542,6 +1706,7 @@ var SCHOLARSHIPS = [
   {
     name:'福岡県保育士修学資金貸付事業', org:'福岡県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['福岡県'],
     amount:'月額5万円以内(2年間)+入学準備金・就職準備金各20万円以内',
     desc:'福岡県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。生活保護受給世帯等には月額4万円程度の生活費加算もあります。卒業後、県内で一定期間従事すると返還が免除されます。',
@@ -1550,6 +1715,7 @@ var SCHOLARSHIPS = [
   {
     name:'静岡県介護福祉士修学資金貸付制度', org:'静岡県 / 静岡県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['静岡県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内',
     desc:'静岡県内の介護福祉士養成施設に在学する学生を対象にした無利子の修学資金貸付制度。県内に住民登録がある、または県内養成施設の学生であることが条件。卒業後、県内で5年間介護業務に従事すると返還が免除されます。',
@@ -1558,6 +1724,7 @@ var SCHOLARSHIPS = [
   {
     name:'消防育英会 奨学金', org:'公益財団法人 消防育英会', type:'grant',
     targets:['bereaved'],
+    levels:['graduate'],
     amount:'月額3.5万円(自宅通学)/4.7万円(自宅外通学、特に困難な場合)+進学時の入学一時金',
     desc:'消防活動への協力や公務上の災害により死亡・重い身体障害が残った消防職員・消防団員・協力者の子・孫・弟妹を対象にした給付型奨学金。小学校から大学院まで対象で、進学の節目ごとに入学一時金も給付されます。',
     url:'https://shobo-ikueikai.or.jp/ikueikai-shousai.html'
@@ -1565,6 +1732,7 @@ var SCHOLARSHIPS = [
   {
     name:'熊本県保育士修学資金貸付事業', org:'社会福祉法人 熊本県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['熊本県'],
     amount:'月額5万円+入学準備金20万円+就職準備金20万円',
     desc:'熊本県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後1年以内に保育士登録し、県内の保育所等で5年間(過疎地域は3年間)従事すると返還が全額免除されます。',
@@ -1573,6 +1741,7 @@ var SCHOLARSHIPS = [
   {
     name:'埼玉県保育士修学資金等貸付事業', org:'埼玉県 / 埼玉県福祉人材センター', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['埼玉県'],
     amount:'月額5万円(2年間)+入学準備金20万円+就職準備金20万円',
     desc:'指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。埼玉県内(さいたま市を除く)に住所がある、または県内養成施設在学者が対象。卒業後5年以上県内で保育士として従事すると返還が免除されます。さいたま市在住者は市の制度が別途あります。',
@@ -1581,6 +1750,7 @@ var SCHOLARSHIPS = [
   {
     name:'栃木県育英会 奨学金', org:'公益財団法人 栃木県育英会', type:'loan0',
     targets:['income'],
+    levels:['university','highschool'],
     amount:'月額3万円(自宅通学)/3.8万円(自宅外通学)',
     desc:'保護者が栃木県内に住所を有し、学業成績・家計基準を満たす大学生等を対象にした無利子の貸与型奨学金。高校生向けの予約募集枠もあります。',
     url:'https://tochiiku.sakura.ne.jp/scholarship.php'
@@ -1588,6 +1758,7 @@ var SCHOLARSHIPS = [
   {
     name:'新潟県保育士修学資金貸付等事業', org:'新潟県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['新潟県'],
     amount:'月額5万円以内(2年間)+入学準備金20万円以内+就職準備金20万円以内',
     desc:'新潟県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。生活保護受給世帯等には月額4万円以内の生活費加算もあります。卒業後、県内で5年間継続して保育士として勤務すると返還が免除されます。',
@@ -1596,6 +1767,7 @@ var SCHOLARSHIPS = [
   {
     name:'山口県保育士修学資金貸付', org:'社会福祉法人 山口県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['山口県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内',
     desc:'山口県内外の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1604,6 +1776,7 @@ var SCHOLARSHIPS = [
   {
     name:'鳥取県介護福祉士修学資金等貸付事業', org:'鳥取県 / 鳥取県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['鳥取県'],
     amount:'月額5万円+入学準備金20万円+就職準備金20万円+国家試験受験対策費4万円',
     desc:'鳥取県内の介護福祉士養成施設に在学する学生を対象にした無利子の修学資金貸付制度。卒業後、県内の施設で一定期間介護業務に従事すると返還が免除されます。',
@@ -1612,6 +1785,7 @@ var SCHOLARSHIPS = [
   {
     name:'島根県介護福祉士等修学資金', org:'島根県 / 島根県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['島根県'],
     amount:'月額5万円+入学準備金20万円+就職準備金20万円',
     desc:'島根県内の介護福祉士養成施設に在学する学生を対象にした無利子の修学資金貸付制度。卒業後、県内の施設で一定期間介護業務に従事すると返還が免除されます。',
@@ -1620,6 +1794,7 @@ var SCHOLARSHIPS = [
   {
     name:'京都府保育士修学資金貸付事業', org:'京都府 / 京都府社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['京都府'],
     amount:'月額5万円+入学準備金20万円+就職準備金20万円',
     desc:'京都府内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。生活保護世帯等には別途加算あり。卒業後、府内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1628,6 +1803,7 @@ var SCHOLARSHIPS = [
   {
     name:'奈良県保育士修学資金貸付等事業', org:'奈良県 / 奈良県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['奈良県'],
     amount:'月額5万円(総額120万円以内)+入学準備金20万円+就職準備金20万円',
     desc:'近畿圏内の保育士養成施設に在学し、卒業後に奈良県内で保育士として働く意思がある学生を対象にした無利子の修学資金貸付制度。卒業後1年以内に保育士登録し、県内で5年間継続して従事すると返還が全額免除されます。',
@@ -1636,6 +1812,7 @@ var SCHOLARSHIPS = [
   {
     name:'三重県保育士修学資金貸付制度', org:'三重県 / 三重県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['三重県'],
     amount:'月額5万円以内(最長2年間)',
     desc:'三重県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で保育士として5年間勤務すると返還が免除されます。',
@@ -1644,6 +1821,7 @@ var SCHOLARSHIPS = [
   {
     name:'滋賀県保育士修学資金貸付事業', org:'滋賀県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['滋賀県'],
     amount:'月額5万円以内(2年制の場合)+入学準備金20万円以内+就職準備金20万円以内',
     desc:'滋賀県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1652,6 +1830,7 @@ var SCHOLARSHIPS = [
   {
     name:'岩手県保育士修学資金貸付制度', org:'社会福祉法人 岩手県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['岩手県'],
     amount:'月額5万円以内(2年間)+入学準備金20万円以内+就職準備金20万円以内',
     desc:'岩手県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1660,6 +1839,7 @@ var SCHOLARSHIPS = [
   {
     name:'青森県保育士修学資金等貸付事業', org:'社会福祉法人 青森県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['青森県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内',
     desc:'青森県内に住民登録があり、県内の指定保育士養成施設に在学し、卒業後に県内で保育士として働く意思がある学生を対象にした無利子の修学資金貸付制度。卒業後1年以内に保育士登録し、県内で5年間勤務すると返還が全額免除されます。',
@@ -1668,6 +1848,7 @@ var SCHOLARSHIPS = [
   {
     name:'秋田県保育士貸付制度', org:'秋田県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['秋田県'],
     amount:'月額5万円(通算120万円上限)+入学準備金20万円+就職準備金20万円',
     desc:'秋田県内の指定保育士養成施設に在学し、卒業後に県内で保育士として働く意思がある学生を対象にした無利子の修学資金貸付制度。卒業後、県内で一定期間従事すると返還が免除されます。',
@@ -1676,6 +1857,7 @@ var SCHOLARSHIPS = [
   {
     name:'富山県介護福祉士等修学資金貸与事業', org:'富山県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['富山県'],
     amount:'月額5万円以内+入学準備金20万円+就職準備金20万円+国家試験受験対策費4万円(年額)',
     desc:'富山県内の介護福祉士・社会福祉士養成施設に在学する学生を対象にした無利子の修学資金貸付制度。卒業後、県内の施設で一定期間介護業務等に従事すると返還が免除されます。',
@@ -1684,6 +1866,7 @@ var SCHOLARSHIPS = [
   {
     name:'石川県保育士修学資金等貸与事業', org:'石川県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['石川県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内',
     desc:'石川県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。生活費加算もあります。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1692,6 +1875,7 @@ var SCHOLARSHIPS = [
   {
     name:'和歌山県保育士修学資金貸付等事業', org:'和歌山県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['和歌山県'],
     amount:'月額5万円以内(最長2年間)+入学準備金20万円以内+就職準備金20万円以内',
     desc:'和歌山県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1700,6 +1884,7 @@ var SCHOLARSHIPS = [
   {
     name:'山梨県介護福祉士修学資金等貸付制度', org:'山梨県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['山梨県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内+国家試験受験対策費4万円以内(年度)',
     desc:'山梨県内の介護福祉士養成施設等に在学する学生を対象にした無利子の修学資金貸付制度。卒業後、県内の施設で一定期間介護業務に従事すると返還が免除されます。',
@@ -1708,6 +1893,7 @@ var SCHOLARSHIPS = [
   {
     name:'香川県保育士修学資金貸付事業', org:'香川県 / 香川県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['香川県'],
     amount:'月額5万円以内(最長2年間、計120万円以内)+入学準備金20万円+就職準備金20万円',
     desc:'香川県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。合計160万円以内。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1716,6 +1902,7 @@ var SCHOLARSHIPS = [
   {
     name:'徳島県保育士修学資金貸付事業', org:'徳島県', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['徳島県'],
     amount:'月額5万円以内(最長2年間)+入学準備金20万円以内+就職準備金20万円以内',
     desc:'徳島県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1724,6 +1911,7 @@ var SCHOLARSHIPS = [
   {
     name:'高知県保育士修学資金貸付事業', org:'社会福祉法人 高知県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['高知県'],
     amount:'月額5万円+入学準備金20万円+就職準備金20万円',
     desc:'高知県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後1年以内に保育士登録し、県内の保育所等で5年間従事すると返還が免除されます。',
@@ -1732,6 +1920,7 @@ var SCHOLARSHIPS = [
   {
     name:'佐賀県保育士修学資金貸付等制度', org:'社会福祉法人 佐賀県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['highschool','vocational'],
     region:['佐賀県'],
     amount:'月額5万円以内(総額120万円以内)+入学準備金20万円+就職準備金20万円',
     desc:'佐賀県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。高校生対象の特別推薦枠もあります。',
@@ -1740,6 +1929,7 @@ var SCHOLARSHIPS = [
   {
     name:'大分県介護福祉士修学資金貸付', org:'社会福祉法人 大分県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['大分県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内+国家試験受験対策費8万円以内(2年分上限、総額168万円以内)',
     desc:'大分県内の介護福祉士・社会福祉士養成施設に在学し、卒業後に大分県内で従事することを目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内で一定期間従事すると返還が免除されます。',
@@ -1748,6 +1938,7 @@ var SCHOLARSHIPS = [
   {
     name:'宮崎県保育士修学資金貸付', org:'社会福祉法人 宮崎県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['宮崎県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内',
     desc:'宮崎県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1756,6 +1947,7 @@ var SCHOLARSHIPS = [
   {
     name:'茨城県保育士修学資金等貸付事業', org:'社会福祉法人 茨城県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['茨城県'],
     amount:'月額5万円以内(2年間)+入学準備金20万円以内+就職準備金20万円以内',
     desc:'茨城県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内の保育所等で一定期間従事すると返還が免除されます。',
@@ -1764,6 +1956,7 @@ var SCHOLARSHIPS = [
   {
     name:'読売育英奨学会 奨学生制度', org:'読売育英奨学会', type:'mixed',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'年間立替金額50万〜100万円(返済免除額は年36万〜84万円)+月給約6.5万〜11.4万円',
     desc:'新聞の朝夕刊配達・集金・チラシ折込等の業務をしながら大学・専門学校・予備校に通う学生を対象にした奨学金制度。コースにより学費の立替・免除額と給与が異なります。満18〜29歳が対象。仕事と学業の両立が条件です。',
     url:'https://www.yomisho.com/scholarship/'
@@ -1771,6 +1964,7 @@ var SCHOLARSHIPS = [
   {
     name:'日本経済新聞育英奨学会 奨学金', org:'日本経済新聞育英奨学会', type:'loan0',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'コース別に100万〜450万円(無利子貸与、免除額未満は差額を報奨金支給)+月給約13.8万〜15.4万円',
     desc:'新聞配達などの業務をしながら大学・専修学校に通う学生を対象にした奨学金制度。学費は無利子で全額貸与され、免除額の範囲内であれば返済不要です。個室の寮費も無料です。仕事と学業の両立が条件です。',
     url:'https://www.nikkeikai.com/scholarship'
@@ -1778,6 +1972,7 @@ var SCHOLARSHIPS = [
   {
     name:'産経新聞奨学会 奨学金', org:'産経新聞奨学会', type:'mixed',
     targets:['income'],
+    levels:['university','vocational'],
     amount:'東京は4年制で最大360万〜440万円、大阪はコース別に月額奨学金4.4万〜7万円+給与12.3万〜16.8万円',
     desc:'産経新聞販売所に勤務しながら大学・短大・専門学校・予備校に通う学生(宅浪生も可)を対象にした奨学金制度。返済不要の奨学金と給与が別々に毎月支給されます。入会時18歳以上が条件。学費の無利息前借り制度もあります。',
     url:'https://sankei-shougakukai.jp/shougaku.html'
@@ -1785,6 +1980,7 @@ var SCHOLARSHIPS = [
   {
     name:'長崎県保育士修学資金貸付事業', org:'社会福祉法人 長崎県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['長崎県'],
     amount:'月額5万円以内+入学準備金20万円以内+就職準備金20万円以内',
     desc:'長崎県内の指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後、県内で保育士として5年間勤務すると貸付金の全額が免除されます。',
@@ -1793,6 +1989,7 @@ var SCHOLARSHIPS = [
   {
     name:'柏市仕送り制度(柏市ケアリーバー等支援給付型奨学金)', org:'千葉県柏市', type:'grant',
     targets:['carexp'],
+    levels:['university','vocational','highschool'],
     region:['千葉県'],
     amount:'月額4.5万円',
     desc:'柏市内の児童養護施設等に在籍し大学等への進学を予定している、または柏市内の施設を退所して大学等に進学した人を対象にした給付型奨学金。国の給付型奨学金の受給者で、受給期間中は柏市内に居住することが条件。大学・短大・高専(4〜5年)・専門学校が対象です。',
@@ -1801,6 +1998,7 @@ var SCHOLARSHIPS = [
   {
     name:'船橋市修学金貸付制度', org:'千葉県船橋市', type:'loan0',
     targets:['income'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額2万円以内(国公立)/3万円以内(私立)',
     desc:'船橋市内に本人または保護者が1年以上在住し、経済的理由により修学が困難な大学(短大含む)・専門学校(専門課程)等の学生を対象にした無利子の修学金貸付制度。学校長の推薦と連帯保証人2名が必要です。',
@@ -1809,6 +2007,7 @@ var SCHOLARSHIPS = [
   {
     name:'光奨学会 奨学金', org:'公益財団法人 光奨学会', type:'grant',
     targets:['income'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額4万円(専門学校生・大学生)',
     desc:'千葉県内に1年以上住民登録があり、経済的に進学・修学が困難な専門学校生・大学生を対象にした給付型奨学金。学校卒業まで(正規の最短修業期間)支給。他の給付型奨学金との併用は不可ですが、国・自治体・JASSOの奨学金とは併用可能です。大学生15名程度を募集。',
@@ -1817,6 +2016,7 @@ var SCHOLARSHIPS = [
   {
     name:'浦安市奨学支援金支給制度', org:'千葉県浦安市', type:'grant',
     targets:['income'],
+    levels:['university'],
     region:['千葉県'],
     amount:'月額1.5万円(高3評定4.5以上は月額3.5万円)',
     desc:'浦安市内在住で、経済的理由により修学が困難な学業優秀な大学生等を対象にした給付型奨学金。学費・教材費等に充てられます。',
@@ -1825,6 +2025,7 @@ var SCHOLARSHIPS = [
   {
     name:'港区給付奨学金', org:'東京都港区', type:'grant',
     targets:['income'],
+    levels:['university','vocational','highschool'],
     region:['東京都'],
     amount:'月額3.22万〜6.44万円(自宅通学)/4.47万〜8.94万円(自宅外通学)',
     desc:'生計維持者が港区内に6か月以上在住し、学業成績が特に優れ、経済的理由により修学が困難な大学・短大・高専(4年以上)・専修学校(専門課程)の学生を対象にした給付型奨学金。所得区分により金額が変動します。',
@@ -1833,6 +2034,7 @@ var SCHOLARSHIPS = [
   {
     name:'世田谷区生活保護世帯から進学する若者のための給付型奨学金', org:'東京都世田谷区', type:'grant',
     targets:['income'],
+    levels:['university','highschool'],
     region:['東京都'],
     amount:'学費上限年額50万円+教材費・通学交通費実費',
     desc:'世田谷区から生活保護を受給していた世帯の子どもで、大学等入学後に保護者が引き続き区内で生活保護を受給している学生を対象にした給付型奨学金。高校卒業年度の3月31日時点で28歳未満が対象。本人は生活保護受給中でないことが条件です。',
@@ -1841,6 +2043,7 @@ var SCHOLARSHIPS = [
   {
     name:'川崎市大学奨学生', org:'川崎市教育委員会', type:'loan0',
     targets:['income'],
+    levels:['graduate','university'],
     region:['神奈川県'],
     amount:'月額3.8万円(年額45.6万円)',
     desc:'父母等が川崎市内に1年以上居住し、学資の支弁が困難な大学1年生(短大・大学院を除く)を対象にした無利子の貸与型奨学金。卒業後6か月据え置き後、10年以内に返還します。10名程度を募集。',
@@ -1849,6 +2052,7 @@ var SCHOLARSHIPS = [
   {
     name:'川越市大学奨学金', org:'埼玉県川越市', type:'grant',
     targets:['income'],
+    levels:['graduate','university','highschool'],
     region:['埼玉県'],
     amount:'月額3.75万円',
     desc:'川越市内の高校3年生で、学業成績優秀だが経済的理由により大学(大学院・短大を除く、修業年限4年または6年)への修学が困難な人を対象にした、進学前に申し込む予約型の給付型奨学金。',
@@ -1857,6 +2061,7 @@ var SCHOLARSHIPS = [
   {
     name:'「埼玉発世界行き」奨学金(学位取得コース)', org:'公益財団法人 埼玉県国際交流協会(グローバル人材育成センター埼玉)', type:'grant',
     targets:['all'],
+    levels:['graduate','university','highschool'],
     region:['埼玉県'],
     amount:'総額100万円(生活保護世帯・市町村民税非課税世帯等は200万円)',
     desc:'高校卒業(見込み)で40歳未満の人を対象に、海外の大学・大学院(学位取得目的)への進学留学を支援する給付型奨学金。留学先国・地域の制限はなく、20名以内を募集。',
@@ -1865,6 +2070,7 @@ var SCHOLARSHIPS = [
   {
     name:'水戸市医師修学資金貸与制度', org:'茨城県水戸市', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['茨城県'],
     amount:'月額20万円(国公立大学)/30万円(私立大学)+入学金相当額上限100万円',
     desc:'大学医学部に在学し、小児科・産婦人科・救急科・内科・外科・脳神経外科・総合診療科のいずれかの医師として水戸市内の医療機関に勤務する意思がある学生を対象にした無利子の修学資金貸与制度。他の勤務地指定の修学資金との併用は不可です。',
@@ -1873,6 +2079,7 @@ var SCHOLARSHIPS = [
   {
     name:'茨城県医師修学資金貸与制度', org:'茨城県', type:'loan0',
     targets:['medical'],
+    levels:['university','highschool'],
     region:['茨城県'],
     amount:'月額15万円(全国の医学部対象)',
     desc:'茨城県内に居住する者の子、または県内の高校・中等教育学校を卒業した医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、知事指定の医療機関で貸与期間と同じ期間(3年未満の場合は3年間)勤務すると返還が免除されます。地域枠対象大学向けにはより高額な制度(国公立月20万円・私立月25万円)もあります。',
@@ -1881,6 +2088,7 @@ var SCHOLARSHIPS = [
   {
     name:'栃木県医師修学資金', org:'栃木県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['栃木県'],
     amount:'月額25万円(年額300万円)+入学金相当額上限100万円',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、栃木県内で初期臨床研修を行い、その後県内の公的医療機関等で指定診療科の医師として貸与年数の1.5倍の期間勤務すると返還が免除されます。',
@@ -1889,6 +2097,7 @@ var SCHOLARSHIPS = [
   {
     name:'群馬県医師確保修学資金制度', org:'群馬県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['群馬県'],
     amount:'月額10万〜25万円(大学・コースにより異なる)',
     desc:'群馬大学など指定大学の医学部生を対象にした無利子の修学資金貸与制度。県内での臨床研修を含む一定期間の勤務で返還が全額免除されます。大学・所得条件により貸与額が異なります。',
@@ -1897,6 +2106,7 @@ var SCHOLARSHIPS = [
   {
     name:'神奈川県地域医療医師修学資金貸付制度', org:'神奈川県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['神奈川県'],
     amount:'月額10万円',
     desc:'医学部生を対象にした無利子の修学資金貸付制度。医師免許取得後、県が指定する医療機関で一定期間勤務すると返還が免除されます。',
@@ -1905,6 +2115,7 @@ var SCHOLARSHIPS = [
   {
     name:'千葉県医師修学資金貸付制度', org:'千葉県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['千葉県'],
     amount:'月額15万円(国公立大学・長期支援コース)/20万円(私立大学・長期支援コース)',
     desc:'医学部生を対象にした無利子の修学資金貸付制度。長期支援コース(一般枠・地域枠)とふるさと医師支援コースがあり、医師免許取得後に県内で一定期間勤務すると返還が免除されます。',
@@ -1913,6 +2124,7 @@ var SCHOLARSHIPS = [
   {
     name:'埼玉県医師育成奨学金', org:'埼玉県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['埼玉県'],
     amount:'月額20万円以内(大学卒業までの最長6年間、総額最大1,440万円)',
     desc:'医学部生を対象にした無利子の奨学金貸与制度。出身者奨学金と指定大学奨学金(地域枠医学生奨学金)があります。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -1921,6 +2133,7 @@ var SCHOLARSHIPS = [
   {
     name:'北海道医師養成確保修学資金', org:'北海道', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['北海道'],
     amount:'入学料28.2万円(初年度)+授業料53.58万円(年額)+生活費月額12万円',
     desc:'北海道大学等の医学部生を対象にした無利子の修学資金貸与制度(地域枠)。医師免許取得後、道が指定する医療機関で一定期間勤務すると返還が免除されます。',
@@ -1929,6 +2142,7 @@ var SCHOLARSHIPS = [
   {
     name:'青森県医師修学資金制度', org:'青森県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['青森県'],
     amount:'特別枠は月額10万円+入学料・授業料/県外大学は自宅外月15万円・自宅月9万円+入学金28.2万円',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。特別枠と一般枠があり、県外大学の医学部生も対象。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -1937,6 +2151,7 @@ var SCHOLARSHIPS = [
   {
     name:'長野県医学生修学資金貸与制度', org:'長野県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['長野県'],
     amount:'月額20万円(6年間貸与で総額1,440万円)',
     desc:'将来、長野県内の公立・公的医療機関等に勤務する意欲のある医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -1945,6 +2160,7 @@ var SCHOLARSHIPS = [
   {
     name:'新潟県医師養成修学資金貸与制度', org:'新潟県 / 公益財団法人 新潟医学振興会', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['新潟県'],
     amount:'月額15万円(新潟大学・県外国公立大学)/30万円〜(県外私立大学)',
     desc:'将来、新潟県内の地域医療を担う意欲のある医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -1953,6 +2169,7 @@ var SCHOLARSHIPS = [
   {
     name:'岩手県医療局医師奨学資金貸付制度', org:'岩手県医療局', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['岩手県'],
     amount:'月額30万円(一般枠)/40万円(産婦人科枠)',
     desc:'医学部生を対象にした無利子の奨学資金貸付制度。産婦人科枠はより高額な貸与を受けられます。医師免許取得後、県が指定する医療機関で一定期間勤務すると返還が免除されます。',
@@ -1961,6 +2178,7 @@ var SCHOLARSHIPS = [
   {
     name:'宮城県医学生修学資金', org:'宮城県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['宮城県'],
     amount:'月額10万円(計720万円)',
     desc:'東北大学宮城県地域枠で入学した医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -1969,6 +2187,7 @@ var SCHOLARSHIPS = [
   {
     name:'福島県緊急医師確保修学資金', org:'福島県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['福島県'],
     amount:'月額15万円',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、福島県内の公的医療機関等で一定期間勤務すると返還が免除されます。',
@@ -1977,6 +2196,7 @@ var SCHOLARSHIPS = [
   {
     name:'秋田県医学生修学資金', org:'秋田県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['秋田県'],
     amount:'月額15万円(自宅外通学)/10万円(自宅通学)+入学料相当額28.2万円(1年次のみ)',
     desc:'秋田県地域枠で入学した医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -1985,6 +2205,7 @@ var SCHOLARSHIPS = [
   {
     name:'山形県医師修学資金', org:'山形県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['山形県'],
     amount:'年額200万円',
     desc:'山形県内出身(本人または一親等の親族が県内在住)で、卒業後に県内の医師確保が必要な地域に勤務する意思がある医学部生を対象にした無利子の修学資金貸与制度。貸与期間に応じた県内勤務で返還が免除されます。',
@@ -1993,6 +2214,7 @@ var SCHOLARSHIPS = [
   {
     name:'石川県緊急医師確保修学資金', org:'石川県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['石川県'],
     amount:'月額20万円(6年間総額1,440万円)',
     desc:'金沢大学医薬保健学域医学類特別枠の学生を対象にした無利子の修学資金貸与制度。医師免許取得後、県が指定する医療機関で一定期間勤務すると返還が免除されます。',
@@ -2001,6 +2223,7 @@ var SCHOLARSHIPS = [
   {
     name:'富山県地域医療再生修学資金', org:'富山県', type:'loan1',
     targets:['medical'],
+    levels:['university'],
     region:['富山県'],
     amount:'月額5万円(前期コース)/10万円(後期コース、利率年5%)',
     desc:'医学部生を対象にした修学資金貸与制度(利息あり)。医師免許取得後、県が指定する医療機関で一定期間勤務すると返還(利息分含む)が免除されます。',
@@ -2009,6 +2232,7 @@ var SCHOLARSHIPS = [
   {
     name:'福井県医師確保修学資金', org:'福井県', type:'loan0',
     targets:['medical'],
+    levels:['university','other'],
     region:['福井県'],
     amount:'6年間合計約1,079.7万円(地域枠)',
     desc:'福井大学医学部医学科推薦入試地域枠(福井健康推進枠)の入学者を対象にした無利子の修学資金貸与制度。医師免許取得後、県内で一定期間勤務すると返還が免除されます。県外大学生・臨床研修医向けの別制度もあります。',
@@ -2017,6 +2241,7 @@ var SCHOLARSHIPS = [
   {
     name:'岐阜県医学生修学資金', org:'岐阜県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['岐阜県'],
     amount:'月額10万円(地域医療コースは20万円)+授業料相当額53.58万円(年額)+入学金相当額28.2万円(初年度)',
     desc:'医学部生を対象にした無利子の修学資金貸付制度。第1種・第2種があり、地域医療コース入学者はより高額な貸与を受けられます。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -2025,6 +2250,7 @@ var SCHOLARSHIPS = [
   {
     name:'静岡県医学修学研修資金', org:'静岡県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['静岡県'],
     amount:'月額20万円(年額240万円)',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、静岡県内の医療機関で一定期間勤務すると返還が免除されます。',
@@ -2033,6 +2259,7 @@ var SCHOLARSHIPS = [
   {
     name:'山梨県医師修学資金', org:'山梨県', type:'loan0',
     targets:['medical'],
+    levels:['graduate','university'],
     region:['山梨県'],
     amount:'月額5万円(第一種・第三種)/13万円(第二種)',
     desc:'医学部生(第三種は大学院生)を対象にした無利子の修学資金貸与制度。医師免許取得後、山梨県内で一定期間勤務すると返還が免除されます。',
@@ -2041,6 +2268,7 @@ var SCHOLARSHIPS = [
   {
     name:'愛知県地域医療確保修学資金', org:'愛知県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['愛知県'],
     amount:'月額17.5万円(入学年次)/15万円(2年次以降)',
     desc:'将来、愛知県内の地域医療を担う意欲のある医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、県が指定する医療機関で一定期間勤務すると返還が免除されます。',
@@ -2049,6 +2277,7 @@ var SCHOLARSHIPS = [
   {
     name:'三重県医師修学資金貸与制度', org:'三重県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['三重県'],
     amount:'月額約12.6万円(入学年)/約10.3万円(次年度以降)',
     desc:'医学部生(地域枠コース)を対象にした無利子の修学資金貸与制度。医師免許取得後、三重県内で一定期間勤務すると返還が免除されます。',
@@ -2057,6 +2286,7 @@ var SCHOLARSHIPS = [
   {
     name:'滋賀県医学生修学資金', org:'滋賀県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['滋賀県'],
     amount:'年額180万円(大学卒業までの4年間)',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、滋賀県内で一定期間勤務すると返還が免除されます。',
@@ -2065,6 +2295,7 @@ var SCHOLARSHIPS = [
   {
     name:'京都府地域医療確保奨学金', org:'京都府', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['京都府'],
     amount:'月額15万円(年額180万円)',
     desc:'京都府立医科大学医学部医学科の学校推薦型選抜による入学者(地域枠)を対象にした無利子の奨学金貸与制度。府内の医師不足地域にある地域医療機関で一定期間勤務すると返還が免除されます。',
@@ -2073,6 +2304,7 @@ var SCHOLARSHIPS = [
   {
     name:'大阪府地域医療確保修学資金', org:'大阪府', type:'loan1',
     targets:['medical'],
+    levels:['university'],
     region:['大阪府'],
     amount:'月額10万円(年額120万円、年利10%)',
     desc:'大阪公立大学・大阪医科薬科大学・関西医科大学・近畿大学医学部医学科の学部1年生で、将来大阪府内の救急・周産期医療分野や医師少数地域の公立病院等で勤務する意思がある学生を対象にした修学資金貸与制度(有利子)。一定条件を満たすと返還が免除されます。',
@@ -2081,6 +2313,7 @@ var SCHOLARSHIPS = [
   {
     name:'兵庫県立病院医師修学資金', org:'兵庫県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['兵庫県'],
     amount:'月額12.5万円(1〜4年生)/17.5万円(5〜6年生)',
     desc:'医学部生(中播磨・西播磨枠等)を対象にした無利子の修学資金貸与制度。医師免許取得後、兵庫県立病院等で一定期間勤務すると返還が免除されます。',
@@ -2089,6 +2322,7 @@ var SCHOLARSHIPS = [
   {
     name:'奈良県緊急医師確保修学資金貸与制度', org:'奈良県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['奈良県'],
     amount:'月額20万円',
     desc:'奈良県立医科大学または近畿大学医学部の学生で、医師確保が困難な県内の地域・診療科で将来医師として従事する意思がある人を対象にした無利子の修学資金貸与制度。',
@@ -2097,6 +2331,7 @@ var SCHOLARSHIPS = [
   {
     name:'和歌山県医師確保修学資金', org:'和歌山県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['和歌山県'],
     amount:'月額15万円(大学生)',
     desc:'医学部生を対象にした修学資金貸与制度。医師免許取得後、和歌山県が指定する医療機関で一定期間勤務すると返還が免除されます。地域医師確保・特定診療科医師確保など有利子(年3%)の類似制度も複数あります。',
@@ -2105,6 +2340,7 @@ var SCHOLARSHIPS = [
   {
     name:'鳥取県医師養成確保奨学金', org:'鳥取県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['鳥取県'],
     amount:'月額12万円(地域枠・編入学者)/10万円(その他)',
     desc:'医学部生を対象にした無利子の奨学金貸付制度。鳥取大学医学部地域枠コースでは年額180万円(月額15万円)が在学期間中(最大72か月)貸与されます。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -2113,6 +2349,7 @@ var SCHOLARSHIPS = [
   {
     name:'島根県医学生地域医療奨学金', org:'島根県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['島根県'],
     amount:'月額10万円+入学金相当額28.2万円+授業料相当額53.58万円(年額)',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、島根県内で一定期間勤務すると返還が免除されます。',
@@ -2121,6 +2358,7 @@ var SCHOLARSHIPS = [
   {
     name:'岡山県医学部医学科「地域枠コース」奨学金', org:'岡山大学 / 岡山県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['岡山県'],
     amount:'年額240万円(月額20万円)',
     desc:'岡山大学医学部医学科「地域枠コース」での入学者全員を対象にした無利子の奨学金貸与制度。在学期間中貸与され、医師免許取得後に県内で一定期間勤務すると返還が免除されます。',
@@ -2129,6 +2367,7 @@ var SCHOLARSHIPS = [
   {
     name:'広島県医師育成奨学金', org:'広島県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['広島県'],
     amount:'年額240万円(月額20万円)',
     desc:'医学部生を対象にした無利子の奨学金貸与制度。医師免許取得後、広島県内で一定期間勤務すると返還が免除されます。',
@@ -2137,6 +2376,7 @@ var SCHOLARSHIPS = [
   {
     name:'山口県医師修学資金(緊急医師確保対策枠)', org:'山口県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['山口県'],
     amount:'月額20万円(年額240万円、6年間総額1,440万円)',
     desc:'医学部生を対象にした無利子の修学資金貸付制度。緊急医師確保対策枠のほか、重点医師確保対策枠(月15万円)・自治医科大学枠(月5万円)・特定診療科枠(月15万円)もあります。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -2145,6 +2385,7 @@ var SCHOLARSHIPS = [
   {
     name:'徳島県医師修学資金', org:'徳島県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['徳島県'],
     amount:'月額10万円+入学金相当額28.2万円(初年度)+授業料相当額53.58万円(年額)',
     desc:'徳島大学等で医学を履修する学生を対象にした無利子の修学資金貸与制度(県外大学生向けの別枠もあります)。医師免許取得後、徳島県内の公的医療機関等で一定期間勤務すると返還が免除されます。',
@@ -2153,6 +2394,7 @@ var SCHOLARSHIPS = [
   {
     name:'香川県医学生修学資金貸付制度', org:'香川県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['香川県'],
     amount:'月額12万円',
     desc:'医学部生を対象にした無利子の修学資金貸付制度。医師免許取得後、2年間の初期臨床研修を含め9年間、知事が指定する医療機関に勤務すると返還が全額免除されます。',
@@ -2161,6 +2403,7 @@ var SCHOLARSHIPS = [
   {
     name:'愛媛県地域医療医師確保奨学金貸与制度', org:'愛媛県', type:'loan0',
     targets:['medical'],
+    levels:['university','other'],
     region:['愛媛県'],
     amount:'月額10万円+入学金28.2万円+授業料53.58万円(年額)',
     desc:'愛媛大学医学部医学科「地域特別枠(推薦B)」入学者を対象にした無利子の修学資金貸与制度。全国の医学生・研修医向けの期間選択制奨学金(一般枠月10万円/特定診療科枠月20万円)も別途あります。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -2169,6 +2412,7 @@ var SCHOLARSHIPS = [
   {
     name:'高知県医師修学資金', org:'高知県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['高知県'],
     amount:'月額15万円(特定科目は8万円加算)',
     desc:'医学部生を対象にした無利子の修学資金貸付制度。産婦人科・小児科・外科・麻酔科・脳神経外科を志望する場合は加算があります。医師免許取得後、高知県内で一定期間勤務すると返還が免除されます。',
@@ -2177,6 +2421,7 @@ var SCHOLARSHIPS = [
   {
     name:'佐賀県医師修学資金等貸与制度', org:'佐賀県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['佐賀県'],
     amount:'1年次151万円/2年次以降122.8万円(6年間)',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、佐賀県内で一定期間勤務すると返還が免除されます。',
@@ -2185,6 +2430,7 @@ var SCHOLARSHIPS = [
   {
     name:'長崎県医学修学資金', org:'長崎県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['長崎県'],
     amount:'生活費月額7万円以内+入学料・授業料(国立大学の定める額)+専門課程図書購入費年額20万円以内',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、長崎県内で一定期間勤務すると返還が免除されます。',
@@ -2193,6 +2439,7 @@ var SCHOLARSHIPS = [
   {
     name:'熊本県医師修学資金貸与制度', org:'熊本県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['熊本県'],
     amount:'生活費月額7.5万円+入学金相当額28.2万円(初年度)+授業料相当額53.58万円(年額)',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、熊本県内で一定期間勤務すると返還が免除されます。',
@@ -2201,6 +2448,7 @@ var SCHOLARSHIPS = [
   {
     name:'大分県医師修学資金貸与制度', org:'大分県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['大分県'],
     amount:'月額5万円(総合型選抜地域枠)',
     desc:'大分大学医学部総合型選抜地域枠の入学者を対象にした無利子の修学資金貸与制度。医師免許取得後、大分県内で一定期間勤務すると返還が免除されます。',
@@ -2209,6 +2457,7 @@ var SCHOLARSHIPS = [
   {
     name:'宮崎県医師修学資金貸与制度', org:'宮崎県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['宮崎県'],
     amount:'月額10万円',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。医師免許取得後、宮崎県内で一定期間勤務すると返還が免除されます。',
@@ -2217,6 +2466,7 @@ var SCHOLARSHIPS = [
   {
     name:'鹿児島県医師修学資金貸与制度(地域枠)', org:'鹿児島県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['鹿児島県'],
     amount:'生活費月額7.5万円(6年間)+入学金相当額28万円+授業料相当額52万円(年額)',
     desc:'鹿児島大学医学部医学科学校推薦型選抜等の入学者で、将来、県内のへき地医療機関や周産期医療を担う病院等に勤務する意思がある学生を対象にした無利子の修学資金貸与制度。6年間総額約940万円。医師免許取得後、県内で一定期間勤務すると返還が免除されます。',
@@ -2225,6 +2475,7 @@ var SCHOLARSHIPS = [
   {
     name:'沖縄県医師修学資金', org:'沖縄県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['沖縄県'],
     amount:'生活費月額5万円(地域枠)/10万円(離島・北部枠)+授業料年額53万円以内',
     desc:'医学部生を対象にした無利子の修学資金貸与制度。地域枠と離島・北部枠があり、後者の方が生活費が高額です。医師免許取得後、沖縄県内で一定期間勤務すると返還が免除されます。',
@@ -2233,6 +2484,7 @@ var SCHOLARSHIPS = [
   {
     name:'北海道看護職員養成確保修学資金貸付制度', org:'北海道', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['北海道'],
     amount:'月額3万2000円(道立等養成施設)/3万6000円(私立等養成施設)',
     desc:'看護師等養成施設に在学する学生を対象とした無利子の修学資金貸付制度。卒業後1年以内に免許を取得し、道内の指定施設で一定期間(概ね5年)看護業務に従事すると返還が免除されます。',
@@ -2241,6 +2493,7 @@ var SCHOLARSHIPS = [
   {
     name:'青森県看護師等修学資金', org:'青森県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['青森県'],
     amount:'月額3万6000円(看護師)/3万2000円(地方公共団体等設置の養成施設)/准看護師2万1000円(1万5000円)',
     desc:'保健師・助産師・看護師・准看護師養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の医療機関等で一定期間業務に従事すると返還が免除されます。',
@@ -2249,6 +2502,7 @@ var SCHOLARSHIPS = [
   {
     name:'岩手県看護職員修学資金貸付制度', org:'岩手県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['岩手県'],
     amount:'月額5万1000円以内(国公立)/6万円以内(私立)',
     desc:'将来岩手県内での就職を希望する看護学生に無利子で修学資金を貸与する制度。卒業後、県内の指定施設で一定期間看護業務に従事すると返還が免除されます。',
@@ -2257,6 +2511,7 @@ var SCHOLARSHIPS = [
   {
     name:'特定地域看護師確保対策修学資金貸付事業', org:'宮城県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['宮城県'],
     amount:'月額6万円',
     desc:'看護師が特に不足している特定地域の医療施設での就業を希望する、県内看護師等学校養成所の学生を対象とした無利子の修学資金貸付制度。卒業後、特定医療施設で3年間看護業務に従事すると返還が免除されます。',
@@ -2265,6 +2520,7 @@ var SCHOLARSHIPS = [
   {
     name:'秋田県看護職員修学資金', org:'秋田県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['秋田県'],
     amount:'月額3万2000円(国公立)/3万6000円(私立)',
     desc:'看護師・保健師・助産師養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の指定施設で一定期間看護業務に従事すると返還が免除されます。',
@@ -2273,6 +2529,7 @@ var SCHOLARSHIPS = [
   {
     name:'山形県看護職員修学資金貸与事業', org:'山形県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['山形県'],
     amount:'月額5万円',
     desc:'看護師等養成施設に在学する学生を対象とした無利子の修学資金貸与制度。卒業後、県内の医療機関等で一定期間看護業務に従事すると返還が免除されます。',
@@ -2281,6 +2538,7 @@ var SCHOLARSHIPS = [
   {
     name:'福島県看護師等修学資金貸与事業', org:'福島県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['福島県'],
     amount:'月額3万9000円(国公立)/5万6000円(私立)、准看護師1万9000円/3万2000円(南相馬市・双葉郡の指定施設勤務予定者は一律3万円加算)',
     desc:'保健師・助産師・看護師・准看護師養成課程に在学する学生を対象とした無利子の修学資金貸与制度。卒業後、県内の医療機関等で一定期間業務に従事すると返還が免除されます。',
@@ -2289,6 +2547,7 @@ var SCHOLARSHIPS = [
   {
     name:'茨城県保健師，助産師，看護師及び准看護師修学資金', org:'茨城県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['茨城県'],
     amount:'月額3万2000円(国公立等設置施設)/3万6000円(私立等設置施設)、准看護師1万5000円/2万1000円',
     desc:'保健師・助産師・看護師・准看護師養成施設に在学する学生を対象とした修学資金貸与制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます(返還が生じた場合のみ年10%の延滞利息)。',
@@ -2297,6 +2556,7 @@ var SCHOLARSHIPS = [
   {
     name:'栃木県看護職員修学資金貸与制度', org:'栃木県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['栃木県'],
     amount:'月額3万2000円(助産師・看護師)/1万5000円(准看護師)',
     desc:'看護師等養成所に在学し、卒業後、県内の病院等医療機関への就業が確実な学生を対象とした無利子の修学資金貸与制度。一定期間県内で看護業務に従事すると返還が免除されます。',
@@ -2305,6 +2565,7 @@ var SCHOLARSHIPS = [
   {
     name:'群馬県看護師等修学資金貸与制度', org:'群馬県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['群馬県'],
     amount:'月額3万2000円(公立)/3万6000円(私立)、准看護師・通信制2年課程2万1000円',
     desc:'県内の看護職員養成施設の学生に無利子で修学資金を貸与する制度。卒業後、県が定める返還免除対象施設で所定期間以上継続して看護職員の業務に従事すると返還が免除されます。',
@@ -2313,6 +2574,7 @@ var SCHOLARSHIPS = [
   {
     name:'埼玉県看護師等育英奨学金', org:'埼玉県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['埼玉県'],
     amount:'年額27万円(国公立・保健師助産師看護師)/54万円(私立)、准看護師は国公私立とも年額36万円(年1回一括貸与)',
     desc:'看護師等養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の医療機関等で一定期間業務に従事すると返還が免除されます。',
@@ -2321,6 +2583,7 @@ var SCHOLARSHIPS = [
   {
     name:'千葉県保健師等修学資金貸付制度', org:'千葉県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'月額1万6000円(地方公共団体等設置/一般貸付)〜1万8000円(その他設置)、地域特別貸付は一律3万6000円',
     desc:'保健師・助産師・看護師・准看護師養成施設に在学する学生を対象とした無利子の修学資金貸付制度。卒業後、県内の医療機関等で一定期間業務に従事すると返還が免除されます。',
@@ -2329,6 +2592,7 @@ var SCHOLARSHIPS = [
   {
     name:'東京都看護師等修学資金貸与事業', org:'東京都', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['東京都'],
     amount:'月額2万5000円/5万円/7万5000円/10万円から選択',
     desc:'看護師等養成施設に在学する学生に無利子で修学資金を貸与する制度。令和7年4月の制度改正で返還免除額が拡大され、都内施設に一定期間従事すると返還が免除されます。',
@@ -2337,6 +2601,7 @@ var SCHOLARSHIPS = [
   {
     name:'神奈川県看護師等修学資金貸付制度', org:'神奈川県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['神奈川県'],
     amount:'月額1万7000円(一般貸付)/4万円(特例貸付、住民税非課税等世帯、入学初年度は10万円加算)',
     desc:'卒業後に県内で看護師・助産師として業務に従事する意思のある学生に、無利子で修学資金を貸し付ける制度。一定期間の県内勤務で返還が免除されます。',
@@ -2345,6 +2610,7 @@ var SCHOLARSHIPS = [
   {
     name:'新潟県看護職員臨時修学資金制度', org:'新潟県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['新潟県'],
     amount:'月額5万円(一般)/10万円(佐渡市から転居して通学する場合等の特例)',
     desc:'保健師・助産師・看護師・准看護師を目指す学生への無利子の修学資金貸与制度。卒業後、直ちに県内の特定医療施設等に就職し5年間継続勤務すると全額返還免除となります。',
@@ -2353,6 +2619,7 @@ var SCHOLARSHIPS = [
   {
     name:'富山県看護学生修学資金貸与制度', org:'富山県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['富山県'],
     amount:'月額3万2000円(国公立)/3万6000円(私立、保健師助産師看護師課程)、准看護師1万5000円/2万1000円',
     desc:'将来富山県内で看護職員として働こうとする看護学生への無利子の修学資金貸与制度。卒業後、県内の特定施設で一定期間業務に従事すると返還が一部または全部免除されます。',
@@ -2361,6 +2628,7 @@ var SCHOLARSHIPS = [
   {
     name:'石川県看護師等修学資金', org:'石川県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['石川県'],
     amount:'月額3万2000円(看護師)/1万5000円(准看護師)',
     desc:'看護師等養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の指定施設で一定期間看護業務に従事すると返還が免除されます。',
@@ -2369,6 +2637,7 @@ var SCHOLARSHIPS = [
   {
     name:'山梨県看護職員修学資金', org:'山梨県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['山梨県'],
     amount:'月額3万2000円(国公立)/3万6000円(私立)、准看護師1万5000円/2万1000円',
     desc:'保健師・助産師・看護師養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2377,6 +2646,7 @@ var SCHOLARSHIPS = [
   {
     name:'長野県看護職員修学資金', org:'長野県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['長野県'],
     amount:'月額3万2000円(国公立)/3万6000円(私立)、准看護師2万1000円(私立)',
     desc:'保健師・助産師・看護師養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2385,6 +2655,7 @@ var SCHOLARSHIPS = [
   {
     name:'岐阜県看護学生修学資金貸付制度', org:'岐阜県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['岐阜県'],
     amount:'月額3万2000円(国公立)/3万6000円(私立)、准看護師1万5000円/2万1000円',
     desc:'看護師養成施設に在学する学生への無利子の修学資金貸付制度。貸付期間は1年で毎年度更新。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2393,6 +2664,7 @@ var SCHOLARSHIPS = [
   {
     name:'静岡県看護職員修学資金貸与制度', org:'静岡県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['静岡県'],
     amount:'月額3万2000円(国立・地方自治体立)/3万6000円(私立)',
     desc:'看護師等養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2401,6 +2673,7 @@ var SCHOLARSHIPS = [
   {
     name:'愛知県へき地医療確保看護修学資金', org:'愛知県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['愛知県'],
     amount:'月額10万円',
     desc:'愛知県立総合看護専門学校の地域枠推薦入学試験合格者を対象にした無利子の修学資金貸与制度。卒業後、県が指定するへき地等の医療機関で一定期間看護業務に従事すると返還が免除されます。',
@@ -2409,6 +2682,7 @@ var SCHOLARSHIPS = [
   {
     name:'三重県保健師助産師看護師等修学資金', org:'三重県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['三重県'],
     amount:'月額3万6000円(看護師学校養成所)/7万円(助産師学校養成所)/5万円(看護系大学)、通信制・准看護師2万1000円',
     desc:'保健師・助産師・看護師・准看護師養成施設に在学する学生への無利子の修学資金貸付制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2417,6 +2691,7 @@ var SCHOLARSHIPS = [
   {
     name:'滋賀県看護職員修学資金', org:'滋賀県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['滋賀県'],
     amount:'月額3万2000円(公立施設)/3万6000円(民間施設)、准看護師1万5000円/2万1000円',
     desc:'看護師等養成施設に在学する学生への無利子の修学資金貸付制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2425,6 +2700,7 @@ var SCHOLARSHIPS = [
   {
     name:'京都府看護師等修学資金貸付制度', org:'京都府', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['京都府'],
     amount:'月額3万2000円(国公立等/保健師助産師看護師)/3万6000円(私立)、准看護師1万5000円/2万1000円',
     desc:'保健師・助産師・看護師・准看護師養成施設に在学する学生への無利子の修学資金貸付制度。卒業後、府内の返還免除対象施設で一定期間業務に従事すると返還が免除されます。',
@@ -2433,6 +2709,7 @@ var SCHOLARSHIPS = [
   {
     name:'大阪府看護師等修学資金', org:'大阪府', type:'loan0',
     targets:['medical'],
+    levels:['graduate','vocational'],
     region:['大阪府'],
     amount:'月額3万1000円(第一号対象者)/2万円(第二号対象者)/8万3000円(第三号対象者・大学院)',
     desc:'看護師等養成施設等に在学する学生への無利子の修学資金貸与制度。卒業後、府内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2441,6 +2718,7 @@ var SCHOLARSHIPS = [
   {
     name:'兵庫県立病院看護師修学資金【返還免除型】', org:'兵庫県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['兵庫県'],
     amount:'月額10万円(早期の採用予定者)/5万円(それ以外)',
     desc:'兵庫県立病院での就業を目指す看護学生への無利子の修学資金貸与制度。卒業後、県立病院で一定期間看護業務に従事すると返還が免除されます。',
@@ -2449,6 +2727,7 @@ var SCHOLARSHIPS = [
   {
     name:'奈良県看護師等修学資金', org:'奈良県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['奈良県'],
     amount:'月額3万6000円(保健師・助産師・看護師課程)/2万1000円(准看護師課程)',
     desc:'看護師等養成施設に在学する学生への無利子の修学資金貸与制度。免許取得後、特定施設で貸与期間+2年間、または特定病院で貸与期間+4年間看護業務に従事すると返還が免除されます。',
@@ -2457,6 +2736,7 @@ var SCHOLARSHIPS = [
   {
     name:'和歌山県看護職員修学資金', org:'和歌山県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['和歌山県'],
     amount:'月額3万円(知事指定の看護師養成所)/5万円(私立大学)、准看護師2万円',
     desc:'将来和歌山県内で看護職員の業務に従事しようとする学生への無利子の修学資金貸付制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2465,6 +2745,7 @@ var SCHOLARSHIPS = [
   {
     name:'鳥取県看護職員修学資金貸付制度', org:'鳥取県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['鳥取県'],
     amount:'月額3万2000円(国公立/保健師助産師看護師養成所)/3万6000円(私立)、准看護師1万5000円/2万1000円',
     desc:'看護職員養成施設に在学する学生への無利子の修学資金貸付制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2473,6 +2754,7 @@ var SCHOLARSHIPS = [
   {
     name:'島根「ふるさと」看護奨学金', org:'島根県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['島根県'],
     amount:'60万円(在学中1回限り、一括貸与)',
     desc:'県外の看護師養成施設在学者(UIターン枠)、過疎・離島医療を目指す学生(過疎・離島枠)、助産師養成施設最終学年の学生(助産師枠)を対象とした無利子の奨学金制度。卒業後、県内の指定施設等で一定期間勤務すると返還が免除されます。',
@@ -2481,6 +2763,7 @@ var SCHOLARSHIPS = [
   {
     name:'広島県助産師修学資金', org:'広島県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['広島県'],
     amount:'月額5万円(年額60万円)',
     desc:'広島県内での助産師としての就業を希望する助産師養成施設の学生を対象とした無利子の修学資金貸付制度。卒業後、県内の指定施設で一定期間助産師業務に従事すると返還が免除されます。',
@@ -2489,6 +2772,7 @@ var SCHOLARSHIPS = [
   {
     name:'看護師等修学資金(山口県)', org:'山口県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['山口県'],
     amount:'月額3万2000円(国公立)/3万6000円(民間立)、准看護師1万5000円/2万1000円',
     desc:'県内の看護職員として就業する意思を持ち、保健師・助産師・看護師・准看護師養成施設に在学する学生への無利子の修学資金貸付制度。卒業後、県内の免除対象施設で5年間就業すると返還が全額免除されます。',
@@ -2497,6 +2781,7 @@ var SCHOLARSHIPS = [
   {
     name:'徳島県保健師、助産師、看護師及び准看護師修学資金', org:'徳島県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['徳島県'],
     amount:'月額2万2000円(第一看護学科)/1万4000円(第二看護学科・准看護学科)',
     desc:'県内で看護職員として働く意思のある学生に、無利子で月額授業料相当額を限度に修学資金を貸与する制度。卒業後1年以内に免許を取得し、直ちに県内施設で5年間勤務すると返還が免除されます。',
@@ -2505,6 +2790,7 @@ var SCHOLARSHIPS = [
   {
     name:'香川県看護学生修学資金貸付制度', org:'香川県', type:'loan0',
     targets:['medical'],
+    levels:['graduate','vocational'],
     region:['香川県'],
     amount:'月額5万円(看護職員養成施設・大学院修士課程)/2万5000円(准看護師養成施設)',
     desc:'看護職員養成施設等に在学する学生への無利子の修学資金貸付制度。卒業(修了)後、引き続き5年間、特定医療施設等で看護職員の業務に従事すると返還が免除されます。',
@@ -2513,6 +2799,7 @@ var SCHOLARSHIPS = [
   {
     name:'高知県看護師等養成奨学金', org:'高知県', type:'loan0',
     targets:['medical'],
+    levels:['university'],
     region:['高知県'],
     amount:'月額4万5000円(国公立大学・短大)/5万4000円(私立大学)、准看護師3万円',
     desc:'卒業後、高知県内の指定医療機関等または訪問看護ステーションで看護師・准看護師として業務に従事する意思のある学生への無利子の奨学金制度。一定期間の県内勤務で返還が免除されます。',
@@ -2521,6 +2808,7 @@ var SCHOLARSHIPS = [
   {
     name:'福岡県看護師等修学資金貸付金', org:'福岡県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['福岡県'],
     amount:'月額3万2000円(地方公共団体又は独立行政法人等設置)/3万6000円(その他)、准看護師2万1000円',
     desc:'保健師・助産師・看護師・准看護師養成施設に在学する学生への無利子の修学資金貸付制度。卒業後、県内の特定施設で5年間看護業務に従事すると返還が免除されます。',
@@ -2529,6 +2817,7 @@ var SCHOLARSHIPS = [
   {
     name:'佐賀県看護師等修学資金', org:'佐賀県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['佐賀県'],
     amount:'年額38万4000円(公立、月額換算約3万2000円)/43万2000円(その他、月額換算約3万6000円)',
     desc:'看護師等養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2537,6 +2826,7 @@ var SCHOLARSHIPS = [
   {
     name:'長崎県看護職員修学資金', org:'長崎県', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['長崎県'],
     amount:'月額3万2000円(看護師・保健師・助産師課程)/2万1000円(准看護師課程)',
     desc:'県内における看護職員の確保定着を目的とした無利子の修学資金貸与制度。卒業後、県内の医療機関等で一定期間業務に従事すると返還が免除されます。',
@@ -2545,6 +2835,7 @@ var SCHOLARSHIPS = [
   {
     name:'熊本県看護師等修学資金貸与', org:'熊本県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['熊本県'],
     amount:'月額3万2000円(国公立)/3万6000円(民間立)、准看護師1万5000円/2万1000円',
     desc:'保健師・助産師・看護師・准看護師養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2553,6 +2844,7 @@ var SCHOLARSHIPS = [
   {
     name:'宮崎県看護師等修学資金', org:'宮崎県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['宮崎県'],
     amount:'月額3万2000円(公立)/3万6000円(私立)、助産師養成施設は月額8000円加算',
     desc:'看護師等養成施設に在学する学生への無利子の修学資金貸与制度。4月から翌年3月まで毎年度貸与・更新。卒業後、県内の指定施設で一定期間業務に従事すると返還が免除されます。',
@@ -2561,6 +2853,7 @@ var SCHOLARSHIPS = [
   {
     name:'鹿児島県看護職員修学資金等貸与事業', org:'鹿児島県', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['鹿児島県'],
     amount:'月額3万2000円(国公立)/3万6000円(民間立)',
     desc:'保健師・助産師・看護師養成施設に在学する学生への無利子の修学資金貸与制度。卒業後直ちに看護師として県内の対象施設に就業し、一定期間業務に従事すると返還が免除されます。',
@@ -2569,6 +2862,7 @@ var SCHOLARSHIPS = [
   {
     name:'沖縄県看護師等修学資金(第一種)', org:'沖縄県', type:'loan0',
     targets:['medical'],
+    levels:['graduate','vocational'],
     region:['沖縄県'],
     amount:'月額3万2000円(国公立/保健師助産師看護師課程)/3万6000円(その他)、准看護師1万5000円/2万1000円、大学院修士課程8万3000円',
     desc:'保健師・助産師・看護師・准看護師養成施設に在学する学生への無利子の修学資金貸与制度。卒業後、直ちに県内の看護職員確保が困難な施設で一定期間業務に従事すると返還が免除されます。',
@@ -2577,6 +2871,7 @@ var SCHOLARSHIPS = [
   {
     name:'千葉県奨学資金の貸付け（高等学校奨学資金）', org:'千葉県', type:'loan0',
     targets:['income'],
+    levels:['highschool'],
     region:['千葉県'],
     amount:'自宅通学 月額10,000円又は20,000円(私立選択時は月額30,000円も可)、自宅外通学 月額15,000円又は25,000円(私立選択時は月額35,000円も可)',
     desc:'経済的理由により修学が困難な高等学校・中等教育学校後期課程・特別支援学校高等部等の生徒に対し、千葉県教育委員会が無利子で奨学資金を貸し付ける制度。通学形態・設置者により月額を選択でき、卒業後に返還します。',
@@ -2585,6 +2880,7 @@ var SCHOLARSHIPS = [
   {
     name:'介護福祉士修学資金・社会福祉士修学資金貸付制度', org:'千葉県(社会福祉法人千葉県社会福祉協議会)', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'月額5万円以内、入学準備金20万円以内、就職準備金20万円以内、国家試験受験対策費用4万円以内(年度当たり)',
     desc:'介護福祉士又は社会福祉士の養成施設に在学する県内在住の学生に修学資金を無利子で貸し付ける制度。卒業後1年以内に登録し、県内施設等で5年間介護等の業務に従事すれば返還が全額免除されます。',
@@ -2593,6 +2889,7 @@ var SCHOLARSHIPS = [
   {
     name:'福祉系高校修学資金貸付制度', org:'千葉県(社会福祉法人千葉県社会福祉協議会)', type:'loan0',
     targets:['welfare'],
+    levels:['highschool'],
     region:['千葉県'],
     amount:'修学準備金3万円以内(入学時)、介護実習費3万円以内(年度当たり)、国家試験受験対策費用4万円以内(年度当たり)、就職準備金20万円以内',
     desc:'介護福祉士養成課程のある福祉系高等学校に在学する生徒を対象に、修学準備金・実習費・国家試験対策費・就職準備金を無利子で貸し付ける制度。卒業後、県内で介護等の業務に一定期間従事すれば返還が免除されます。',
@@ -2601,6 +2898,7 @@ var SCHOLARSHIPS = [
   {
     name:'介護福祉士実務者研修受講資金貸付制度', org:'千葉県(社会福祉法人千葉県社会福祉協議会)', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'20万円以内',
     desc:'介護福祉士実務者研修を受講する県内在住者に受講費用を無利子で貸し付ける制度。研修修了後、介護福祉士資格を取得し県内で介護等の業務に一定期間従事すれば返還が免除されます。',
@@ -2609,6 +2907,7 @@ var SCHOLARSHIPS = [
   {
     name:'千葉県私立高等学校等奨学のための給付金(高校生等奨学給付金)', org:'千葉県', type:'grant',
     targets:['income'],
+    levels:['highschool'],
     region:['千葉県'],
     amount:'年額(全日制・定時制) 生活保護世帯52,600円/住民税所得割非課税世帯152,000円/年収目安270〜380万円世帯50,670円/年収目安380〜490万円世帯38,000円(通信制は別額)',
     desc:'私立高等学校等に在学する低所得世帯(年収目安約490万円未満)の生徒に対し、授業料以外の教育費負担を軽減するため返済不要の給付金を支給する制度。世帯の市町村民税所得割額に応じ支給額が変わります。',
@@ -2617,6 +2916,7 @@ var SCHOLARSHIPS = [
   {
     name:'児童養護施設等退所者に対する奨学金制度', org:'千葉県', type:'grant',
     targets:['carexp'],
+    levels:['university'],
     region:['千葉県'],
     amount:'年額30万円(前期15万円・後期15万円)',
     desc:'児童養護施設等に入所または里親委託されていた方が、退所・委託解除後に大学等へ進学する場合に給付する返済不要の奨学金です。令和5年3月創設。',
@@ -2625,6 +2925,7 @@ var SCHOLARSHIPS = [
   {
     name:'母子・父子・寡婦福祉資金(修学資金)', org:'千葉県', type:'loan0',
     targets:['bereaved'],
+    levels:['graduate','university','highschool','vocational'],
     region:['千葉県'],
     amount:'月額 高等学校27,000円以内、高等専門学校31,500円以内、短期大学67,500円以内、大学71,000円以内、大学院修士課程132,000円以内、大学院博士課程183,000円以内等(専修学校区分あり)',
     desc:'母子家庭・父子家庭・寡婦の子等が高等学校・大学等へ修学する際の費用を無利子で貸し付ける制度。卒業後6か月の据置期間を経て返還を開始します。',
@@ -2633,6 +2934,7 @@ var SCHOLARSHIPS = [
   {
     name:'千葉市育英資金支給制度', org:'千葉県千葉市', type:'grant',
     targets:['income'],
+    levels:['highschool'],
     region:['千葉県'],
     amount:'月額10,000円',
     desc:'千葉市立高等学校(千葉・稲毛)又は千葉市立中等教育学校後期課程に在学し、経済的理由により修学が困難な生徒に育英資金を支給する返済不要の制度。千葉県の奨学のための給付金を受給する場合は対象外となることがあります。',
@@ -2641,6 +2943,7 @@ var SCHOLARSHIPS = [
   {
     name:'市川市奨学資金制度(大畑つとむ教育基金)', org:'千葉県市川市', type:'grant',
     targets:['income'],
+    levels:['highschool'],
     region:['千葉県'],
     amount:'月額 国公立9,000円、私立15,000円(年間支給)',
     desc:'大畑つとむ教育基金と市費を財源に、学力優秀でありながら経済的理由で高校進学・修学が困難な市川市在住の高校生を支援する返済不要の給付型奨学金です。',
@@ -2649,6 +2952,7 @@ var SCHOLARSHIPS = [
   {
     name:'市川市入学準備金貸付制度', org:'千葉県市川市', type:'loan0',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'貸付限度額: 高等学校 国公立10万円・私立30万円/大学 国公立25万円・私立50万円',
     desc:'高等学校・専修学校・短期大学・大学等に進学する市川市内居住者の保護者を対象に、入学準備金を無利子で貸し付ける制度。4人世帯で年収目安約710万円までが対象です。',
@@ -2657,6 +2961,7 @@ var SCHOLARSHIPS = [
   {
     name:'松戸市高等学校入学資金貸付制度', org:'千葉県松戸市', type:'loan0',
     targets:['income'],
+    levels:['highschool'],
     region:['千葉県'],
     amount:'公立160,000円以内、私立300,000円以内、併願210,000円以内',
     desc:'高等学校等に入学する松戸市民の子弟に対し、入学時に必要な資金を無利子で貸し付ける制度。返還期間2年間は無利息(正当な理由のない延滞時のみ遅延利息)です。',
@@ -2665,6 +2970,7 @@ var SCHOLARSHIPS = [
   {
     name:'松戸市病院事業助産師及び看護師奨学金貸付条例', org:'千葉県松戸市(松戸市立総合医療センター)', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'松戸市立総合医療センター附属看護専門学校在学者 月額30,000円、その他養成所等在学者 月額50,000円',
     desc:'助産師・看護師養成施設に在学し、卒業後に松戸市立総合医療センターで看護業務に従事しようとする方へ無利子で奨学金を貸し付ける制度。一定期間の勤務により返還が免除されます。',
@@ -2673,6 +2979,7 @@ var SCHOLARSHIPS = [
   {
     name:'市原市看護師等修学資金貸与制度', org:'千葉県市原市', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'月額30,000円(令和6年度に20,000円から引き上げ、千葉県の制度と併用可)',
     desc:'看護師又は准看護師養成施設に在学し、卒業後直ちに市内医療機関等で看護業務に従事する意思のある方に無利子で修学資金を貸し付ける制度。貸付期間と同一期間就業すれば返還免除となります。',
@@ -2681,6 +2988,7 @@ var SCHOLARSHIPS = [
   {
     name:'佐倉市高等学校等奨学金', org:'千葉県佐倉市', type:'grant',
     targets:['income'],
+    levels:['highschool'],
     region:['千葉県'],
     amount:'年額最大80,000円(年2回、各回上限40,000円支給)',
     desc:'市内在住で中学卒業後4年以内に高等学校等に在学し、中学3年次の成績平均3.0以上、家計収入が生活保護基準の1.3倍未満などの要件を満たす生徒に返済不要の奨学金を支給します。千葉県の高校生等奨学給付金対象世帯は対象外または減額となります。',
@@ -2689,6 +2997,7 @@ var SCHOLARSHIPS = [
   {
     name:'八千代市看護師等修学資金貸付制度', org:'千葉県八千代市', type:'loan0',
     targets:['medical'],
+    levels:['graduate','university','vocational'],
     region:['千葉県'],
     amount:'大学・大学院・助産師養成所 月額5万円、看護師・准看護師養成所 月額3万円、認定看護師教育課程 一課程100万円',
     desc:'看護師等養成施設に在学し、将来八千代市内の医療機関等で看護業務に従事する意思のある方に無利子で修学資金を貸し付ける制度です。',
@@ -2697,6 +3006,7 @@ var SCHOLARSHIPS = [
   {
     name:'我孫子市修学資金貸し付け制度', org:'千葉県我孫子市', type:'loan0',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'高校・高等専門学校 月額10,000円以内、大学 月額20,000円以内',
     desc:'我孫子市に1年以上住所を有し、経済的理由で修学が困難な高校・大学・高等専門学校生等に無利子で修学資金を貸し付ける制度。卒業後6年(大学進学の場合10年)以内に返還します。',
@@ -2705,6 +3015,7 @@ var SCHOLARSHIPS = [
   {
     name:'君津市奨学金制度', org:'千葉県君津市', type:'loan0',
     targets:['income'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額50,000円以内',
     desc:'経済的理由により修学が困難な学生に、授業料・教材費・交通費等を対象に無利子で奨学金を貸し付ける制度。貸付終了の6か月後から最長10年間で返還します。',
@@ -2713,6 +3024,7 @@ var SCHOLARSHIPS = [
   {
     name:'富津市育英資金制度', org:'千葉県富津市', type:'loan0',
     targets:['income'],
+    levels:['graduate','university','highschool','vocational'],
     region:['千葉県'],
     amount:'高等学校・高等専門学校 月額10,000円以内、大学・大学院・専修学校専門課程 月額20,000円以内',
     desc:'扶養義務者の家計急変等により修学が困難となった、富津市に居住する保護者の子である在学生に対し、無利子で育英資金を貸与する制度です。',
@@ -2721,6 +3033,7 @@ var SCHOLARSHIPS = [
   {
     name:'袖ケ浦市奨学資金貸付金', org:'千葉県袖ケ浦市', type:'loan0',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'高等学校・高等専門学校 国公立10,000円以内・私立20,000円以内、大学・短大・専門学校 国公立22,000円以内・私立43,000円以内(月額)',
     desc:'経済的理由により修学が困難な市内居住者等に、修学上必要な学資の一部を無利子で貸し付ける制度。世帯所得の目安があります。',
@@ -2729,6 +3042,7 @@ var SCHOLARSHIPS = [
   {
     name:'木更津市奨学事業(入学資金支給)', org:'千葉県木更津市', type:'grant',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'入学資金 高等学校・高等専門学校25,000円以内、大学50,000円以内(返済不要)',
     desc:'経済的理由により修学が困難な市内居住者の子弟(所得制限あり)を対象に、入学時の入学資金を支給する制度。別途、在学中の奨学資金貸付(無利子)制度もあります。',
@@ -2737,6 +3051,7 @@ var SCHOLARSHIPS = [
   {
     name:'館山市ふるさと創生奨学資金', org:'千葉県館山市', type:'loan0',
     targets:['income'],
+    levels:['university','highschool'],
     region:['千葉県'],
     amount:'高等学校 月額10,000円、短大・大学 月額20,000円(入学準備金最大300,000円)',
     desc:'市内に1年以上居住する方等を対象に、高等学校・短大・大学等への修学資金を無利子で貸し付ける制度。卒業後11年以内に返還しますが、専門課程・短大・大学卒業後に館山市に居住する場合、月々返還額の1/3が免除されます。',
@@ -2745,6 +3060,7 @@ var SCHOLARSHIPS = [
   {
     name:'南房総市奨学資金貸付制度', org:'千葉県南房総市', type:'loan0',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'高等学校・高等専門学校・専修学校高等課程 月額20,000円以内、大学・専修学校専門課程 月額40,000円以内',
     desc:'経済的理由により修学が困難な南房総市居住者等の高校・大学生等に無利子で奨学資金を貸し付ける制度です。',
@@ -2753,6 +3069,7 @@ var SCHOLARSHIPS = [
   {
     name:'南房総市再チャレンジ奨学資金貸付事業', org:'千葉県南房総市', type:'mixed',
     targets:['income'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額60,000円以内',
     desc:'起業や就職を目指し修学する方を支援するため無利子で奨学資金を貸し付ける制度。要件を満たせば返還金の全額または半額が免除されます。',
@@ -2761,6 +3078,7 @@ var SCHOLARSHIPS = [
   {
     name:'南房総市看護師等修学資金貸付制度', org:'千葉県南房総市', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'月額20,000円以内',
     desc:'看護師・准看護師養成施設に在学する方に無利子で修学資金を貸し付ける制度。将来地域で一定期間勤務すれば返還の1/2〜全額が免除されます。',
@@ -2769,6 +3087,7 @@ var SCHOLARSHIPS = [
   {
     name:'旭市育英資金給付制度', org:'千葉県旭市', type:'grant',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'高等学校・中等教育学校後期課程 月額9,900円、高等専門学校・短期大学・大学・専修学校等 月額14,400円',
     desc:'将来、市の発展及び社会に貢献する青年の育成を目的に、進学予定者・在学者へ返済不要の育英資金を支給する制度。学業成績優良・身元確実な保証人の存在等が条件です。',
@@ -2777,6 +3096,7 @@ var SCHOLARSHIPS = [
   {
     name:'匝瑳市育英資金', org:'千葉県匝瑳市', type:'loan0',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'専修学校高等課程 月額20,000円、専修学校専門課程・大学・短大 月額30,000円',
     desc:'経済的理由により修学が困難な匝瑳市居住者等に無利子で育英資金を貸し付ける制度です。',
@@ -2785,6 +3105,7 @@ var SCHOLARSHIPS = [
   {
     name:'匝瑳市医師及び医療等従事者養成奨学資金貸付条例', org:'千葉県匝瑳市(匝瑳市民病院)', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'医師 月額300,000円、医療従事者(看護師等) 一時金500,000円+月額50,000円又は100,000円',
     desc:'医師又は看護師等の医療従事者を目指す学生に対し、卒業後に匝瑳市民病院等で勤務することを条件に無利子で奨学資金を貸し付ける制度です。',
@@ -2793,6 +3114,7 @@ var SCHOLARSHIPS = [
   {
     name:'山武市奨学資金貸付制度', org:'千葉県山武市', type:'loan0',
     targets:['income'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額40,000円以内、入学準備金300,000円以内',
     desc:'経済的理由により修学が困難な山武市民に無利子で奨学資金・入学準備金を貸し付ける制度。卒業・退学後6か月を経過後、貸付期間の2倍以内で返還します。',
@@ -2801,6 +3123,7 @@ var SCHOLARSHIPS = [
   {
     name:'山武市医学生奨学金等貸付', org:'千葉県山武市(地方独立行政法人さんむ医療センター)', type:'loan0',
     targets:['medical'],
+    levels:['graduate','university'],
     region:['千葉県'],
     amount:'月額200,000円',
     desc:'医学部生を対象に、大学卒業・臨床研修・大学院課程修了までの間、無利子で奨学金を貸し付ける制度。修了後、貸付期間と同期間さんむ医療センターで医師として勤務すれば返還・利息が全額免除されます。',
@@ -2809,6 +3132,7 @@ var SCHOLARSHIPS = [
   {
     name:'野田市育英資金貸付制度', org:'千葉県野田市', type:'loan0',
     targets:['income'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'大学又は専修学校(専門課程・専攻科) 月額15,000円',
     desc:'経済的理由により進学・修学が困難な野田市内居住1年以上の方に、無利子で育英資金を貸し付ける制度。卒業後5年以内に返還します。',
@@ -2817,6 +3141,7 @@ var SCHOLARSHIPS = [
   {
     name:'野田市奨学金返還支援金支給事業', org:'千葉県野田市', type:'grant',
     targets:['uturn'],
+    levels:['other'],
     region:['千葉県'],
     amount:'奨学金返還額の70%(月額上限10,000円)を最長5年間、累計600,000円まで支給',
     desc:'野田市への若者定住を促進するため、JASSO第一種奨学金等の返還者に対し、返還額の一部を市が補助する制度(返済不要)です。',
@@ -2825,6 +3150,7 @@ var SCHOLARSHIPS = [
   {
     name:'鴨川市教育振興奨学資金', org:'千葉県鴨川市', type:'grant',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'高等学校・高等専門学校・専修学校(高等課程) 月額10,000円、短期大学・専修学校(専門課程) 月額20,000円+入学準備金100,000円、大学 月額30,000円+入学準備金150,000円',
     desc:'進学の意欲と能力がありながら経済的理由で修学が困難な方に、修学上必要な資金を支給する制度です。',
@@ -2833,6 +3159,7 @@ var SCHOLARSHIPS = [
   {
     name:'鴨川市看護師等修学資金貸付制度', org:'千葉県鴨川市', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額20,000円まで',
     desc:'将来、安房郡市内で看護師等の業務に従事しようとする方へ無利子で修学資金を貸し付ける制度。安房郡市内で一定期間勤務することで返還の1/2〜全額が免除されます。',
@@ -2841,6 +3168,7 @@ var SCHOLARSHIPS = [
   {
     name:'鴨川市介護福祉士修学資金貸付制度', org:'千葉県鴨川市', type:'loan0',
     targets:['welfare'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'月額20,000円以内',
     desc:'介護福祉士養成施設に在学し、将来、鴨川市内で勤務しようとする方に無利子で修学資金を貸し付ける制度です。',
@@ -2849,6 +3177,7 @@ var SCHOLARSHIPS = [
   {
     name:'勝浦市奨学資金貸付制度', org:'千葉県勝浦市', type:'loan0',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'高等学校・中等教育学校後期課程・特別支援学校高等部・専修学校(高等課程) 月額10,000円、高等専門学校・専修学校(専門課程)・大学 月額30,000円',
     desc:'保護者が勝浦市に居住し、経済的理由により修学が困難な高校・大学等の生徒・学生に無利子で奨学資金を貸し付ける制度です。',
@@ -2857,6 +3186,7 @@ var SCHOLARSHIPS = [
   {
     name:'いすみ医療センター医学生等に対する奨学金貸付制度', org:'千葉県いすみ市(いすみ医療センター)', type:'loan0',
     targets:['medical'],
+    levels:['graduate','university','other'],
     region:['千葉県'],
     amount:'大学生・大学院生 月額400,000円、研修医・専門研修専攻医 月額300,000円、入学一時金上限10,000,000円',
     desc:'医学生・研修医を対象に、卒業・修了後いすみ医療センターに一定期間勤務することを条件に無利子で奨学金を貸し付ける制度です。',
@@ -2865,6 +3195,7 @@ var SCHOLARSHIPS = [
   {
     name:'多古町奨学資金の貸付', org:'千葉県多古町', type:'loan0',
     targets:['income'],
+    levels:['university','highschool','vocational'],
     region:['千葉県'],
     amount:'高等学校・高等専門学校・高等専修学校 月額20,000円以内、大学・短大・専門学校 月額30,000円以内',
     desc:'経済的理由により修学が困難な学業優秀な学生に無利子で奨学資金を貸し付ける制度。卒業後に多古町に居住し就業・町税完納等の条件を満たせば返済が免除されます。',
@@ -2873,6 +3204,7 @@ var SCHOLARSHIPS = [
   {
     name:'長生村奨学金等貸付制度', org:'千葉県長生村', type:'loan0',
     targets:['income'],
+    levels:['university','highschool'],
     region:['千葉県'],
     amount:'高校: 修学費月額15,000円+入学支度費100,000円、大学: 修学費月額50,000円+入学支度費300,000円',
     desc:'村内居住者やその保証人の子等で、経済的理由により高校・大学等への修学が困難な方に無利子で奨学資金を貸し付ける制度です。',
@@ -2881,6 +3213,7 @@ var SCHOLARSHIPS = [
   {
     name:'大多喜町奨学金貸与', org:'千葉県大多喜町', type:'loan0',
     targets:['income'],
+    levels:['university','highschool'],
     region:['千葉県'],
     amount:'高等学校 月額15,000円+一時金100,000円、国公立大学 月額20,000円+一時金500,000円、私立大学 月額30,000円+一時金500,000円',
     desc:'経済的理由により高校・大学等への入学・修学が困難な大多喜町居住者(又はその家族が居住する者)に無利子で奨学金を貸与する制度です。',
@@ -2889,6 +3222,7 @@ var SCHOLARSHIPS = [
   {
     name:'長柄町奨学金返還支援事業補助金', org:'千葉県長柄町', type:'grant',
     targets:['uturn'],
+    levels:['other'],
     region:['千葉県'],
     amount:'上限1,800,000円(補助対象期間は最長15年)',
     desc:'長柄町に居住し就職した方のJASSO奨学金等の返還を支援するため、返還額の一部を補助する制度(返済不要)。若者の定住促進が目的です。',
@@ -2897,6 +3231,7 @@ var SCHOLARSHIPS = [
   {
     name:'小貫基金 奨学金', org:'一般財団法人小貫基金', type:'loan0',
     targets:['income'],
+    levels:['graduate','university','highschool','vocational'],
     region:['千葉県'],
     amount:'月額30,000円(高校生。3か月毎に指定口座へ振込)',
     desc:'千葉県内にある高等学校・専門学校・大学・大学院に在籍する学生を対象とした貸与型奨学金。無利息だが全額返還の義務があり、返還期間は卒業後12年以内です。',
@@ -2905,6 +3240,7 @@ var SCHOLARSHIPS = [
   {
     name:'博士後期課程奨学金', org:'公益財団法人双葉電子記念財団', type:'grant',
     targets:['stem'],
+    levels:['graduate'],
     region:['千葉県'],
     amount:'月額100,000円(年間120万円、原則最長3年間、薬学は4年間)',
     desc:'千葉県茂原市に本部を置く双葉電子記念財団が、自然科学系分野を専攻する大学院博士後期課程の学生に研究専念のための返済不要の奨学金を給付する制度です。',
@@ -2913,6 +3249,7 @@ var SCHOLARSHIPS = [
   {
     name:'流山市看護師等修学資金貸付制度', org:'千葉県流山市', type:'loan0',
     targets:['medical'],
+    levels:['vocational'],
     region:['千葉県'],
     amount:'月額30,000円',
     desc:'看護師又は准看護師養成施設に在学し、卒業後に流山市内の病院等医療機関で看護業務に従事する意思のある方へ無利子で修学資金を貸し付ける制度。正規の修学期間(最長5年)貸与され、一定期間の市内就業で返還が免除されます。',
@@ -2921,6 +3258,7 @@ var SCHOLARSHIPS = [
   {
     name:'香取市奨学資金貸付', org:'千葉県香取市', type:'loan0',
     targets:['income'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額30,000円以内',
     desc:'学校教育法で規定する大学・専修学校(専門課程)に入学決定または在学する香取市内居住者の子で、家庭の事情等により学費の支払いが困難と認められる方に無利子で奨学資金を貸し付ける制度。毎年5月に12か月分をまとめて貸し付けます。',
@@ -2929,6 +3267,7 @@ var SCHOLARSHIPS = [
   {
     name:'香取市看護師等修学資金貸付', org:'千葉県香取市', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額6万円以内+入学一時金20万円以内(初年度のみ)',
     desc:'将来香取市内において看護師・准看護師・保健師又は助産師の業務に従事し、かつ居住する意思を持つ方に無利子で修学資金を貸し付ける制度。市内で一定期間業務に従事し居住すると返還が免除されます。',
@@ -2937,6 +3276,7 @@ var SCHOLARSHIPS = [
   {
     name:'旭市看護学生入学支度金貸付制度', org:'千葉県旭市', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'40万円(入学時一時金)',
     desc:'市内医療機関の看護師確保のため、将来看護師として旭市内の医療機関で業務に従事しようとする看護学生(4年制大学進学者)に、入学に必要な資金の一部を無利子で貸し付ける制度。養成施設卒業後1年2か月以内に看護師免許を取得し、市内医療機関で2年間看護業務に従事すると返還が免除されます。',
@@ -2945,6 +3285,7 @@ var SCHOLARSHIPS = [
   {
     name:'旭中央病院附属看護専門学校奨学金制度', org:'国保旭中央病院企業団', type:'loan0',
     targets:['medical'],
+    levels:['university','vocational'],
     region:['千葉県'],
     amount:'月額100,000円(修業年限4年以上の大学)/40,000円(その他の養成施設)、希望者には別途月額50,000円以内の貸与制度もあり',
     desc:'旭中央病院附属看護専門学校等に在学する学生を対象にした奨学金制度。資格免許取得後、奨学金の支給を受けた期間、旭中央病院で看護業務に従事すると返還が免除されます。',
@@ -2953,6 +3294,7 @@ var SCHOLARSHIPS = [
   {
     name:'印西市高等学校等入学支援金支給制度', org:'千葉県印西市', type:'grant',
     targets:['income'],
+    levels:['highschool'],
     region:['千葉県'],
     amount:'10万円以内',
     desc:'就学援助を受けている準要保護世帯の中学3年生が高等学校等に入学する際、入学準備費用を支援するため印西市が支給する返済不要の入学支援金です。',
@@ -2961,6 +3303,7 @@ var SCHOLARSHIPS = [
   {
     name:'白井市若い世代定住促進支援金', org:'千葉県白井市', type:'grant',
     targets:['uturn'],
+    levels:['university'],
     region:['千葉県'],
     amount:'前年度に返済した教育資金の1/2(上限8万円/年)を最大5年間、最大40万円',
     desc:'大学等への進学時に金融機関等から教育資金の貸与・融資を受けた方が、卒業後も引き続き白井市に定住する場合、返済額の一部を支援する制度(返済不要)。在学中の事前申請と市の認定が必要です。',
@@ -2971,6 +3314,7 @@ var SCHOLARSHIPS = [
 /* ---------- フィルター状態 ---------- */
 var activeTypes = {};
 var activeTargets = {};
+var activeLevels = {};
 var activeRegion = null;
 var activeKeyword = '';
 var PREF_ORDER = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県',
@@ -2989,14 +3333,16 @@ function regionsInUse(){
 function getMatched(){
   var typeKeys = Object.keys(activeTypes).filter(function(k){ return activeTypes[k]; });
   var targetKeys = Object.keys(activeTargets).filter(function(k){ return activeTargets[k]; });
+  var levelKeys = Object.keys(activeLevels).filter(function(k){ return activeLevels[k]; });
   var kw = activeKeyword.trim().toLowerCase();
   return SCHOLARSHIPS.filter(function(s){
     var typeOk = typeKeys.length === 0 || typeKeys.indexOf(s.type) !== -1;
     var targetOk = targetKeys.length === 0 || s.targets.some(function(t){ return targetKeys.indexOf(t) !== -1; });
+    var levelOk = levelKeys.length === 0 || !s.levels || s.levels.some(function(l){ return levelKeys.indexOf(l) !== -1; });
     var regionOk = !activeRegion || !s.region || s.region.indexOf(activeRegion) !== -1;
     var regionText = s.region ? s.region.join(' ') : '';
     var kwOk = !kw || (s.name + s.org + s.desc + regionText).toLowerCase().indexOf(kw) !== -1;
-    return typeOk && targetOk && regionOk && kwOk;
+    return typeOk && targetOk && levelOk && regionOk && kwOk;
   });
 }
 
@@ -3019,6 +3365,19 @@ function renderFilterChips(){
       updateLiveCount();
     });
     typeHost.appendChild(chip);
+  });
+  var levelHost = $('#filterLevel'); levelHost.innerHTML = '';
+  Object.keys(LEVEL_META).forEach(function(key){
+    var chip = document.createElement('button'); chip.className = 'chip'; chip.type = 'button';
+    chip.dataset.key = key;
+    chip.style.setProperty('--chip-color', 'var(--accent2)');
+    chip.innerHTML = '<span class="cdot"></span>' + LEVEL_META[key];
+    chip.addEventListener('click', function(){
+      activeLevels[key] = !activeLevels[key];
+      chip.classList.toggle('active', !!activeLevels[key]);
+      updateLiveCount();
+    });
+    levelHost.appendChild(chip);
   });
   var targetHost = $('#filterTarget'); targetHost.innerHTML = '';
   Object.keys(TARGET_META).forEach(function(key){
@@ -3060,7 +3419,7 @@ $('#kwSearchInput').addEventListener('input', function(e){
 });
 
 $('#clearFilters').addEventListener('click', function(){
-  activeTypes = {}; activeTargets = {}; activeRegion = null; activeKeyword = '';
+  activeTypes = {}; activeTargets = {}; activeLevels = {}; activeRegion = null; activeKeyword = '';
   $('#kwSearchInput').value = '';
   $$('.chip.active').forEach(function(c){ c.classList.remove('active'); });
   updateLiveCount();
@@ -3105,10 +3464,12 @@ function scholarshipCard(s, favActive){
   var card = document.createElement('div'); card.className = 's-card';
   card.style.setProperty('--type-color', meta.color);
   var targetLines = s.targets.map(function(t){ return TARGET_META[t]; }).join(' / ');
+  var levelLines = (s.levels || []).map(function(l){ return LEVEL_META[l]; }).join(' / ');
   card.innerHTML =
     '<div class="top"><div><div class="type-badge">' + esc(meta.label) + '</div>' +
     '<div class="name">' + esc(s.name) + '</div><div class="org">' + esc(s.org) + '</div></div>' +
     '<button class="fav' + (favActive ? ' active' : '') + '" aria-label="' + esc(s.name) + 'をお気に入りに' + (favActive ? '登録済み。解除する' : '登録する') + '">' + (favActive ? '★' : '☆') + '</button></div>' +
+    (levelLines ? '<div class="meta-row"><div class="k">申込対象</div><div class="v">' + esc(levelLines) + '</div></div>' : '') +
     '<div class="meta-row"><div class="k">対象</div><div class="v">' + esc(targetLines) + '</div></div>' +
     '<div class="meta-row"><div class="k">金額目安</div><div class="v">' + esc(s.amount) + '</div></div>' +
     '<div class="meta-row"><div class="k">概要</div><div class="v">' + esc(s.desc) + '</div></div>' +
