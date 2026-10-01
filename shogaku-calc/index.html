@@ -408,6 +408,7 @@ var TARGET_META = {
   women: '女子学生限定',
   arts: '音楽・芸術分野を専攻',
   medical: '医学・薬学・医療分野を専攻',
+  teacher: '教職を目指している',
   carexp: '児童養護施設・里親家庭など社会的養護の経験がある',
   ryugakusei: '日本に留学している外国人留学生',
   uturn: '卒業後に地元/特定地域で就職・居住する人'
@@ -700,6 +701,69 @@ var SCHOLARSHIPS = [
     amount:'年額15万円×3年間(合計45万円)',
     desc:'経済支援を必要とする将来有望な大学2年生以上を対象にした給付型奨学金。使途は不問で、他の奨学金との併用も可能です。',
     url:'https://gakusho.or.jp/'
+  },
+  {
+    name:'奨学金支給', org:'公益財団法人 住友電工グループ社会貢献基金', type:'grant',
+    targets:['stem'],
+    amount:'月額6万円(2026年度)',
+    desc:'理工系(電気・機械・情報・材料・化学・物理・数学系等)を専攻する大学院修士1年生で、経済的理由により援助が必要な学生を対象にした給付型奨学金。他財団の奨学金との併給は月額合計10万円までという制限があります。',
+    url:'https://www.sei-group-csr.or.jp/business/bursary/'
+  },
+  {
+    name:'教職育成奨学金', org:'公益財団法人 博報堂教育財団', type:'grant',
+    targets:['teacher'],
+    amount:'年額60万円(国立大)・120万円(私立大)・60万円(大学院)。自宅外生は+60万円',
+    desc:'小学校・特別支援学校教員、中学校・高校の国語科教員を目指す学部2年生以上・大学院生を対象にした給付型奨学金。他の給付型奨学金との併給はできません。',
+    url:'https://www.hakuhodofoundation.or.jp/scholarship/'
+  },
+  {
+    name:'野村芳光財団 奨学金', org:'公益財団法人 野村芳光財団', type:'grant',
+    targets:['income'],
+    amount:'年額48万円(学部3・4年次の2年間)',
+    desc:'国内の経済系学部に在籍する学部3年生(25歳以下)で、経済的理由により学費の支弁が困難な学生を対象にした給付型奨学金。経済系学部限定です。',
+    url:'https://www.nomurayoshimitsu-zaidan.org/flow/'
+  },
+  {
+    name:'岩國奨学金', org:'公益財団法人 岩國育英財団', type:'grant',
+    targets:['all'],
+    amount:'年額40万円(総額160万円、14名程度)',
+    desc:'既存の枠組みに従うのではなく、自ら新しい枠組みを創造しようとする意欲のある大学1年生を対象にした給付型奨学金。成績・所得による制限はなく、国籍も問いません。',
+    url:'https://www.iwakuni.or.jp/'
+  },
+  {
+    name:'TCS奨学金', org:'一般財団法人 TCS奨学会', type:'grant',
+    targets:['income'],
+    amount:'月額5万円(年額60万円)',
+    desc:'経済的理由により修学が困難な学業優秀な学生を対象にした給付型奨学金。',
+    url:'https://tcs-foundation.or.jp/'
+  },
+  {
+    name:'荒井芳男記念財団 奨学金', org:'一般財団法人 荒井芳男記念財団', type:'grant',
+    targets:['stem'],
+    amount:'20万円(一回限り、35名程度)',
+    desc:'科学技術分野の振興を目的とした財団による給付型奨学金。理系学部に在籍し、経済的理由により修学が困難な学生が対象です。',
+    url:'https://www.ayzaidan.com/'
+  },
+  {
+    name:'岩佐教育文化財団 奨学金', org:'公益財団法人 岩佐教育文化財団', type:'grant',
+    targets:['income'],
+    amount:'年額120万円',
+    desc:'経済的理由により修学が困難な学業優秀な大学生を対象にした給付型奨学金。',
+    url:'https://www.iwasazaidan.or.jp/scholarship/'
+  },
+  {
+    name:'伊藤青少年育成奨学会 奨学金', org:'公益財団法人 伊藤青少年育成奨学会', type:'grant',
+    targets:['income'],
+    amount:'月額3万円(年額36万円)',
+    desc:'岐阜県出身で、学業優秀・向学心に富み、経済的理由により修学が困難な学生を対象にした給付型奨学金。進学前に申し込む予約型の制度です。岐阜県出身者限定です。',
+    url:'https://www.ito-zaidan.or.jp/scholarship/'
+  },
+  {
+    name:'みずほ育英会 奨学金', org:'公益財団法人 みずほ育英会', type:'loan0',
+    targets:['income'],
+    amount:'月額5万円(大学)・6万円(大学院)',
+    desc:'学業成績優秀で健康な学生のうち、保護者の年収が目安1,000万円以下で経済的援助を必要とする学生を対象にした無利子の貸与型奨学金。貸与終了後6ヶ月を経過してから20年以内に返済します。',
+    url:'https://www.disclo-koeki.org/02b/00476/'
   }
 ];
 
