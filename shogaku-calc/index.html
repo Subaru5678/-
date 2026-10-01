@@ -1572,7 +1572,8 @@ function getMatched(){
     var typeOk = typeKeys.length === 0 || typeKeys.indexOf(s.type) !== -1;
     var targetOk = targetKeys.length === 0 || s.targets.some(function(t){ return targetKeys.indexOf(t) !== -1; });
     var regionOk = !activeRegion || !s.region || s.region.indexOf(activeRegion) !== -1;
-    var kwOk = !kw || (s.name + s.org + s.desc).toLowerCase().indexOf(kw) !== -1;
+    var regionText = s.region ? s.region.join(' ') : '';
+    var kwOk = !kw || (s.name + s.org + s.desc + regionText).toLowerCase().indexOf(kw) !== -1;
     return typeOk && targetOk && regionOk && kwOk;
   });
 }
