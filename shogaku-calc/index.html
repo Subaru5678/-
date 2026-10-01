@@ -407,6 +407,7 @@ var TARGET_META = {
   emergency: '家計急変・災害などで緊急に必要',
   women: '女子学生限定',
   arts: '音楽・芸術分野を専攻',
+  medical: '医学・薬学・医療分野を専攻',
   carexp: '児童養護施設・里親家庭など社会的養護の経験がある',
   ryugakusei: '日本に留学している外国人留学生',
   uturn: '卒業後に地元/特定地域で就職・居住する人'
@@ -650,6 +651,55 @@ var SCHOLARSHIPS = [
     amount:'月額2万円程度(財団指定校)',
     desc:'財団が指定する高校・大学・大学院で林業・木材分野を専攻し、財団の学力・家計基準を満たす学生を対象にした給付型奨学金。分野・指定校が限定されています。',
     url:'http://www.emachu-foundation.or.jp/scholarship'
+  },
+  {
+    name:'蔵人記念財団 奨学金', org:'公益財団法人 蔵人記念財団', type:'grant',
+    targets:['income'],
+    amount:'月額4万円(大学在学中、年ごと更新)',
+    desc:'農学部・畜産学部・水産学部など(獣医学を除く)に在籍する大学1年生で、世帯年収が目安400万円以下の学生を対象にした給付型奨学金。「食」を学ぶ分野限定です。',
+    url:'https://www.kurodo-foundation.or.jp/'
+  },
+  {
+    name:'古河記念基金 奨学金', org:'公益財団法人 古河記念基金', type:'grant',
+    targets:['income'],
+    amount:'月額3.5万円(自宅通学)・4万円(自宅外通学)',
+    desc:'理工科系専攻(金属・資源関係を優先)の学部2年生以上・大学院生で、経済的理由により修学が困難な学生を対象にした給付型奨学金。大学推薦枠が中心で、応募は所属大学を通じて行います。',
+    url:'https://www.disclo-koeki.org/08a/00991/index.html'
+  },
+  {
+    name:'ファスキア奨学財団 奨学金', org:'公益財団法人 ファスキア奨学財団', type:'grant',
+    targets:['medical'],
+    amount:'年額24万円〜48万円(分野・課程により異なる)',
+    desc:'医学・薬学・医療分野(医師・薬剤師養成課程、医療・福祉分野など)を専攻する学生を対象にした給付型奨学金。',
+    url:'https://fascia-sf.or.jp/'
+  },
+  {
+    name:'中董奨学会 奨学金', org:'公益財団法人 中董奨学会', type:'grant',
+    targets:['income'],
+    amount:'月額5万円(最長2年間、総額120万円)',
+    desc:'経済的理由により修学が困難な、学部3年生・大学院1年生程度を対象にした給付型奨学金。一般公募と指定校推薦を合わせて約50名を採用します。',
+    url:'https://www.nakashima-foundation.org/scholarship/'
+  },
+  {
+    name:'大塚敏美育英奨学財団 奨学金', org:'公益財団法人 大塚敏美育英奨学財団', type:'grant',
+    targets:['income'],
+    amount:'年額100万〜200万円(他の奨学金と併給の場合は年額50万円)',
+    desc:'経済的理由により修学が困難な学生を対象にした給付型奨学金。他の奨学金との合計額に上限があるため、併用時は減額されます。',
+    url:'https://www.otsukafoundation.org/guide/'
+  },
+  {
+    name:'留学支援事業', org:'公益財団法人 業務スーパージャパンドリーム財団', type:'grant',
+    targets:['all'],
+    amount:'月額15万円または20万円+留学一時金15万円または25万円(留学先地域により異なる)',
+    desc:'海外留学を目指す学生を対象にした給付型の留学支援奨学金。業務スーパーを展開する神戸物産グループの財団が運営しています。',
+    url:'https://www.kobebussan.or.jp/overseas.php'
+  },
+  {
+    name:'学奨財団 奨学金', org:'一般財団法人 大学生奨学財団(学奨財団)', type:'grant',
+    targets:['all'],
+    amount:'年額15万円×3年間(合計45万円)',
+    desc:'経済支援を必要とする将来有望な大学2年生以上を対象にした給付型奨学金。使途は不問で、他の奨学金との併用も可能です。',
+    url:'https://gakusho.or.jp/'
   }
 ];
 
