@@ -255,12 +255,6 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
       </div>
 
       <div class="more-box">
-        <div class="t">都道府県から探す</div>
-        <div class="d">お住まいの都道府県を選ぶと、県・市区町村・民間財団の地域限定の奨学金だけをまとめて一覧できます。</div>
-        <a class="ext-link" href="pref/">都道府県一覧を見る →</a>
-      </div>
-
-      <div class="more-box">
         <div class="t">学校名・お住まいの地域でも探す</div>
         <div class="d">大学独自の奨学金や市区町村ごとの制度は数が多く、ここには載せきれません。学校名や自治体名を入れて検索すると見つかることがあります。</div>
         <div class="search-row">
@@ -341,8 +335,8 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
           <div class="chip-row" id="filterLevel"></div>
           <div class="flabel">対象となる家庭状況</div>
           <div class="chip-row" id="filterTarget"></div>
-          <div class="flabel">お住まい・在学予定の地域(任意・地域限定の制度を絞り込めます)</div>
-          <div class="chip-row" id="filterRegion"></div>
+          <div class="flabel">お住まい・在学予定の地域</div>
+          <a class="ext-link" href="pref/">都道府県から地域限定の奨学金を探す →</a>
         </div>
         <div class="go-wrap">
           <button id="goResultsBtn" class="btn-go">この条件で探す <span class="cnt-badge" id="liveCount"></span></button>
@@ -3398,25 +3392,6 @@ function renderFilterChips(){
     });
     targetHost.appendChild(chip);
   });
-  var regionHost = $('#filterRegion'); regionHost.innerHTML = '';
-  regionsInUse().forEach(function(region){
-    var chip = document.createElement('button'); chip.className = 'chip'; chip.type = 'button';
-    chip.dataset.key = region;
-    chip.style.setProperty('--chip-color', 'var(--accent2)');
-    chip.innerHTML = '<span class="cdot"></span>' + region;
-    chip.addEventListener('click', function(){
-      activeRegion = (activeRegion === region) ? null : region;
-      syncRegionChipStates();
-      updateLiveCount();
-    });
-    regionHost.appendChild(chip);
-  });
-}
-
-function syncRegionChipStates(){
-  $$('#filterRegion .chip').forEach(function(chip){
-    chip.classList.toggle('active', activeRegion === chip.dataset.key);
-  });
 }
 
 $('#kwSearchInput').addEventListener('input', function(e){
@@ -3627,7 +3602,6 @@ updateFavCount();
     var region = params.get('region');
     if(region && regionsInUse().indexOf(region) !== -1){
       activeRegion = region;
-      syncRegionChipStates();
       updateLiveCount();
       renderResults();
       showTab('search');
