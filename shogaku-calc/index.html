@@ -36,24 +36,34 @@
 *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html,body{ height:100%; margin:0; background:var(--bg); color:var(--ink);
   font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',system-ui,sans-serif;
-  overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+  overscroll-behavior:none; -webkit-text-size-adjust:100%; overflow:hidden; }
 button{ font-family:inherit; color:inherit; border:0; cursor:pointer; background:none; }
 input,select{ font-family:inherit; }
-#app{ display:flex; flex-direction:column; min-height:100%; max-width:640px; margin:0 auto;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+#app{ display:flex; flex-direction:column; height:100%; max-width:640px; margin:0 auto;
+  padding-top:env(safe-area-inset-top,0px); }
 
 #topbar{ display:flex; align-items:center; gap:10px; padding:16px 16px 10px; flex:none; }
 #topbar h1{ font-family:var(--font-display); font-size:17px; margin:0; flex:1; font-weight:600; letter-spacing:.02em; }
-#topbar .ic-btn{ width:38px; height:38px; border-radius:11px; background:var(--panel); border:1px solid var(--line);
-  display:flex; align-items:center; justify-content:center; font-size:16px; flex:none; position:relative;
-  box-shadow:0 2px 0 rgba(0,0,0,.1); transition:transform .12s, box-shadow .12s; }
-#topbar .ic-btn:active{ transform:translateY(2px); box-shadow:none; }
-#topbar .ic-btn .dot{ position:absolute; top:-3px; right:-3px; width:16px; height:16px; border-radius:50%;
-  background:var(--accent2); color:#fff; font-size:9px; font-weight:900; display:flex; align-items:center; justify-content:center; }
-#topbar #backBtn{ display:none; }
-#topbar #backBtn.show{ display:flex; }
 
 main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+#tabbar{ flex:none; display:flex; border-top:1px solid var(--line); background:var(--panel);
+  padding-bottom:env(safe-area-inset-bottom,0px); }
+#tabbar .tab-btn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:9px 4px 8px;
+  position:relative; transition:transform .1s; }
+#tabbar .tab-btn:active{ transform:scale(.95); }
+#tabbar .tab-ic{ font-size:20px; line-height:1; filter:grayscale(1) opacity(.55); transition:filter .15s; }
+#tabbar .tab-lb{ font-size:10px; font-weight:800; color:var(--muted); transition:color .15s; }
+#tabbar .tab-btn.active .tab-ic{ filter:none; }
+#tabbar .tab-btn.active .tab-lb{ color:var(--accent); }
+#tabbar .tab-dot{ position:absolute; top:4px; right:calc(50% - 20px); min-width:16px; height:16px; border-radius:8px;
+  background:var(--accent2); color:#fff; font-size:9px; font-weight:900; display:none; align-items:center; justify-content:center; padding:0 3px; }
+#tabbar .tab-dot.show{ display:flex; }
+
+.tab-view{ display:none; }
+.tab-view.active{ display:block; animation:viewIn .22s ease both; }
+.search-sub{ display:none; }
+.search-sub.active{ display:block; animation:viewIn .22s ease both; }
 
 .hero{ position:relative; overflow:hidden; background:linear-gradient(155deg, var(--panel) 0%, var(--panel2) 100%);
   border:1px solid var(--line); border-radius:18px; padding:20px 18px; margin-bottom:16px; }
@@ -77,9 +87,19 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 .chip.active .cdot{ background:#fff; }
 .chip:active{ transform:scale(.96); }
 
-.result-head{ display:flex; align-items:center; justify-content:space-between; margin:20px 0 10px; }
+.result-head{ display:flex; align-items:center; justify-content:space-between; margin:20px 0 10px; gap:10px; }
 .result-head .cnt{ font-size:12px; font-weight:900; color:var(--muted); }
-.result-head .clear{ font-size:11px; font-weight:800; color:var(--accent2); }
+.result-head .clear{ font-size:11px; font-weight:800; color:var(--accent2); flex:none; }
+.result-head .back-link{ font-size:12px; font-weight:800; color:var(--accent); flex:none; }
+
+.go-wrap{ position:sticky; bottom:0; margin:18px -16px -2px; padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(to top, var(--bg) 60%, transparent); }
+.btn-go{ width:100%; display:flex; align-items:center; justify-content:center; gap:8px; padding:15px;
+  border-radius:14px; background:linear-gradient(155deg, color-mix(in srgb, var(--accent) 85%, white), var(--accent));
+  color:#fff; font-weight:900; font-size:14.5px; box-shadow:0 10px 22px -10px color-mix(in srgb, var(--accent) 70%, transparent);
+  transition:transform .1s; }
+.btn-go:active{ transform:translateY(1px) scale(.99); }
+.btn-go .cnt-badge{ background:rgba(255,255,255,.25); padding:2px 9px; border-radius:20px; font-size:12px; }
 
 .s-card{ position:relative; background:var(--panel); border:1px solid var(--line); border-radius:16px;
   padding:16px; margin-bottom:10px; overflow:hidden; }
@@ -165,10 +185,8 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
   font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:20; max-width:80%; text-align:center; box-shadow:0 10px 24px -10px rgba(0,0,0,.35); }
 #toast.show{ opacity:1; transform:translate(-50%,0); }
 
-.view{ display:none; }
-.view.active{ display:block; animation:viewIn .22s ease both; }
 @keyframes viewIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
-@media (prefers-reduced-motion: reduce){ .view.active{ animation:none; } }
+@media (prefers-reduced-motion: reduce){ .tab-view.active, .search-sub.active{ animation:none; } }
 </style>
 <script type="application/ld+json">
 {
@@ -220,35 +238,16 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 <body>
 <div id="app">
   <div id="topbar">
-    <button id="backBtn" class="ic-btn" aria-label="戻る">←</button>
-    <h1 id="pageTitle">奨学金検索</h1>
-    <button id="savedBtn" class="ic-btn" aria-label="お気に入り">
-      ⭐<span class="dot" id="favCount" style="display:none;"></span>
-    </button>
+    <h1 id="pageTitle">奨学金を探す</h1>
   </div>
 
   <main id="main">
-    <div id="view-home" class="view active">
+    <div id="tab-info" class="tab-view">
       <div class="hero">
         <div class="kicker">SCHOLARSHIP FINDER</div>
         <h2>条件を選ぶだけで、奨学金を探す。</h2>
-        <p>返済の有無や家庭状況などの条件で絞り込んで、<b>実在する奨学金制度</b>を比較できます。気になったら公式サイトへ、すぐ移動できます。</p>
+        <p>返済の有無や家庭状況などの条件で絞り込んで、<b>実在する奨学金制度</b>を比較できます。気になったら公式サイトへ、すぐ移動できます。「検索」タブから条件を選んでください。</p>
       </div>
-
-      <div class="filter-sec">
-        <div class="flabel">よくある状況から探す</div>
-        <div class="chip-row" id="presetRow"></div>
-        <div class="flabel">返済タイプ</div>
-        <div class="chip-row" id="filterType"></div>
-        <div class="flabel">対象となる家庭状況</div>
-        <div class="chip-row" id="filterTarget"></div>
-      </div>
-
-      <div class="result-head">
-        <div class="cnt" id="resultCount"></div>
-        <button class="clear" id="clearFilters">条件をリセット</button>
-      </div>
-      <div id="resultList"></div>
 
       <div class="more-box">
         <div class="t">学校名・お住まいの地域でも探す</div>
@@ -314,7 +313,37 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
       </div>
     </div>
 
-    <div id="view-saved" class="view">
+    <div id="tab-search" class="tab-view active">
+      <div id="search-filters-view" class="search-sub active">
+        <div class="hero">
+          <div class="kicker">SCHOLARSHIP FINDER</div>
+          <h2>条件を選ぶだけで、奨学金を探す。</h2>
+          <p>当てはまるものをタップしてください。複数選んでから、まとめて検索できます。</p>
+        </div>
+        <div class="filter-sec">
+          <div class="flabel">よくある状況から探す(タップしてすぐ結果へ)</div>
+          <div class="chip-row" id="presetRow"></div>
+          <div class="flabel">返済タイプ</div>
+          <div class="chip-row" id="filterType"></div>
+          <div class="flabel">対象となる家庭状況</div>
+          <div class="chip-row" id="filterTarget"></div>
+        </div>
+        <div class="go-wrap">
+          <button id="goResultsBtn" class="btn-go">この条件で探す <span class="cnt-badge" id="liveCount"></span></button>
+        </div>
+      </div>
+
+      <div id="search-results-view" class="search-sub">
+        <div class="result-head">
+          <button class="back-link" id="backToFiltersBtn">← 条件を変える</button>
+          <div class="cnt" id="resultCount"></div>
+          <button class="clear" id="clearFilters">リセット</button>
+        </div>
+        <div id="resultList"></div>
+      </div>
+    </div>
+
+    <div id="tab-mypage" class="tab-view">
       <div class="result-head"><div class="cnt">お気に入りに登録した奨学金</div></div>
       <div id="savedList"></div>
     </div>
@@ -325,6 +354,20 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
     <ins class="adsbygoogle" data-ad-client="ca-pub-8464656892971770"
       data-ad-slot="0000000000" data-ad-format="auto" data-full-width-responsive="true" hidden></ins>
   </div>
+
+  <nav id="tabbar">
+    <button class="tab-btn" data-tab="info" aria-label="情報">
+      <span class="tab-ic">ℹ️</span><span class="tab-lb">情報</span>
+    </button>
+    <button class="tab-btn active" data-tab="search" aria-label="検索">
+      <span class="tab-ic">🔍</span><span class="tab-lb">検索</span>
+    </button>
+    <button class="tab-btn" data-tab="mypage" aria-label="マイページ">
+      <span class="tab-ic">👤</span><span class="tab-lb">マイページ</span>
+      <span class="tab-dot" id="favCount"></span>
+    </button>
+  </nav>
+
   <div id="toast"></div>
 </div>
 
@@ -557,7 +600,7 @@ function applyPreset(preset){
   preset.targets.forEach(function(t){ activeTargets[t] = true; });
   syncChipStates();
   renderResults();
-  var head = $('.result-head'); if(head) head.scrollIntoView({ behavior:'smooth', block:'start' });
+  showSearchSub('results');
 }
 
 function syncChipStates(){
@@ -567,6 +610,22 @@ function syncChipStates(){
   $$('#filterTarget .chip').forEach(function(chip){
     chip.classList.toggle('active', !!activeTargets[chip.dataset.key]);
   });
+  updateLiveCount();
+}
+
+function getMatched(){
+  var typeKeys = Object.keys(activeTypes).filter(function(k){ return activeTypes[k]; });
+  var targetKeys = Object.keys(activeTargets).filter(function(k){ return activeTargets[k]; });
+  return SCHOLARSHIPS.filter(function(s){
+    var typeOk = typeKeys.length === 0 || typeKeys.indexOf(s.type) !== -1;
+    var targetOk = targetKeys.length === 0 || s.targets.some(function(t){ return targetKeys.indexOf(t) !== -1; });
+    return typeOk && targetOk;
+  });
+}
+
+function updateLiveCount(){
+  var n = getMatched().length;
+  $('#liveCount').textContent = n + ' 件';
 }
 
 function renderPresetChips(){
@@ -591,7 +650,7 @@ function renderFilterChips(){
     chip.addEventListener('click', function(){
       activeTypes[key] = !activeTypes[key];
       chip.classList.toggle('active', !!activeTypes[key]);
-      renderResults();
+      updateLiveCount();
     });
     typeHost.appendChild(chip);
   });
@@ -604,7 +663,7 @@ function renderFilterChips(){
     chip.addEventListener('click', function(){
       activeTargets[key] = !activeTargets[key];
       chip.classList.toggle('active', !!activeTargets[key]);
-      renderResults();
+      updateLiveCount();
     });
     targetHost.appendChild(chip);
   });
@@ -613,8 +672,14 @@ function renderFilterChips(){
 $('#clearFilters').addEventListener('click', function(){
   activeTypes = {}; activeTargets = {};
   $$('.chip.active').forEach(function(c){ c.classList.remove('active'); });
-  renderResults();
+  updateLiveCount();
+  showSearchSub('filters');
 });
+$('#goResultsBtn').addEventListener('click', function(){
+  renderResults();
+  showSearchSub('results');
+});
+$('#backToFiltersBtn').addEventListener('click', function(){ showSearchSub('filters'); });
 
 function runExtSearch(){
   var q = $('#extSearchInput').value.trim();
@@ -641,7 +706,7 @@ function toggleFav(name){
 function updateFavCount(){
   var n = loadFavs().length;
   var dot = $('#favCount');
-  dot.textContent = n; dot.style.display = n > 0 ? 'flex' : 'none';
+  dot.textContent = n; dot.classList.toggle('show', n > 0);
 }
 
 function scholarshipCard(s, favActive){
@@ -669,14 +734,8 @@ function scholarshipCard(s, favActive){
 
 function renderResults(){
   var host = $('#resultList');
-  var typeKeys = Object.keys(activeTypes).filter(function(k){ return activeTypes[k]; });
-  var targetKeys = Object.keys(activeTargets).filter(function(k){ return activeTargets[k]; });
   var favs = loadFavs();
-  var matched = SCHOLARSHIPS.filter(function(s){
-    var typeOk = typeKeys.length === 0 || typeKeys.indexOf(s.type) !== -1;
-    var targetOk = targetKeys.length === 0 || s.targets.some(function(t){ return targetKeys.indexOf(t) !== -1; });
-    return typeOk && targetOk;
-  });
+  var matched = getMatched();
   $('#resultCount').textContent = matched.length + ' 件 / 全' + SCHOLARSHIPS.length + '件';
   host.innerHTML = '';
   if(!matched.length){
@@ -702,17 +761,29 @@ function renderSaved(){
   });
 }
 
-var state = { view:'home' };
-var showView = function(name){
-  $$('.view').forEach(function(v){ v.classList.remove('active'); });
-  $('#view-' + name).classList.add('active');
-  $('#backBtn').classList.toggle('show', name !== 'home');
-  $('#pageTitle').textContent = name === 'home' ? '奨学金検索' : 'お気に入り';
-  window.scrollTo(0,0);
-  $('#main').scrollTop = 0;
-};
-$('#backBtn').addEventListener('click', function(){ showView('home'); });
-$('#savedBtn').addEventListener('click', function(){ renderSaved(); showView('saved'); });
+var TAB_TITLES = { info:'奨学金について', search:'奨学金を探す', mypage:'マイページ' };
+var state = { tab:'search', searchSub:'filters' };
+
+function showSearchSub(sub){
+  state.searchSub = sub;
+  $('#search-filters-view').classList.toggle('active', sub === 'filters');
+  $('#search-results-view').classList.toggle('active', sub === 'results');
+  $('#main').scrollTop = 0; window.scrollTo(0,0);
+}
+
+function showTab(tab){
+  state.tab = tab;
+  $$('.tab-view').forEach(function(v){ v.classList.remove('active'); });
+  $('#tab-' + tab).classList.add('active');
+  $$('#tabbar .tab-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === tab); });
+  $('#pageTitle').textContent = TAB_TITLES[tab];
+  if(tab === 'mypage') renderSaved();
+  window.scrollTo(0,0); $('#main').scrollTop = 0;
+}
+
+$$('#tabbar .tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){ showTab(btn.dataset.tab); });
+});
 
 /* ---------- 計算パネル(返済シミュレーター/不足額計算) ---------- */
 function amortizedMonthly(principal, annualRatePct, months){
@@ -790,7 +861,7 @@ $('#calcToggle').addEventListener('click', function(){
 
 renderPresetChips();
 renderFilterChips();
-renderResults();
+updateLiveCount();
 updateFavCount();
 
 if('serviceWorker' in navigator){
