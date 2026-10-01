@@ -76,6 +76,11 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 .hero p{ margin:0; color:var(--muted); font-size:13px; line-height:1.7; position:relative; max-width:46ch; }
 .hero b{ color:var(--ink); font-weight:800; }
 
+.kw-search{ position:relative; margin-bottom:14px; }
+.kw-search input{ width:100%; background:var(--panel); border:1px solid var(--line); color:var(--ink);
+  border-radius:14px; padding:13px 16px 13px 38px; font-size:14px; font-weight:700; }
+.kw-search input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.kw-search::before{ content:'🔍'; position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:13px; opacity:.55; pointer-events:none; }
 .filter-sec{ margin-bottom:6px; }
 .filter-sec .flabel{ font-size:11px; font-weight:900; color:var(--muted); letter-spacing:.06em; margin:14px 0 8px; }
 .chip-row{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -315,18 +320,23 @@ main{ flex:1; padding:2px 16px 24px; overflow-y:auto; -webkit-overflow-scrolling
 
     <div id="tab-search" class="tab-view active">
       <div id="search-filters-view" class="search-sub active">
+        <div class="kw-search">
+          <input type="text" id="kwSearchInput" placeholder="奨学金名・団体名・地域名で検索" autocomplete="off">
+        </div>
         <div class="hero">
           <div class="kicker">SCHOLARSHIP FINDER</div>
           <h2>条件を選ぶだけで、奨学金を探す。</h2>
           <p>当てはまるものをタップしてください。複数選んでから、まとめて検索できます。</p>
         </div>
         <div class="filter-sec">
-          <div class="flabel">よくある状況から探す(タップしてすぐ結果へ)</div>
+          <div class="flabel">よくある状況から探す</div>
           <div class="chip-row" id="presetRow"></div>
           <div class="flabel">返済タイプ</div>
           <div class="chip-row" id="filterType"></div>
           <div class="flabel">対象となる家庭状況</div>
           <div class="chip-row" id="filterTarget"></div>
+          <div class="flabel">お住まい・在学予定の地域(任意・地域限定の制度を絞り込めます)</div>
+          <div class="chip-row" id="filterRegion"></div>
         </div>
         <div class="go-wrap">
           <button id="goResultsBtn" class="btn-go">この条件で探す <span class="cnt-badge" id="liveCount"></span></button>
@@ -602,6 +612,7 @@ var SCHOLARSHIPS = [
   {
     name:'育英奨学金', org:'一般財団法人 守谷育英会', type:'grant',
     targets:['income'],
+    region:['東京都'],
     amount:'月額14万円(大学)・17万円(大学院)・4万円(高校)',
     desc:'東京都内の学校に在学、または東京都内在住で学校に在学する、学業優秀で経済的理由により修学が困難な生徒・学生を対象にした給付型奨学金。',
     url:'https://moritani-scholarship.or.jp/scholarship/'
@@ -644,6 +655,7 @@ var SCHOLARSHIPS = [
   {
     name:'クロサワ育成財団 奨学金', org:'公益財団法人 クロサワ育成財団', type:'grant',
     targets:['income'],
+    region:['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県'],
     amount:'年額36万円(総額144万円、10名程度)',
     desc:'北海道・東北地方(青森・岩手・宮城・秋田・山形・福島)の大学・大学院・短大に在学し、経済的理由により修学が困難な、学業優秀で品行方正な学生を対象にした給付型奨学金。対象地域の学校に在学していることが条件です。',
     url:'https://www.kuroswfound.or.jp/humanresources.html'
@@ -756,6 +768,7 @@ var SCHOLARSHIPS = [
   {
     name:'伊藤青少年育成奨学会 奨学金', org:'公益財団法人 伊藤青少年育成奨学会', type:'grant',
     targets:['income'],
+    region:['岐阜県'],
     amount:'月額3万円(年額36万円)',
     desc:'岐阜県出身で、学業優秀・向学心に富み、経済的理由により修学が困難な学生を対象にした給付型奨学金。進学前に申し込む予約型の制度です。岐阜県出身者限定です。',
     url:'https://www.ito-zaidan.or.jp/scholarship/'
@@ -784,6 +797,7 @@ var SCHOLARSHIPS = [
   {
     name:'HIOKI奨学・緑化基金', org:'公益財団法人 HIOKI奨学・緑化基金', type:'grant',
     targets:['stem'],
+    region:['長野県'],
     amount:'月額8万円(年額96万円、20〜30名)',
     desc:'長野県内の高校を卒業し、理工系の4年制大学に進学した学生を対象にした給付型奨学金。4年間給付され、大学院進学者はさらに修士課程2年間も給付対象です。長野県出身者限定です。',
     url:'https://zaidan.hioki.co.jp/scholarship/'
@@ -826,6 +840,7 @@ var SCHOLARSHIPS = [
   {
     name:'給付型奨学金', org:'公益財団法人 石井育英会', type:'grant',
     targets:['income'],
+    region:['福岡県'],
     amount:'月額5万円(年額60万円)',
     desc:'福岡県内の大学に在学し、経済的理由により修学が困難(世帯年収600万円以下目安、兄弟姉妹が本人含め3人以上の場合700万円以下)な学業優秀な学生を対象にした給付型奨学金。福岡県内の大学限定です。',
     url:'https://www.ishii-zaidan.or.jp/university/scholarship.html'
@@ -875,6 +890,7 @@ var SCHOLARSHIPS = [
   {
     name:'育英奨学金', org:'公益財団法人 杜の邦育英会', type:'grant',
     targets:['income'],
+    region:['宮城県'],
     amount:'月額10万円(10名程度)',
     desc:'宮城県内の大学・大学院に在学、または宮城県内に居住する学業優秀で経済的理由により修学が困難な学生を対象にした給付型奨学金。宮城県関連限定です。',
     url:'http://morinokuni-scholarship.or.jp/'
@@ -882,6 +898,7 @@ var SCHOLARSHIPS = [
   {
     name:'USJ奨学金', org:'公益財団法人 大阪府育英会', type:'grant',
     targets:['income'],
+    region:['大阪府'],
     amount:'最高100万円(2・3年次に各20万円+進路確定時60万円)',
     desc:'大阪府内の高校2年生で、評定平均4.3以上、保護者が大阪府内在住かつ世帯年収350万円未満目安の生徒を対象にした、進学前に申し込む予約型の給付型奨学金。学校長の推薦が必要です。',
     url:'https://www.fu-ikuei.or.jp/usj/'
@@ -910,6 +927,7 @@ var SCHOLARSHIPS = [
   {
     name:'大学奨学生', org:'公益財団法人 スズキ教育文化財団', type:'grant',
     targets:['income'],
+    region:['静岡県'],
     amount:'年額72万円(最長4年間)',
     desc:'静岡県内の高校・高専に在籍し、4年制以上の大学に進学予定で、経済的理由により修学に専念できない学生を対象にした給付型奨学金。静岡県関連限定です。',
     url:'https://www.suzuki-ecfound.com/scholarship/'
@@ -966,6 +984,7 @@ var SCHOLARSHIPS = [
   {
     name:'エンケイ財団 奨学金', org:'公益財団法人 エンケイ財団', type:'grant',
     targets:['income'],
+    region:['静岡県'],
     amount:'月額2万円(年額24万円、30名程度)',
     desc:'静岡県関連の優秀な大学生・大学院生・短期大学生・高専生を対象にした給付型奨学金。静岡県関連限定です。',
     url:'http://enkeizaidan.or.jp/scholarship/index.html'
@@ -973,6 +992,7 @@ var SCHOLARSHIPS = [
   {
     name:'村上奨学財団 奨学金', org:'公益財団法人 村上奨学財団', type:'grant',
     targets:['income'],
+    region:['静岡県'],
     amount:'月額3万円(年額36万円、1年間)',
     desc:'静岡県出身または静岡県内の4年制大学に在学する、経済的支援を必要とする成績優秀な大学2年生を対象にした給付型奨学金。静岡県関連限定です。',
     url:'https://www.murakami-sf.or.jp/scholarship/'
@@ -1071,6 +1091,7 @@ var SCHOLARSHIPS = [
   {
     name:'三井金型振興財団 奨学金', org:'公益財団法人 三井金型振興財団', type:'grant',
     targets:['stem'],
+    region:['福岡県'],
     amount:'月額8万円(最短修業年限、9名程度)',
     desc:'福岡県内の学校で機械工学・電子工学・情報工学等を専攻・研究する学部2年生・修士1年生を対象にした給付型奨学金。福岡県内限定、世帯年収951万円未満(給与所得者)が目安です。',
     url:'https://www.mitsui-zaidan.or.jp/'
@@ -1092,6 +1113,7 @@ var SCHOLARSHIPS = [
   {
     name:'育英奨学金', org:'公益財団法人 清川秋夫育英奨学財団', type:'grant',
     targets:['income'],
+    region:['鹿児島県'],
     amount:'年額15万円(1年間)',
     desc:'鹿児島県内の高校を卒業し、農業・水産業・畜産業・林業など第一次産業に貢献する志を持つ学生を対象にした給付型奨学金。鹿児島県関連・第一次産業志望限定です。',
     url:'https://kiyokawaakiozaidan.jp/'
@@ -1099,6 +1121,7 @@ var SCHOLARSHIPS = [
   {
     name:'大学等入学時奨学金(地方創生枠)', org:'公益財団法人 鹿児島県育英財団', type:'grant',
     targets:['uturn'],
+    region:['鹿児島県'],
     amount:'上限56万円(225名程度)',
     desc:'高校在学中の学業優秀者(評定平均4.5以上目安)で、大学等卒業後に鹿児島県内に居住・就業し地域振興に貢献することが期待される生徒を対象にした、進学前に申し込む予約型の奨学金。卒業後に県内で一定期間就業すれば返還が全額免除されます。',
     url:'http://www.kagoshima-ikuei.jp/wish/university_admission/'
@@ -1106,6 +1129,7 @@ var SCHOLARSHIPS = [
   {
     name:'沖縄県県外進学大学生奨学金', org:'沖縄県', type:'grant',
     targets:['income'],
+    region:['沖縄県'],
     amount:'入学支度金30万円以内+月額7万円',
     desc:'沖縄県内の高校等の在学者・卒業者(卒業後2年以内)で、県外の大学へ進学する学生を対象にした給付型奨学金。沖縄県関連限定です。',
     url:'https://www.pref.okinawa.jp/kyoiku/edu/1008819/1008843/1008849.html'
@@ -1113,6 +1137,7 @@ var SCHOLARSHIPS = [
   {
     name:'北海道地域みらい留学奨学金', org:'北洋銀行 / 一般財団法人 地域・教育魅力化プラットフォーム', type:'grant',
     targets:['all'],
+    region:['北海道'],
     amount:'月額2万円(3年間で最大72万円、25名程度)',
     desc:'道外から北海道の「地域みらい留学」校(地方の高校)に進学する生徒を対象にした給付型奨学金。大学進学前の高校進学段階の制度で、2027年度から開始予定です。',
     url:'https://c-mirai.jp/scholarship'
@@ -1190,6 +1215,7 @@ var SCHOLARSHIPS = [
   {
     name:'コープみらい奨学生', org:'一般財団法人 コープみらい社会活動財団', type:'grant',
     targets:['bereaved'],
+    region:['千葉県','埼玉県','東京都'],
     amount:'年額12万円(高校卒業まで、最長3年間)',
     desc:'千葉・埼玉・東京都内在住の、ひとり親(または両親がいない)家庭の高校生を対象にした給付型奨学金。保護者がコープみらいの組合員で、前年税込年収400万円以下が目安。組合員同士の支え合いで運営されています。対象地域・年収基準が限定的です。',
     url:'https://www.coopmirai-zaidan.or.jp/scholarship/bosyu/'
@@ -1211,6 +1237,7 @@ var SCHOLARSHIPS = [
   {
     name:'富山文化財団 奨学金', org:'公益財団法人 富山文化財団', type:'grant',
     targets:['income'],
+    region:['茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県'],
     amount:'年額36万円',
     desc:'関東地方(茨城・栃木・群馬・埼玉・千葉・東京・神奈川)の大学院・大学・短大・専門学校・高専に在籍し、経済的理由により修学が困難な学生を対象にした給付型奨学金。関東地方限定です。',
     url:'https://www.tomiyama-cf.or.jp/information'
@@ -1218,6 +1245,7 @@ var SCHOLARSHIPS = [
   {
     name:'さいたま市大学等進学「夢」支援', org:'さいたま市', type:'grant',
     targets:['income'],
+    region:['埼玉県'],
     amount:'受験料等支援+入学一時金(給付型)',
     desc:'さいたま市在住で大学・短大・専門学校等への進学を目指す高校3年生等のうち、世帯の支給額算定基準額が51,300円未満かつ学力評定3.0以上などの要件を満たす人に、受験料などの受験関連費用と入学時の一時金を支援する制度。さいたま市在住者限定です。',
     url:'https://www.city.saitama.lg.jp/003/002/003/p114651.html'
@@ -1351,6 +1379,7 @@ var SCHOLARSHIPS = [
   {
     name:'沖縄県国際交流・人材育成財団 留学奨学金', org:'公益財団法人 沖縄県国際交流・人材育成財団', type:'loan0',
     targets:['income'],
+    region:['沖縄県'],
     amount:'月額4万円(アジア)/6万円(アジア以外)',
     desc:'沖縄県内に住所を有する家庭の子弟で、海外留学を目指す大学生・大学院生を対象にした貸与型奨学金。学業・人物優秀だが経済的理由で修学が困難な人が対象。給付型奨学金との併給も可能です。',
     url:'http://www.oihf.or.jp/'
@@ -1358,6 +1387,7 @@ var SCHOLARSHIPS = [
   {
     name:'琉球スフィア奨学金', org:'弁護士法人 琉球スフィア', type:'grant',
     targets:['bereaved'],
+    region:['沖縄県'],
     amount:'年額18万円(4年間)',
     desc:'沖縄県内のひとり親世帯の大学生を対象にした給付型奨学金。2025年春に創設され、成績による打ち切りがなく4年間継続して支給されます。沖縄県在住のひとり親家庭限定です。',
     url:'https://ryukyu-law.org/news/%E6%B2%96%E7%B8%84%E3%81%AE%E6%9C%AA%E6%9D%A5%E3%82%92%E6%94%AF%E3%81%88%E3%82%8B%E5%A5%A8%E5%AD%A6%E9%87%91%E5%88%B6%E5%BA%A6%E3%80%90%E7%90%89%E7%90%83%E3%82%B9%E3%83%95%E3%82%A3%E3%82%A2%E5%A5%A8%E3%80%91%E3%82%92%E5%89%B5%E8%A8%AD%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F/'
@@ -1407,6 +1437,7 @@ var SCHOLARSHIPS = [
   {
     name:'JEES・住友金属鉱山地域貢献奨学金', org:'公益財団法人 日本国際教育支援協会', type:'grant',
     targets:['uturn'],
+    region:['東京都','兵庫県','愛媛県','鹿児島県'],
     amount:'月額10万円(学士課程修了まで)',
     desc:'東京都多摩地域・兵庫県・愛媛県・鹿児島県いずれかの持続的発展への貢献意欲がある、大学学部1〜2年生(高専本科4年生含む)を対象にした給付型奨学金。日本国籍または永住者が対象です。',
     url:'https://www.jees.or.jp/'
@@ -1442,6 +1473,7 @@ var SCHOLARSHIPS = [
   {
     name:'新見市看護学生奨学支援金', org:'岡山県新見市', type:'loan0',
     targets:['medical'],
+    region:['岡山県'],
     amount:'月額6.5万円(卒業まで)',
     desc:'看護師・准看護師の受験資格が取得できる大学・養成施設に在学する学生を対象にした修学支援金。卒業後、受給期間と同じ期間、新見市内の医療機関等に勤務することが条件です。新見市の制度を使った奨学金を他に受けていないことが必要。',
     url:'https://www.city.niimi.okayama.jp/kurashi/kurashi_detail/index/1131.html'
@@ -1449,6 +1481,7 @@ var SCHOLARSHIPS = [
   {
     name:'東京都保育士修学資金貸付等事業', org:'東京都 / 東京都社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    region:['東京都'],
     amount:'月額5万円以内(総額120万円以内)+入学準備金・就職準備金・生活費加算',
     desc:'指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後5年間(過疎地域は3年間)、都内の保育所等で保育士として働くと返還が全額免除されます。申込みは養成施設経由です。',
     url:'https://www.hoikunomiryoku.metro.tokyo.lg.jp/hoiku-kashituke.html'
@@ -1456,6 +1489,7 @@ var SCHOLARSHIPS = [
   {
     name:'福島県理学療法士等修学資金', org:'福島県', type:'loan0',
     targets:['medical'],
+    region:['福島県'],
     amount:'月額5万円(入学金加算あり)',
     desc:'理学療法士・作業療法士・診療放射線技師・歯科衛生士・臨床検査技師の養成校に在学し、卒業後に福島県内で当該職に従事する意思がある学生を対象にした無利息の修学資金。県外の養成施設在学者も対象。県内従事期間が貸与期間の1.5倍になると返還が免除されます。',
     url:'https://www.pref.fukushima.lg.jp/site/fukushima-iryo-sikin/rigakuryouhoushi-reiwa2.html'
@@ -1463,6 +1497,7 @@ var SCHOLARSHIPS = [
   {
     name:'千葉県保育士修学資金等貸付制度', org:'千葉県', type:'loan0',
     targets:['welfare'],
+    region:['千葉県'],
     amount:'月額5万円以内(総額120万円以内)+入学準備金・就職準備金各20万円以内',
     desc:'指定保育士養成施設に在学し保育士資格の取得を目指す学生を対象にした無利子の修学資金貸付制度。卒業後1年以内に保育士登録し、県内の保育所等で5年間従事すると全額返還免除(過疎地域や45歳以上での入学は3年間)。',
     url:'https://www.pref.chiba.lg.jp/kosodate/hoikushi/kashituke.html'
@@ -1470,6 +1505,7 @@ var SCHOLARSHIPS = [
   {
     name:'福井県介護福祉士・社会福祉士修学資金貸付', org:'社会福祉法人 福井県社会福祉協議会', type:'loan0',
     targets:['welfare'],
+    region:['福井県'],
     amount:'月額5万円以内+入学準備金・就職準備金各20万円以内',
     desc:'介護福祉士・社会福祉士の養成施設に在学する学生を対象にした無利子の修学資金貸付制度。卒業後1年以内に福井県内の施設で5年間(過疎地域・中高年離職者は3年間)従事すると、貸付金の返還が全額免除されます。',
     url:'https://www.f-shakyo.or.jp/by_purpose/purpose02/sub01/alias692'
@@ -1479,6 +1515,20 @@ var SCHOLARSHIPS = [
 /* ---------- フィルター状態 ---------- */
 var activeTypes = {};
 var activeTargets = {};
+var activeRegion = null;
+var activeKeyword = '';
+var PREF_ORDER = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県',
+  '茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県',
+  '新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県',
+  '三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県',
+  '鳥取県','島根県','岡山県','広島県','山口県',
+  '徳島県','香川県','愛媛県','高知県',
+  '福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+function regionsInUse(){
+  var set = {};
+  SCHOLARSHIPS.forEach(function(s){ if(s.region){ s.region.forEach(function(r){ set[r] = true; }); } });
+  return PREF_ORDER.filter(function(p){ return set[p]; });
+}
 
 var PRESETS = [
   { label:'💸 とにかく返済したくない', types:['grant'], targets:[] },
@@ -1502,8 +1552,6 @@ function applyPreset(preset){
   preset.types.forEach(function(t){ activeTypes[t] = true; });
   preset.targets.forEach(function(t){ activeTargets[t] = true; });
   syncChipStates();
-  renderResults();
-  showSearchSub('results');
 }
 
 function syncChipStates(){
@@ -1519,10 +1567,13 @@ function syncChipStates(){
 function getMatched(){
   var typeKeys = Object.keys(activeTypes).filter(function(k){ return activeTypes[k]; });
   var targetKeys = Object.keys(activeTargets).filter(function(k){ return activeTargets[k]; });
+  var kw = activeKeyword.trim().toLowerCase();
   return SCHOLARSHIPS.filter(function(s){
     var typeOk = typeKeys.length === 0 || typeKeys.indexOf(s.type) !== -1;
     var targetOk = targetKeys.length === 0 || s.targets.some(function(t){ return targetKeys.indexOf(t) !== -1; });
-    return typeOk && targetOk;
+    var regionOk = !activeRegion || !s.region || s.region.indexOf(activeRegion) !== -1;
+    var kwOk = !kw || (s.name + s.org + s.desc).toLowerCase().indexOf(kw) !== -1;
+    return typeOk && targetOk && regionOk && kwOk;
   });
 }
 
@@ -1570,10 +1621,35 @@ function renderFilterChips(){
     });
     targetHost.appendChild(chip);
   });
+  var regionHost = $('#filterRegion'); regionHost.innerHTML = '';
+  regionsInUse().forEach(function(region){
+    var chip = document.createElement('button'); chip.className = 'chip'; chip.type = 'button';
+    chip.dataset.key = region;
+    chip.style.setProperty('--chip-color', 'var(--accent2)');
+    chip.innerHTML = '<span class="cdot"></span>' + region;
+    chip.addEventListener('click', function(){
+      activeRegion = (activeRegion === region) ? null : region;
+      syncRegionChipStates();
+      updateLiveCount();
+    });
+    regionHost.appendChild(chip);
+  });
 }
 
+function syncRegionChipStates(){
+  $$('#filterRegion .chip').forEach(function(chip){
+    chip.classList.toggle('active', activeRegion === chip.dataset.key);
+  });
+}
+
+$('#kwSearchInput').addEventListener('input', function(e){
+  activeKeyword = e.target.value;
+  updateLiveCount();
+});
+
 $('#clearFilters').addEventListener('click', function(){
-  activeTypes = {}; activeTargets = {};
+  activeTypes = {}; activeTargets = {}; activeRegion = null; activeKeyword = '';
+  $('#kwSearchInput').value = '';
   $$('.chip.active').forEach(function(c){ c.classList.remove('active'); });
   updateLiveCount();
   showSearchSub('filters');
