@@ -4376,6 +4376,28 @@ var activeTargets = {};
 var activeLevels = {};
 var activeRegion = null;
 var activeKeyword = '';
+
+var FILTER_KEY = 'shogakucalc.filters.v1';
+function saveFilterState(){
+  try{
+    localStorage.setItem(FILTER_KEY, JSON.stringify({
+      types: activeTypes, targets: activeTargets, levels: activeLevels, keyword: activeKeyword
+    }));
+  }catch(e){}
+}
+function loadFilterState(){
+  try{
+    var saved = JSON.parse(localStorage.getItem(FILTER_KEY));
+    if(!saved) return;
+    activeTypes = saved.types || {};
+    activeTargets = saved.targets || {};
+    activeLevels = saved.levels || {};
+    activeKeyword = saved.keyword || '';
+  }catch(e){}
+}
+function clearFilterState(){
+  try{ localStorage.removeItem(FILTER_KEY); }catch(e){}
+}
 var PREF_ORDER = ['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県',
   '茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県',
   '新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県',
@@ -4418,10 +4440,12 @@ function renderFilterChips(){
     chip.dataset.key = key;
     chip.style.setProperty('--chip-color', meta.color);
     chip.innerHTML = '<span class="cdot"></span>' + meta.label;
+    chip.classList.toggle('active', !!activeTypes[key]);
     chip.addEventListener('click', function(){
       activeTypes[key] = !activeTypes[key];
       chip.classList.toggle('active', !!activeTypes[key]);
       updateLiveCount();
+      saveFilterState();
     });
     typeHost.appendChild(chip);
   });
@@ -4431,10 +4455,12 @@ function renderFilterChips(){
     chip.dataset.key = key;
     chip.style.setProperty('--chip-color', 'var(--accent2)');
     chip.innerHTML = '<span class="cdot"></span>' + LEVEL_META[key];
+    chip.classList.toggle('active', !!activeLevels[key]);
     chip.addEventListener('click', function(){
       activeLevels[key] = !activeLevels[key];
       chip.classList.toggle('active', !!activeLevels[key]);
       updateLiveCount();
+      saveFilterState();
     });
     levelHost.appendChild(chip);
   });
@@ -4444,10 +4470,12 @@ function renderFilterChips(){
     chip.dataset.key = key;
     chip.style.setProperty('--chip-color', 'var(--accent)');
     chip.innerHTML = '<span class="cdot"></span>' + TARGET_META[key];
+    chip.classList.toggle('active', !!activeTargets[key]);
     chip.addEventListener('click', function(){
       activeTargets[key] = !activeTargets[key];
       chip.classList.toggle('active', !!activeTargets[key]);
       updateLiveCount();
+      saveFilterState();
     });
     targetHost.appendChild(chip);
   });
@@ -4456,6 +4484,7 @@ function renderFilterChips(){
 $('#kwSearchInput').addEventListener('input', function(e){
   activeKeyword = e.target.value;
   updateLiveCount();
+  saveFilterState();
 });
 
 $('#clearFilters').addEventListener('click', function(){
@@ -4463,6 +4492,7 @@ $('#clearFilters').addEventListener('click', function(){
   $('#kwSearchInput').value = '';
   $$('.chip.active').forEach(function(c){ c.classList.remove('active'); });
   updateLiveCount();
+  clearFilterState();
   showSearchSub('filters');
 });
 $('#goResultsBtn').addEventListener('click', function(){
@@ -4669,9 +4699,18 @@ $('#calcToggle').addEventListener('click', function(){
   if(opening && !calcBuilt){ buildCalcPanel(panel); calcBuilt = true; }
 });
 
+loadFilterState();
+$('#kwSearchInput').value = activeKeyword;
 renderFilterChips();
 updateLiveCount();
 updateFavCount();
+(function notifyRestoredFilters(){
+  var hasAny = activeKeyword ||
+    Object.keys(activeTypes).some(function(k){ return activeTypes[k]; }) ||
+    Object.keys(activeLevels).some(function(k){ return activeLevels[k]; }) ||
+    Object.keys(activeTargets).some(function(k){ return activeTargets[k]; });
+  if(hasAny) toast('前回の検索条件を復元しました');
+})();
 
 (function applyUrlParams(){
   try{
