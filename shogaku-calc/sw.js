@@ -1,4 +1,4 @@
-const CACHE = 'shogakucalc-v24';
+const CACHE = 'shogakucalc-v25';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './privacy.html',
   './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
 
